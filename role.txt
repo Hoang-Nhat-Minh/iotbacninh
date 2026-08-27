@@ -1,0 +1,250 @@
+TT	Tên trường hợp sử dụng	Tác nhân chính	Tác nhân phụ	Mức độ cần thiết	Độ phức tạp	Giao dịch (Transaction)
+I. Phân hệ quản lý tài khoản trên Web - App
+1	Đăng nhập	Người dùng, Nhà quản lý, Quản trị viên		B	Trung bình	Người dùng mở ứng dụng và chọn “Đăng nhập”, hệ thống hiển thị màn hình yêu cầu Tên đăng nhập và Mật khẩu.
+						Nhập thông tin và nhấn “Đăng nhập”. Hệ thống kiểm tra Đăng nhập.
+						Nếu đăng nhập thành công, chuyển hướng người dùng đến màn hình chính dựa trên vai trò.
+						Nếu đăng nhập thất bại hiển thị thông báo lỗi “Sai thông tin đăng nhập”.
+2	Quản lý tài khoản	Quản trị viên		B	Phức tạp	Quản trị viên nhấn vào menu “Quản lý tài khoản”, hệ thống hiển thị giao diện danh sách tài khoản.
+						Quản trị viên nhập từ khóa vào ô tìm kiếm và nhấn “Tìm”, hệ thống lọc dữ liệu từ CSDL và hiển thị danh sách tài khoản thỏa mãn điều kiện.
+						Quản trị viên nhấn nút “Thêm mới”, hệ thống hiển thị biểu mẫu trống để nhập thông tin tài khoản. 
+						Quản trị viên nhập thông tin và nhấn “Lưu”, hệ thống kiểm tra dữ liệu hợp lệ, thêm mới vào CSDL và thông báo thành công (hoặc báo lỗi nếu sai).
+						Quản trị viên chọn một tài khoản và nhấn “Sửa”, hệ thống hiển thị biểu mẫu chứa thông tin hiện tại của tài khoản đó. 
+						Quản trị viên thay đổi thông tin và nhấn “Cập nhật”, hệ thống kiểm tra dữ liệu hợp lệ, cập nhật vào CSDL và thông báo kết quả.
+						Quản trị viên nhấn nút “Khóa” trên một tài khoản, hệ thống hiển thị hộp thoại xác nhận khóa. Quản trị viên nhấn “Đồng ý”, hệ thống cập nhật trạng thái “Khóa” vào CSDL và thông báo đã khóa thành công.
+						Quản trị viên nhấn nút “Xóa” trên một tài khoản, hệ thống hiển thị cảnh báo xác nhận xóa dữ liệu. Quản trị viên nhấn “Đồng ý xóa”, hệ thống kiểm tra ràng buộc, xóa tài khoản khỏi CSDL và thông báo hoàn tất.
+3	Quản lý thông tin cá nhân	Quản trị viên, Nhà quản lý, Người dùng		B	Trung bình	Người dùng truy cập vào mục “Thông tin cá nhân”, hệ thống lấy dữ liệu từ CSDL và hiển thị giao diện chứa thông tin chi tiết.
+						Người dùng chọn nút “Sửa thông tin”. Hệ thống hiện thị form sửa thông tin tài khoản
+						Người dùng thay đổi thông tin cần thiết và nhấn “Lưu thay đổi”, hệ thống kiểm tra tính hợp lệ, cập nhật dữ liệu mới vào CSDL và thông báo thành công.
+						Người dụng nhấn vào ảnh đại điện và chọn ảnh đại diện mới. hệ thống kiểm tra dữ liệu và cập nhật ảnh đại diện mới cho người dùng
+4	Đăng ký	Người dùng		B	Trung bình	Người dùng mở ứng dụng và chọn “Đăng ký”, hệ thống hiển thị biểu mẫu (form) yêu cầu thông tin (Họ tên, SĐT, Mật khẩu, Xác nhận MK, thông tin vườn...).
+						Người dùng nhập thông tin và nhấn “Đăng ký”, hệ thống kiểm tra thông tin
+						Nếu đăng ký thành công, tạo tài khoản mới, lưu vào CSDL và thông báo đăng ký thành công.
+						Nếu đăng ký thất bại, hiển thị thông báo lỗi cụ thể (Tài khoản đã tồn tại, Xác nhận MK không trùng)
+1. Ứng dụng Mobile App
+5	Tiếp nhận thông báo	Người dùng		B	Trung bình	Người dùng mở ứng dụng và ấn vào “Quản lý thông báo”, hệ thống truy xuất CSDL và hiển thị thông báo của người dùng đó (Tiêu đề, thời gian, trạng thái,...)
+						Người dùng ấn vào thông báo trong danh sách thông báo để xem hiển thị chi tiết, hệ thống hiển thị chi tiết các nội dung của thông báo đó (Tiêu đề, nội dung, thời gian,...)
+						Người dùng có thể đánh dấu là đã đọc thông báo bằng cách ấn vào icon đánh dấu, hệ thông chỉnh sửa để đánh dấu người dùng đã đọc thông báo
+						Người dùng có thể xóa thông báo bằng cách ấn vào icon xóa, hệ thống xóa thông tin thông báo trong CSDL
+6	Cài đặt cấu hình ứng dụng	Người dùng, Nhà quản lý		B	Trung bình	Người dùng nhấn chọn mục cấu hình ứng dụng, hệ thống hiển thị giao diện cấu hình
+						Người dùng có thể cấu hình bật/tắt thông báo ứng dụng, hệ thống lưu cài đặt vào CSDL
+						Người dùng có thể cấu hình ngôn ngữ hiển thị (Tiếng Việt, Tiếng Anh), hệ thống lưu cài đặt vào CSDL
+						Người dùng có thể cấu hình giao diện sáng/tối, hệ thống lưu cài đặt vào CSDL
+7	Xem vị trí vùng trồng và trạm quan trắc	Người dùng, Nhà quản lý		B	Trung bình	Người dùng ấn vào vị trí vùng trồng, hệ thống hiển thị vị trí vùng trồng và vị trí đặt trạm quan trắc
+						Người dân chọn xem thông tin của một vùng trồng, hệ thống hiển thị thông tin vùng trồng ra màn hình
+						Người dùng có thể xem thông tin trạm quan trắc đang đặt trên vùng trồng. hệ thống hiển thị thông tin của trạm quan trắc
+						Người dùng có thể nhận biết được vùng trồng nào đang bị sâu bên bằng cách hiển thị màu, hệ thống sẽ hiển thị màu đỏ tại những vị trí đặt trạm đã xác định có sâu bệnh
+						Người dùng có thể xem chi tiết tình hình sâu bệnh, hướng dẫn xử lý phòng trừ sâu bệnh, hệ thống hiển thị thông tin tình hình sâu bệnh từ dữ liệu thu thập được tại trạm quan trắc và hiển thị hướng dẫn xử lý phòng trừ sâu bệnh hại
+8	Xem dự đoán vòng đời sâu đục cuống dựa vào Tổng nhiệt hữu hiệu	Người dùng, Nhà quản lý	Core AI	T	Phức tạp	Người dùng ấn vào dự đoán vòng đời sâu bệnh, hệ thống truy vấn và gửi dữ liệu vi khí hậu về Core AI
+						Core AI tiếp nhận dữ liệu vi khí hậu, hệ thống thông báo Core AI tiếp nhận dữ liệu thành công
+						Core AI tiến hành chuẩn hóa dữ liệu nhận được, hệ thống thông báo Core AI đang chuẩn hóa dữ liệu nhận được
+						Core AI phân tích và tính toán thời gian bùng phát sâu đục cuống, hệ thống thông báo Core AI đang phân tích và tính toán thời gian bùng phát sâu đục cuống
+						Core AI gửi trả kết quả về hệ thống, hệ thống thông báo nhận kết quả từ Core AI thành công
+						Hệ thống tiếp nhận dữ liệu Core AI, lưu vào CSDL rồi hiển thị dự đoán, giao đoạn hiện tại của sâu bệnh ở khu vực của người dân.
+						Người dân có thể ấn vào xem cách phòng trách, khắc phục khi đang ở giai đoạn đó, hệ thống truy vấn CSDL. 
+						Hệ thống hiển thị cách phòng tránh, khắc phục sâu bệnh hại tại khu vực của người dân.
+9	Xem tin tức nông nghiệp	Người dùng		B	Trung bình	Người dùng ấn vào mục tin tức, hệ thống điều hướng người dùng sang trang tin tức.
+						Người dùng có thể tìm kiếm tin tức với từ khóa, hệ thống truy vấn CSDL tìm tin tức tương ứng.
+						Người dùng có thể ấn vào tin tức để xem chi tiết tin tức, hệ thống truy xuất và hiển thị chi tiết tin tức
+						Người dùng có thể đánh dấu tin tức là “Tin tức quan trọng”. Hệ thống lưu lại thông tin theo tài khoản người dùng
+10	Tra cứu kiến thức nông nghiệp	Người dùng		B	Trung bình	Khi Người dùng chọn mục kiến thức nông nghiệp, hệ thống sẽ chuyển hướng sang trang thông tin tương ứng.
+						Người dùng có thể nhập từ khóa để tìm kiếm kiến thức, hệ thống sẽ truy vấn cơ sở dữ liệu và hiển thị kết quả.
+						Người dùng có thể lọc kiến thức nông nghệp theo danh mục. Hệ thống hiển thị các kiến thức tương ứng
+						Người dùng có thể nhấn vào từng tri thức để xem chi tiết thông tin.
+11	Liên hệ hỗ trợ	Người dùng		B	Trung bình	Người dùng chọn mục liên hệ, hệ thông hiển thị giao diện liên hệ.
+						Người dùng nhập thông tin cần hỗ trợ và bấm “Gửi”, hệ thống xác thực thông tin (SĐT, nội dung không trống, reCAPTCHA,...).
+						Nếu có lỗi, hệ thống hiển thị lại form kèm thông tin lỗi.
+						Nếu không có lỗi, hệ thống lưu lại thông tin và gửi thông tin đến Quản trị viên và Nhà quản lý.
+12	Xem danh sách trạm quan trắc	Người dùng, Nhà quản lý		B	Trung bình	Người dùng, Nhà quản lý ấn vào mục trạm quan trắc, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị danh sách trạm quan trắc.
+						Người dùng có thể chọn một trạm quan trắc, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị thông tin chi tiết, danh sách các thiết bị, camera của trạm đó.
+13	Xem dữ liệu cảm biến nhiệt độ không khí	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến nhiệt độ không khí, hệ thống hiển thị bảng thông số nhiệt độ của cảm biến.
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian. Hệ thống truy vấn CSDL và hiển thị dữ liệu theo thời gian được yêu cầu.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+14	Xem dữ liệu cảm biến độ ẩm không khí	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến độ ẩm không khí, hệ thống hiển thị bảng thông số độ ẩm (%) của cảm biến.
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ biến thiên độ ẩm.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+15	Xem dữ liệu cảm biến lượng mưa	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến đo lượng mưa, hệ thống hiển thị bảng thông số lượng mưa
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+16	Xem dữ liệu cảm biến cường độ ánh sáng	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến cường độ ánh sáng, hệ thống hiển thị bảng thông số cường độ sáng (lux hoặc W/m²).
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+17	Xem dữ liệu cảm biến tốc độ gió	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến đo gió, hệ thống hiển thị bảng thông số tốc độ gió (km/h).
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+18	Xem dữ liệu cảm biến độ pH đất	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến độ pH đất, hệ thống hiển thị bảng thông số độ chua/kiềm (pH) của đất.
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ biến thiên chỉ số pH thay vì bảng.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+19	Xem dữ liệu cảm biến nhiệt độ đất	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến nhiệt độ, hệ thống hiển thị bảng thông số nhiệt độ đất của cảm biến.
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+20	Xem dữ liệu cảm biến độ ẩm đất	Người dùng, Nhà quản lý		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, Người dùng chọn cảm biến độ ẩm đất, hệ thống hiển thị bảng thông số độ ẩm đất của cảm biến.
+						Người dùng có thể xem giao diện biểu đồ trực quan hơn bằng cách ấn vào xem dạng biểu đồ, hệ thống hiển thị dữ liệu dạng biểu đồ.
+						Người dùng có thể lọc dữ liệu theo thời gian, hệ thống truy vấn CSDL và hiển thị.
+						Người dùng có thể xuất file Excel bằng cách ấn icon xuất file, hệ thống truy vấn CSDL và xuất file Excel.
+21	Điều khiển Camera	Nhà quản lý, Người dùng		B	Trung bình	Tại giao diện các thiết bị trạm quan trắc, người dùng ấn vào xem Camera, hệ thống hiển thị streaming trực tiếp từ camera cho người dùng
+						Người dùng điều khiển camera theo 4 nút di chuyển trái, phải, trên, xuống để điều khiển góc nhìn camera
+						Người dùng có thể quay video bằng cách ấn vào icon quay video, camera quay video và lưu vào CSDL.
+						Người dùng có thể chụp ảnh bằng cách ấn vào icon chụp ảnh, camera chụp lại ảnh và tải ảnh về máy người dùng
+22	Xem lịch sử thời tiết	Người dùng, Nhà quản lý		B	Trung bình	Người dùng, Nhà quản lý ấn vào xem lịch sử thời tiết, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị lịch sử thời tiết trong vòng 30 ngày.
+						Người dùng, Nhà quản lý ấn vào một ngày nhất định, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị chi tiết lượng mưa, trung bình độ ẩm, nhiệt độ ngày hôm đó.
+23	Chẩn đoán bệnh sương mai qua hình ảnh chọn thủ công	Người dùng, Nhà quản lý	Core AI	T	Phức tạp	Người dùng chọn mục chuẩn đoán bệnh sương mai qua hình ảnh, hệ thống hiển thị giao diện tải hình ảnh.
+						Người dùng tải hình ảnh từ thiết bị lên. Hệ thống kiểm tra hình ảnh có hợp lệ không (định dạng ảnh, kích cỡ,...)
+						Nếu thất bại, hệ thống hiển thị lỗi và yêu cầu người dùng tải lại ảnh.
+						Nếu thành công, hệ thống gửi hình ảnh sang Core AI để phân tích.
+						Code AI tiếp nhận hình ảnh cần chuẩn đoán, hệ thống thông báo Core AI đã tiếp nhận hình ảnh thành công
+						Core AI tiến hành tiền xử lý ảnh để phân tích, hệ thống thông báo Core AI đang tiền xử lý ảnh để phân tích
+						Core AI phân tích hình ảnh và chuẩn đoán, hệ thống thông báo Core AI đang phân tích hình ảnh và chuẩn đoán
+						Core AI gửi trả kết quả chuẩn đoán về hệ thống, hệ thống thông báo Core AI trả kết quả về thành công
+						Hệ thống nhận kết quả phân tích từ Core AI, lưu kết quả phân tích vào cơ sở dữ liệu và hiển thị kết quả cho người dùng
+						Người dùng nhập đánh giá cho kết quả phân tích vừa nhận được. hệ thống lưu lại thông tin đánh giá của người dùng.
+24	Chatbot AI tư vấn nông nghệp	Người dùng, Nhà quản lý	Core AI	T	Phức tạp	Người dùng nhấn chọn chức năng Chatbot AI tư vấn. Hệ thống hiện thị giao diện Chatbot
+						Người dùng có thể tạo mới một chủ để. Hệ thống lưu thông tin chủ đề vào cơ sở dữ liệu
+						Người dùng có thể sửa tiêu đề của chủ đề Chatbot. Hệ thống lưu thông tin tiêu đề vào cơ sở dữ liệu
+						Người dùng có thể xóa chủ đề Chatbot trong danh sách. Hệ thống hiển thị popup xác nhận xóa. nếu người dùng xác nhận xóa, hệ thống xóa dữ liệu chủ đề ra khỏi cơ sở dữ liệu
+						Người dùng ghi âm hỏi cần giải đáp. Hệ thống gửi đoạn ghi âm đến CoreAI
+						Core AI tiếp nhận câu hỏi tư vấn, hệ thống thông báo gửi dữ liệu thành công
+						Core AI chuyển đổi giọng nói thành văn bản, hệ thống thông báo Core AI đang nhận diện câu hỏi
+						Core AI trích xuất thực thể chính trong câu hỏi, hệ thống thông báo Core AI đang phân tích câu hỏi
+						Core AI chuẩn hóa cấu trúc truy vấn trước khi tra cứu CSDL, hệ thống thông báo Core AI đang chuẩn hóa dữ liệu
+						Core AI truy vấn CSDL kiến thức (bệnh, sâu, thuốc, thời tiết, kỹ thuật canh tác), hệ thống thông báo Core AI đang tìm kiếm câu trả lời
+						Core AI tổng hợp tri thức và biên soạn câu trả lời phù hợp, hệ thống thông báo Core AI đang tạo câu trả lời
+						Core AI lưu lại lịch sử tư vấn, hệ thống thông báo Core AI tạo câu trả lời thành công
+						Core AI chuyển đổi văn bản thành âm thanh và gửi phản hồi, hệ thống thông báo Core AI đang trả lời
+						Hệ thống nhận được kết quả, hệ thống lưu lịch sử tư vấn vào cơ sở dữ liệu và hiển thị kết quả cho người dùng
+25	Quản lý Cài đặt	Người dùng, Nhà quản lý		B	Trung bình	Người dùng nhấn chọn chức năng cài đặt, hệ thống hiển thị danh sách các cài đặt cá nhân.
+						Người dùng chọn bật/tắt cảnh báo thời tiết. Hệ thống kiểm tra và lưu lại thông tin
+						Người dùng chọn bật/tắt cảnh báo sâu bệnh. Hệ thống kiểm tra và lưu lại thông tin
+						Người dùng chọn bật/tắt thông báo. Hệ thống kiểm tra và lưu lại thông tin
+26	Quản lý Danh mục công việc	Người dùng		B	Phức tạp	Người dùng chọn Danh mục công việc, hệ thống truy vấn CSDL và hiển thị giao diện và dữ liệu của người dùng. 
+						Người dùng có thể sắp xếp thứ tự Danh mục công việc, hệ thống kiểm tra và lưu lại thứ tự danh mục công việc
+						Người dùng có thể Tìm kiếm Danh mục công việc, hệ thống truy vấn và trả về dữ liệu tìm kiếm
+						Người dùng có thể Thêm Danh mục công việc mới bằng cách chọn thêm danh mục, hệ thống hiển thị giao diện nhập dữ liệu.
+						Người dùng nhập thông tin danh mục công việc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Sửa Danh mục công việc mới bằng cách chọn sửa danh mục đã chọn, hệ thống hiển thị giao diện nhập dữ liệu.
+						Người dùng sửa dữ liệu danh mục công việc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Xóa Danh mục công việc, hệ thống hiển thị pop up xác thực, người dùng xác thực và xóa Danh mục công việc
+27	Quản lý Lịch sử chăm sóc	Người dùng		B	Phức tạp	Người dùng chọn Lịch sử chăm sóc, hệ thống truy vấn CSDL và Hệ thống hiển thị giao diện và dữ liệu của người dùng
+						Người dùng có thể Lọc lịch sử chăm sóc theo thời gian. Hệ thống truy vấn cơ sở dữ liệu và hiển thị kết quả cho người dùng
+						Người dùng có Tìm kiếm Lịch sử chăm sóc theo danh mục công việc, hệ thống truy vấn và trả về dữ liệu Tìm kiếm
+						Người dùng có thể Thêm Lịch sử chăm sóc mới bằng cách chọn thêm danh mục, hệ thống hiển thị giao diện nhập dữ liệu.
+						Người dùng nhập thông tin lịch sử chăm sóc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Sửa Lịch sử chăm sóc mới bằng cách chọn sửa danh mục đã chọn, hệ thống hiển thị giao diện sửa dữ liệu.
+						Người dùng sửa lại dữ liệu lịch sử chăm sóc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Xóa Lịch sử chăm sóc, hệ thống hiển thị pop up xác thực, người dùng xác thực và xóa Lịch sử chăm sóc
+28	Quản lý Sản phẩm sử dụng	Người dùng		B	Phức tạp	Người dùng chọn Sản phẩm sử dụng, hệ thống truy vấn CSDL và Hệ thống hiển thị giao diện và dữ liệu của người dùng
+						Người dùng có thể Lọc Sản phẩm sử dụng theo loại. Hệ thống truy vấn cơ sở dữ liệu và hiển thị kết quả cho người dùng
+						Người dùng có Tìm kiếm Sản phẩm sử dụng theo danh mục công việc, hệ thống truy vấn và trả về dữ liệu Tìm kiếm
+						Người dùng có thể Thêm Sản phẩm sử dụng mới bằng cách chọn thêm danh mục, hệ thống hiển thị giao diện nhập dữ liệu.
+						Người dùng nhập thông tin Sản phẩm sử dụng và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Sửa Sản phẩm sử dụng mới bằng cách chọn sửa danh mục đã chọn, hệ thống hiển thị giao diện sửa dữ liệu.
+						Người dùng sửa lại dữ liệu Sản phẩm sử dụng và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Xóa Sản phẩm sử dụng, hệ thống hiển thị pop up xác thực, người dùng xác thực và xóa Sản phẩm sử dụng
+29	Quản lý Quy trình chăm sóc	Người dùng		B	Phức tạp	Người dùng chọn Quy trình chăm sóc, hệ thống truy vấn CSDL và Hệ thống hiển thị giao diện và dữ liệu của người dùng
+						Người dùng có thể Lọc Quy trình chăm sóc theo loại cây trồng. Hệ thống truy vấn cơ sở dữ liệu và hiển thị kết quả cho người dùng
+						Người dùng có Tìm kiếm Quy trình chăm sóc theo danh mục công việc, hệ thống truy vấn và trả về dữ liệu Tìm kiếm
+						Người dùng có thể Thêm Quy trình chăm sóc mới bằng cách chọn thêm danh mục, hệ thống hiển thị giao diện nhập dữ liệu.
+						Người dùng nhập thông tin Quy trình chăm sóc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Sửa Quy trình chăm sóc mới bằng cách chọn sửa danh mục đã chọn, hệ thống hiển thị giao diện sửa dữ liệu.
+						Người dùng sửa lại dữ liệu Quy trình chăm sóc và nhấn lưu. Hệ thống kiểm tra dữ liệu nhập, nếu hợp lệ, lưu vào CSDL, nếu không hợp lệ yêu cầu người dùng nhập lại và hiển thị lỗi.
+						Người dùng có thể Xóa Quy trình chăm sóc, hệ thống hiển thị pop up xác thực, người dùng xác thực và xóa Quy trình chăm sóc
+2. Hệ thống website
+30	Quản lý vị trí vườn	Quản trị viên		B	Phức tạp	Nhà quản lý chọn mục “Quản lý vị trí vườn” từ thanh menu chính. Hệ thống tải giao diện bản đồ vị trí vườn.
+						Nhà quản lý nhập tên một vườn hoặc một khu vực cụ thể vào ô “Tìm kiếm”. Hệ thống lập tức định vị và phóng to (zoom) bản đồ đến vị trí vừa tìm, hiển thị rõ tình trạng cảnh báo tại khu vực đó.
+						Nhà quản lý nhấn chuột vào một vùng trồng. Hệ thống hiển thị pop-up thông tin vùng trồng. Nhà quản lý có thể sửa thông tin khu vực đang chọn và ấn lưu, hệ thống lưu lại các thông tin đã sửa
+						Nhà quản lý có thể thêm vùng trồng mới cho Người dùng bằng cách ấn thêm vùng mới Hệ thống hiển thị pop-up chi tiết, nhà quản lý nhập các thông tin và vẽ vùng rồi ấn lưu, hệ thông xử lý và lưu khu vực vào trong CSDL
+						Nhà quản lý chọn một vùng trên bản đồ và nhấn Xóa vùng. Hệ thống kiểm tra nếu vùng trồng có liên kết dữ liệu thu hoạch/nhật ký canh tác → cảnh báo không thể xóa ,nếu hợp lệ → hệ thống xóa vùng trồng khỏi CSDL.
+						Nhà quản lý thêm mới thông tin một trạm quan trắc, hệ thống kiểm tra thông tin và lưu vào CSDL.
+						Nhà quản lý chọn sửa một thông tin chi tiết, hệ thống hiển thị form sửa cho nhà quản lý.
+						Nhà quản lý chọn một thông tin và bấm xóa, hệ thống xóa thông tin của trạm khỏi CSDL.
+31	Quản lý Lịch sử chăm sóc của Người dùng	Quản trị viên		B	Phức tạp	Quản trị viên chọn Lịch sử chăm sóc, hệ thống truy vấn CSDL và Hệ thống hiển thị giao diện và dữ liệu của tất cả người dùng
+						Quản trị viên có thể xuất file công việc các nông dân đã làm, hệ thống truy vấn CSDL và xuất file Excel.
+						Quản trị viên có thể Tạo Lịch sử chăm sóc để hỗ trợ cho người dùng bằng cách ấn Tạo Lịch sử chăm sóc, hệ thống hiển thị form nhập, Quản trị viên điền thông tin và ấn Lưu, nếu dữ liệu không hợp lệ, hệ thống yêu cầu Quản trị viên nhập lại, nếu dữ liệu hợp lệ, hệ thống Tạo/Lưu dữ liệu vào CSDL.
+						Quản trị viên có thể Sửa Lịch sử chăm sóc đã thêm bằng cách chọn một Lịch sử chăm sóc đã tạo, hệ thống hiển thị form sửa, Quản trị viên sửa thông tin, sau đó bấm Lưu, nếu dữ liệu không hợp lệ, hệ thống yêu cầu Quản trị viên nhập lại, nếu dữ liệu hợp lệ, hệ thống Tạo/Lưu dữ liệu vào CSDL.
+						Quản trị viên có thể Xóa Lịch sử chăm sóc đã thêm bằng cách ấn nút xóa, hệ thống hiển thị pop up xác nhận, Quản trị viên bấm xác nhận và xóa.
+						Quản trị viên có thể Tìm kiếm Lịch sử chăm sóc theo người dùng hoặc từ khóa bằng cách nhập vào trường tìm kiếm, hệ thống truy vấn CSDL theo từ khóa, trả về kết quả cho Quản trị viên.
+						Quản trị viên có thể Lọc lịch sử chăm sóc theo ngày, hệ thống truy vấn CSDL theo ngày rồi trả về kết quả cho người dùng.
+						Quản trị viên có thể nhập file Excel công việc hướng dẫn người dân cách chăm sóc, hệ thống thu thấp file, phân tích dữ liệu và lưu vào CSDL.
+32	Quản lý thông tin hệ thống	Quản trị viên		B	Trung bình	Quản trị viên truy cập vào mục “Cài đặt”, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị giao diện và dữ liệu thông tin cài đặt của hệ thống.
+						Quản trị viên cập nhật thông tin hệ thống (Tên hệ thống, favicon,...) và nhấn Lưu, hệ thống kiểm tra tính hợp lệ của thông tin.
+						Nếu thành công, hệ thống lưu thông tin vào CSDL.
+						Nếu thất bại, hệ thống hiển thị lỗi và yêu cầu nhập lại thông tin.
+33	Cấu hình hệ thống quan trắc	Quản trị viên		B	Trung bình	Nhà quản lý chọn mục “Cấu hình hệ thống quan trắc”, hệ thống truy vấn CSDL.
+						Hệ thống hiển thị thông tin và dữ liệu truy vấn của tất cả các trạm. 
+						Nhà quản lý cấu hình khoảng thời gian các trạm IoT gửi dữ liệu cho server, hệ thống kiểm tra và lưu cấu hình vào CSDL.
+						Nhà quản lý chọn bật hoặc tắt hệ thống quan trắc (bảo trì), hệ thống thực hiện chuyển đổi trạng thái hoạt động của toàn bộ hệ thống.
+34	Quản lý khung thời gian gửi dữ liệu ảnh lên server	Quản trị viên		B	Trung bình	Nhà quản lý chọn mục quản lý khung thời gian gửi dữ liệu ảnh lên server, hệ thống hiển thị giao diện quản lý khung thời gian.
+						Nhà quản lý chọn nút “Thêm”, hệ thống hiển thị form nhập khung thời gian gửi dữ liệu. Nhà quản lý nhập thông tin và nhấn “Lưu”, hệ thống kiểm tra hợp lệ và lưu khung thời gian mới vào cơ sở dữ liệu, đồng thời cập nhật danh sách.
+						Nhà quản lý chọn một khung thời gian và nhấn nút “Sửa”, hệ thống hiển thị form chỉnh sửa với thông tin hiện tại. Nhà quản lý điều chỉnh dữ liệu và nhấn “Cập nhật”, hệ thống ghi nhận thay đổi và cập nhật khung thời gian trong danh sách.
+						Nhà quản lý chọn một khung thời gian và nhấn nút “Xóa”, hệ thống hiển thị hộp thoại xác nhận. Nhà quản lý xác nhận thao tác, hệ thống thực hiện xóa khung thời gian khỏi cơ sở dữ liệu và làm mới danh sách.
+35	Cảnh báo bệnh sương mai tự động dựa trên hình ảnh	Quản trị viên	Core AI	T	Phức tạp	Quản trị viên truy cập tính năng Cảnh báo bệnh sương mai tự động dựa trên hình ảnh, hệ thống hiển thị giao diện quản lý
+						Quản trị viên thực hiện kích hoạt tính năng Cảnh báo bệnh sương mai tự động dựa trên hình ảnh. Hệ thống dựa vào cấu hình thời gian thu thập hình ảnh từ trạm quan trắc, tiến hành tự động thu thập hình ảnh và gửi đến Core AI để kiểm tra.
+						Code AI tiếp nhận hình ảnh cần chuẩn đoán, hệ thống thông báo đã tiếp nhận hình ảnh thành công
+						Core AI tiến hành tiền xử lý ảnh để phân tích, hệ thống thông báo Core AI đang thực hiện phân tích tiền xử lý
+						Core AI phân tích hình ảnh và chuẩn đoán, hệ thống thông báo Core AI đang thực hiện phân tích hình ảnh và chuẩn đoán
+						Core AI gửi trả kết quả, hệ thống nhận kết quả và hệ thống đưa ra thông báo đã nhận kết quả trả về
+						Hệ thống nhận được kết quả, thông báo nhận được thành công và hệ thống lưu kết quả vào CSDL.
+						Nếu kết quả trả về phát hiện có bệnh, hệ thống tự động gửi thông báo đến người dùng quản lý vùng trồng tương ứng.
+36	Cảnh báo sâu đục cuống tự động dựa trên dữ liệu vi khí hậu	Quản trị viên	Core AI	T	Phức tạp	Quản trị viên truy cập tính năng Cảnh báo sâu đục cuống tự động dựa trên hình ảnh. Hệ thống hiển thị giao diện quản lý
+						Quản trị viên thực hiện kích hoạt tính năng Cảnh báo bệnh sương mai tự động dựa trên hình ảnh. Hệ thống dựa vào cấu hình thời gian thu thập hình ảnh từ trạm quan trắc, tiến hành tự động thu thập hình ảnh và gửi đến Core AI để kiểm tra. Sau khi nhận được kết quả, hệ thống lưu kết quả vào CSDL.
+						Code AI tiếp nhận hình ảnh cần chuẩn đoán, hệ thống thông báo đã tiếp nhận hình ảnh thành công
+						Core AI tiến hành tiền xử lý ảnh để phân tích, hệ thống thông báo Core AI đang thực hiện phân tích tiền xử lý
+						Core AI phân tích hình ảnh và chuẩn đoán, hệ thống thông báo Core AI đang thực hiện phân tích hình ảnh và chuẩn đoán
+						Core AI gửi trả kết quả, hệ thống nhận kết quả và hệ thống đưa ra thông báo đã nhận kết quả trả về
+						Nếu kết quả trả về phát hiện có bệnh, hệ thống tự động gửi thông báo đến người dùng quản lý vùng trồng tương ứng.
+						Từ danh sách vùng trồng, người dùng chọn xem biểu đồ trạng thái phát triển của sâu đục cuống tài một vùng trồng. Hệ thống dựa trên dữ liệu kết quả từ Core AI dự đoán, xử lý dữ liệu và hiển thị cho người dùng.
+						Người dùng có thể tìm kiếm vùng trồng theo mã vùng trồng, khu vực. Hệ thống truy vấn cơ sở dữ liệu và hiển thị kết quả tìm được.
+37	Quản lý thông báo	Nhà quản lý		B	Trung bình	Nhà quản lý chọn mục Quản lý thông báo, hệ thống hiển thị danh sách tất cả thông báo hiện có kèm bộ lọc cơ bản.
+						Nhà quản lý có thể thêm thông báo mới bằng cách nhấn nút Thêm thông báo, hệ thống hiển thị form nhập.
+						Nhà quản lý có thể xóa thông báo bằng cách nhấn nút Xóa, hệ thống hiển thị thông báo xác nhận, nếu đồng ý, hệ thống xóa thông báo khỏi CSDL.
+						Nhà quản lý có thể tìm kiếm thông báo bằng từ khóa (tiêu đề, nội dung) hoặc lọc theo ngày tạo, người tạo, mức ưu tiên. Hệ thống truy vấn CSDL và hiển thị kết quả phù hợp.
+38	Quản lý hòm thư liên hệ	Nhà quản lý		B	Trung bình	Nhà quản lý chọn mục quản lý đơn liên hệ, hệ thống hiển thị danh sách các đơn liên hệ từ Người dùng
+						Nhà quản lý có thể tìm kiếm hoặc lọc đơn liên hệ bằng cách nhập từ khóa hoặc chọn bộ lọc phù hợp, hệ thống tải lại danh sách theo điều kiện đã chọn.
+						Khi Nhà quản lý chọn một đơn liên hệ, hệ thống hiển thị chi tiết đơn gồm nội dung người gửi, thông tin liên hệ và lịch sử phản hồi (nếu có).
+						Nhà quản lý có thể phản hồi đơn liên hệ bằng nút Phản hồi, hệ thống hiển thị form nhập nội dung. Sau khi Nhà quản lý gửi phản hồi, hệ thống lưu thông tin phản hồi và cập nhật trạng thái đơn.
+						Nhà quản lý có thể xóa đơn liên hệ bằng nút Xóa, hệ thống yêu cầu xác nhận và xóa đơn liên hệ khỏi CSDL nếu được xác nhận.
+39	Quản lý tin tức	Nhà quản lý		B	Phức tạp	Nhà quản lý truy cập vào mục “Quản lý tin tức”, hệ thống truy xuất dữ liệu từ CSDL và hiển thị giao diện danh sách các bài viết hiện có.
+						Nhà quản lý nhập từ khóa vào ô tìm kiếm và nhấn “Tìm”, hệ thống lọc dữ liệu trong CSDL và hiển thị các tin tức phù hợp.
+						Nhà quản lý nhấn nút “Thêm tin tức”, hệ thống hiển thị biểu mẫu soạn thảo (Tiêu đề, Tóm tắt, Nội dung chi tiết, Hình ảnh...). Nhà quản lý nhập nội dung và nhấn “Lưu”, hệ thống kiểm tra tính hợp lệ của dữ liệu (Các trường đầy đủ, ảnh hợp lệ, không bị trùng slug,...).
+						Nếu không hợp lệ, hệ thống hiển thị lỗi và yêu cầu người dùng nhập lại dữ liệu. Nếu hợp lệ, hệ thống lưu bài viết mới vào CSDL và thông báo thành công.
+						Nhà quản lý chọn một bài viết và nhấn “Sửa”, hệ thống lấy thông tin chi tiết của bài viết đó từ CSDL và hiển thị lên biểu mẫu để chỉnh sửa. Nhà quản lý cập nhật nội dung và nhấn “Lưu thay đổi”, hệ thống kiểm tra tính hợp lệ của dữ liệu (Các trường đầy đủ, ảnh hợp lệ,...).
+						Nếu không hợp lệ, hệ thống hiển thị lỗi và yêu cầu người dùng nhập lại dữ liệu. Nếu hợp lệ, hệ thống sửa thông tin bài viết, lưu vào CSDL và thông báo thành công.
+						Nhà quản lý nhấn nút “Xóa” trên một bài viết, hệ thống hiển thị hộp thoại yêu cầu xác nhận để tránh xóa nhầm. Nhà quản lý nhấn “Đồng ý”, hệ thống thực hiện xóa bài viết khỏi CSDL và thông báo đã xóa thành công.
+40	Quản lý kiến thức nông nghiệp	Nhà quản lý
+41	Quản lý log lỗi hệ thống	Nhà quản lý
+42	Quản lý lịch sử truy cập hệ thống	Nhà quản lý
+43	Xem bản đồ vùng trồng và trạm quan trắc	Người dùng, Nhà quản lý
+44	Giám sát dữ liệu cảm biến	Người dùng, Nhà quản lý
+45	Giám sát hình ảnh/video	Người dùng, Nhà quản lý
+46	Quản lý tọa độ ảnh chụp tự động	Người dùng, Nhà quản lý
+47	Chẩn đoán bệnh sương mai qua hình ảnh chọn thủ công	Người dùng, Nhà quản lý	Core AI
+48	Kiểm tra vòng đời sâu đục cuống tại vùng trồng	Người dùng, Nhà quản lý	Core AI
+49	Chatbot AI tư vấn nông nghệp	Người dùng, Nhà quản lý	Core AI
+II. Phân hệ hệ thống IoT 
+50	Gửi dữ liệu quan trắc về server	Hệ thống IoT
+51	Gửi dữ liệu ảnh camera về server	Hệ thống IoT
+III. Phân hệ AI
+52	Gán nhãn dữ liệu hình ảnh	Quản trị viên
+53	Quản lý dữ liệu hình ảnh	Quản trị viên
+54	Kiểm tra chéo hình ảnh gán nhãn	Nhà quản lý
+55	Xuất tập dữ liệu ảnh gán nhãn	Quản trị viên
+56	Gán nhãn dữ liệu chatbot	Quản trị viên
+57	Xuất tập dữ liệu văn bản gán nhãn 	Quản trị viên
+58	Quản lý cơ sở tri thức chatbot	Quản trị viên
+
+
+TT	Tên tác nhân	Mô tả tác nhân	Phân loại tác nhân
+1	Nhà quản lý	Đây là các cán bộ thuộc cơ quan quản lý nhà nước, cụ thể là Sở Nông nghiệp và Môi trường tỉnh Bắc Ninh. Họ sử dụng hệ thống để giám sát tổng quan và quản lý	Phức tạp
+2	Người dùng	Đây là đối tượng sử dụng trực tiếp ứng dụng. Họ cần nhận cảnh báo và các tư vấn kỹ thuật	Phức tạp
+3	Quản trị viên	Đây là đối tượng thuộc hệ thống, có chức năng xử lý dữ liệu, hình ảnh và phân tich hiển thị	Phức tạp

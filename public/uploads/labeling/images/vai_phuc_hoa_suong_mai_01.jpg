@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+        <rect width="1200" height="800" fill="#0f172a"/>
+        <path d="M 200 600 Q 400 200 600 600 T 1000 600" stroke="#10b981" stroke-width="12" fill="none"/>
+        <circle cx="400" cy="350" r="120" fill="#ef4444" opacity="0.7"/>
+        <circle cx="750" cy="450" r="140" fill="#f59e0b" opacity="0.7"/>
+        <text x="600" y="720" font-family="sans-serif" font-weight="bold" font-size="36" fill="#f8fafc" text-anchor="middle">Anh Khao Sat Thuc Dia: vai_phuc_hoa_suong_mai_01.jpg</text>
+    </svg>
