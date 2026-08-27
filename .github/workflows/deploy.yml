@@ -18,6 +18,8 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
+            set -e
+            
             cd /var/www/smartagriculture.kennatech.vn
 
             sudo chown -R nhatminh:nhatminh storage bootstrap/cache
@@ -25,6 +27,7 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
+            sudo chown -R www-data:www-data vendor
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
