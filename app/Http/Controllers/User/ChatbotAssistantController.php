@@ -100,4 +100,68 @@ class ChatbotAssistantController extends Controller
             'data' => $message,
         ]);
     }
+
+    public function streamChat(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string',
+        ]);
+
+        $query = $request->input('query');
+        $topK = $request->input('top_k', 5);
+        $conversationId = $request->input('conversation_id', null);
+
+        $baseUrl = config('services.rag.base_url', 'http://127.0.0.1:9059/api/v1');
+        $token = session('rag_jwt_token') ?? config('services.rag.default_token', '');
+
+        $payload = json_encode([
+            'query' => $query,
+            'top_k' => (int) $topK,
+            'conversation_id' => $conversationId,
+        ]);
+
+        return response()->stream(function () use ($baseUrl, $token, $payload) {
+            // Turn off output buffering if active
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            $ch = curl_init();
+            $url = rtrim($baseUrl, '/') . '/chat/stream';
+
+            $headers = [
+                'Content-Type: application/json',
+                'Accept: text/event-stream',
+            ];
+            if (!empty($token)) {
+                $headers[] = 'Authorization: Bearer ' . $token;
+            }
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $data) {
+                echo $data;
+                flush();
+                return strlen($data);
+            });
+
+            $success = curl_exec($ch);
+            if (!$success) {
+                $error = curl_error($ch);
+                echo "data: " . json_encode(['type' => 'error', 'content' => 'Không thể kết nối đến máy chủ AI: ' . $error]) . "\n\n";
+                flush();
+            }
+            curl_close($ch);
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache, no-transform',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
 }
+

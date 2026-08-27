@@ -107,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/topics/update/{id}', [UserChatbotController::class, 'updateTopic']);
         Route::post('/topics/delete/{id}', [UserChatbotController::class, 'destroyTopic']);
         Route::post('/message', [UserChatbotController::class, 'sendMessage']);
+        Route::post('/stream', [UserChatbotController::class, 'streamChat'])->name('chatbot.stream');
     });
 
     // Notifications (UC 5)

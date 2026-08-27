@@ -378,14 +378,10 @@
         let speechRecognition = null;
         let isRecordingVoice = false;
 
-        // 1. Cấu hình RAG Backend & Token
+        // 1. Cấu hình CSRF Token
         const getRagConfig = () => {
-            const baseUrlMeta = document.querySelector('meta[name="rag-api-base"]')?.content;
-            const tokenMeta = document.querySelector('meta[name="rag-api-token"]')?.content;
             const csrfMeta = document.querySelector('meta[name="csrf-token"]')?.content;
             return {
-                baseUrl: baseUrlMeta || 'http://117.6.44.206:9059/api/v1',
-                token: tokenMeta || '',
                 csrfToken: csrfMeta || ''
             };
         };
@@ -465,8 +461,6 @@
             setLoadingState(true);
 
             const {
-                baseUrl,
-                token,
                 csrfToken
             } = getRagConfig();
 
@@ -495,16 +489,9 @@
                 console.warn('Lỗi lưu tin nhắn user vào database:', e);
             }
 
-            // 3.2. Gọi Stream API tới AI RAG Backend
+            // 3.2. Gọi Stream API tới Laravel Proxy Backend
             let accumulatedText = "";
             let capturedSources = [];
-
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
 
             try {
                 const requestBody = {
@@ -513,9 +500,13 @@
                     conversation_id: null
                 };
 
-                const response = await fetch(`${baseUrl}/chat/stream`, {
+                const response = await fetch('{{ route('chatbot.stream') }}', {
                     method: 'POST',
-                    headers: headers,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'text/event-stream'
+                    },
                     body: JSON.stringify(requestBody)
                 });
 

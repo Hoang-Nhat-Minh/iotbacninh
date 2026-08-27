@@ -10,8 +10,6 @@
     <title>@yield('title', 'Hệ Thống IoT Nông Nghiệp Bắc Ninh')</title>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="rag-api-base" content="{{ config('services.rag.base_url', 'http://117.6.44.206:9059/api/v1') }}">
-    <meta name="rag-api-token" content="{{ session('rag_jwt_token') ?? config('services.rag.default_token', '') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
