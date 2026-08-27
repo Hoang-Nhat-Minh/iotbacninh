@@ -28,7 +28,7 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            sudo -u www-data /usr/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-            php artisan migrate --force
-            php artisan optimize
+            sudo -u www-data php artisan migrate --force
+            sudo -u www-data php artisan optimize

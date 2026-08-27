@@ -18,6 +18,7 @@ class DashboardController extends Controller
     {
         //Testing 1
         //Testing 2
+        //Testing 3
         $user = Auth::user();
 
         // 1. Gardens Query
