@@ -23,6 +23,9 @@ jobs:
             git fetch origin
             git reset --hard origin/main
 
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+
             composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
             php artisan migrate --force
