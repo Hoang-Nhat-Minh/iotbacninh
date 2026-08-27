@@ -20,6 +20,8 @@ jobs:
           script: |
             cd /var/www/smartagriculture.kennatech.vn
 
+            sudo chown -R nhatminh:nhatminh storage bootstrap/cache
+
             git fetch origin
             git reset --hard origin/main
 

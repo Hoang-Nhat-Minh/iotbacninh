@@ -16,7 +16,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        //Testing comment
+        //Testing 1
+        //Testing 2
         $user = Auth::user();
 
         // 1. Gardens Query
