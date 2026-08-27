@@ -57,23 +57,47 @@ class ChatbotAssistantController extends Controller
 
     public function sendMessage(Request $request)
     {
-        $validated = $request->validate([
-            'conversation_id' => 'required|exists:chatbot_conversations,id',
-            'message' => 'required|string',
+        return $this->saveMessage($request);
+    }
+
+    public function saveMessage(Request $request)
+    {
+        $userId = Auth::id() ?? 1;
+        $conversationId = $request->input('conversation_id');
+        $role = $request->input('role', 'user');
+        $content = $request->input('content') ?? $request->input('message');
+
+        if (empty($content)) {
+            return response()->json(['success' => false, 'message' => 'Nội dung tin nhắn không được để trống'], 422);
+        }
+
+        // Auto-create or find conversation
+        $conversation = null;
+        if ($conversationId) {
+            $conversation = ChatbotConversation::where('id', $conversationId)->where('user_id', $userId)->first();
+        }
+
+        if (!$conversation) {
+            $title = \Illuminate\Support\Str::limit(trim(strip_tags($content)), 40, '...');
+            $conversation = ChatbotConversation::create([
+                'user_id' => $userId,
+                'title' => $title ?: 'Chủ đề mới',
+            ]);
+            $conversationId = $conversation->id;
+        }
+
+        $message = ChatbotMessage::create([
+            'conversation_id' => $conversationId,
+            'role' => in_array($role, ['user', 'assistant']) ? $role : 'user',
+            'content' => $content,
+            'created_at' => now(),
         ]);
 
-        ChatbotMessage::create([
-            'conversation_id' => $validated['conversation_id'],
-            'role' => 'user',
-            'content' => $validated['message'],
+        return response()->json([
+            'success' => true,
+            'conversation_id' => $conversationId,
+            'conversation_title' => $conversation->title,
+            'data' => $message,
         ]);
-
-        $reply = ChatbotMessage::create([
-            'conversation_id' => $validated['conversation_id'],
-            'role' => 'assistant',
-            'content' => 'Core AI đã tiếp nhận câu hỏi và tra cứu tri thức kỹ thuật nông nghiệp...',
-        ]);
-
-        return response()->json(['success' => true, 'data' => $reply]);
     }
 }

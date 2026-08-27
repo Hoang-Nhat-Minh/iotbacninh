@@ -9,6 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Hệ Thống IoT Nông Nghiệp Bắc Ninh')</title>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="rag-api-base" content="{{ config('services.rag.base_url', 'http://117.6.44.206:9059/api/v1') }}">
+    <meta name="rag-api-token" content="{{ session('rag_jwt_token') ?? config('services.rag.default_token', '') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
