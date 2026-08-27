@@ -63,18 +63,30 @@
             top: 0;
             height: 100vh;
             overflow-y: auto;
+            overflow-x: hidden;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
         }
 
         .labeler-brand {
             height: 70px;
-            padding: 0 20px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             border-bottom: 1px solid var(--labeler-border);
             color: var(--labeler-text);
             font-weight: 700;
             font-size: 15px;
+            position: relative;
+        }
+
+        .labeler-brand-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .labeler-brand-icon {
@@ -88,12 +100,35 @@
             font-size: 18px;
             color: #ffffff;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            flex-shrink: 0;
         }
 
         .labeler-brand-sub {
             font-size: 11px;
             color: var(--labeler-primary);
             font-weight: 500;
+        }
+
+        .labeler-sidebar-toggle {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid var(--labeler-border);
+            background: #ffffff;
+            color: var(--labeler-text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .labeler-sidebar-toggle:hover {
+            background-color: var(--labeler-primary);
+            color: #ffffff;
+            border-color: var(--labeler-primary);
         }
 
         .labeler-nav {
@@ -111,6 +146,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--labeler-text-muted);
+            white-space: nowrap;
         }
 
         .labeler-nav-link {
@@ -124,6 +160,8 @@
             font-size: 13.5px;
             font-weight: 500;
             transition: all 0.2s ease;
+            white-space: nowrap;
+            position: relative;
         }
 
         .labeler-nav-link:hover {
@@ -141,11 +179,120 @@
             width: 20px;
             text-align: center;
             font-size: 16px;
+            flex-shrink: 0;
         }
 
         .labeler-nav-divider {
             margin: 12px 16px;
             border-top: 1px solid var(--labeler-border);
+        }
+
+        /* Collapsed Sidebar State (Tương tự IoT sidebar) */
+        .labeler-sidebar.collapsed {
+            width: 76px;
+        }
+
+        .labeler-sidebar.collapsed .labeler-brand {
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .labeler-sidebar.collapsed .labeler-brand-content {
+            display: none !important;
+        }
+
+        .labeler-sidebar.collapsed .labeler-sidebar-toggle {
+            position: static;
+            transform: none;
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+            background: #f8fafc;
+            border: 1px solid var(--labeler-border);
+            border-radius: 10px;
+            color: var(--labeler-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .labeler-sidebar.collapsed .labeler-sidebar-toggle:hover {
+            background-color: var(--labeler-primary);
+            color: #ffffff;
+            border-color: var(--labeler-primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-section {
+            display: none;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav {
+            padding: 16px 8px;
+            align-items: center;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-link {
+            justify-content: center;
+            padding: 10px;
+            width: 48px;
+            height: 44px;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-link span:not(.nav-icon) {
+            display: none;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-divider {
+            width: 36px;
+            margin: 8px auto;
+        }
+
+        /* Floating Tooltip khi thu gọn menu */
+        .labeler-sidebar.collapsed .labeler-nav-link[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%) scale(0.95);
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1050;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-link[data-tooltip]::before {
+            content: '';
+            position: absolute;
+            left: calc(100% + 4px);
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #1e293b;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            z-index: 1050;
+        }
+
+        .labeler-sidebar.collapsed .labeler-nav-link:hover::after,
+        .labeler-sidebar.collapsed .labeler-nav-link:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) scale(1);
         }
 
         /* Main */
@@ -406,64 +553,87 @@
         <!-- Sidebar -->
         <aside class="labeler-sidebar">
             <div class="labeler-brand">
-                <div class="labeler-brand-icon">
-                    <i class="bi bi-tags-fill"></i>
+                <div class="labeler-brand-content">
+                    <div class="labeler-brand-icon">
+                        <i class="bi bi-tags-fill"></i>
+                    </div>
+                    <div class="labeler-brand-info">
+                        <div>AI Data Labeler</div>
+                        <div class="labeler-brand-sub">Subsystem Workspace</div>
+                    </div>
                 </div>
-                <div>
-                    <div>AI Data Labeler</div>
-                    <div class="labeler-brand-sub">Subsystem Workspace</div>
-                </div>
+                <button type="button" class="labeler-sidebar-toggle" title="Thu gọn / Mở rộng menu">
+                    <i class="bi bi-chevron-left toggle-icon"></i>
+                </button>
             </div>
 
             <nav class="labeler-nav">
                 <div class="labeler-nav-section">Tổng Quan</div>
                 <a href="{{ route('labeler.dashboard') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/dashboard') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span> Tổng quan AI Labeling
+                    class="labeler-nav-link {{ request()->is('labeler/dashboard') ? 'active' : '' }}"
+                    data-tooltip="Tổng quan AI Labeling">
+                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+                    <span>Tổng quan AI Labeling</span>
                 </a>
 
                 <div class="labeler-nav-section">Dự Án & Nhiệm Vụ</div>
                 <a href="{{ route('labeler.projects') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/projects*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-folder-fill"></i></span> Quản Lý Dự Án AI
+                    class="labeler-nav-link {{ request()->is('labeler/projects*') ? 'active' : '' }}"
+                    data-tooltip="Quản Lý Dự Án AI">
+                    <span class="nav-icon"><i class="bi bi-folder-fill"></i></span>
+                    <span>Quản Lý Dự Án AI</span>
                 </a>
                 <a href="{{ route('labeler.tasks') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/tasks*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-card-checklist"></i></span> Quản lý Task Ảnh
+                    class="labeler-nav-link {{ request()->is('labeler/tasks*') ? 'active' : '' }}"
+                    data-tooltip="Quản lý Task Ảnh">
+                    <span class="nav-icon"><i class="bi bi-card-checklist"></i></span>
+                    <span>Quản lý Task Ảnh</span>
                 </a>
                 <a href="{{ route('labeler.annotation') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/annotation*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-bounding-box-circles"></i></span> Gán Nhãn Ảnh
+                    class="labeler-nav-link {{ request()->is('labeler/annotation*') ? 'active' : '' }}"
+                    data-tooltip="Gán Nhãn Ảnh">
+                    <span class="nav-icon"><i class="bi bi-bounding-box-circles"></i></span>
+                    <span>Gán Nhãn Ảnh</span>
                 </a>
                 <a href="{{ route('labeler.review') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/review*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-shield-check"></i></span> Review & Kiểm Tra
+                    class="labeler-nav-link {{ request()->is('labeler/review*') ? 'active' : '' }}"
+                    data-tooltip="Review & Kiểm Tra">
+                    <span class="nav-icon"><i class="bi bi-shield-check"></i></span>
+                    <span>Review & Kiểm Tra</span>
                 </a>
                 <a href="{{ route('labeler.export') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/export') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-download"></i></span> Export Dataset Ảnh
+                    class="labeler-nav-link {{ request()->is('labeler/export') ? 'active' : '' }}"
+                    data-tooltip="Export Dataset Ảnh">
+                    <span class="nav-icon"><i class="bi bi-download"></i></span>
+                    <span>Export Dataset Ảnh</span>
                 </a>
 
                 <div class="labeler-nav-section">Văn Bản</div>
                 <a href="{{ route('labeler.text') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/text*') && !request()->is('labeler/text/export*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-file-text"></i></span> Gán Nhãn Văn Bản
+                    class="labeler-nav-link {{ request()->is('labeler/text*') && !request()->is('labeler/text/export*') ? 'active' : '' }}"
+                    data-tooltip="Gán Nhãn Văn Bản">
+                    <span class="nav-icon"><i class="bi bi-file-text"></i></span>
+                    <span>Gán Nhãn Văn Bản</span>
                 </a>
                 <a href="{{ route('labeler.text.export') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/text/export*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-file-earmark-arrow-down"></i></span> Export Dataset Text
+                    class="labeler-nav-link {{ request()->is('labeler/text/export*') ? 'active' : '' }}"
+                    data-tooltip="Export Dataset Text">
+                    <span class="nav-icon"><i class="bi bi-file-earmark-arrow-down"></i></span>
+                    <span>Export Dataset Text</span>
                 </a>
 
                 <div class="labeler-nav-section">Tri Thức</div>
                 <a href="{{ route('labeler.knowledge') }}"
-                    class="labeler-nav-link {{ request()->is('labeler/knowledge*') ? 'active' : '' }}">
-                    <span class="nav-icon"><i class="bi bi-database-fill-gear"></i></span> RAG Knowledge Base
+                    class="labeler-nav-link {{ request()->is('labeler/knowledge*') ? 'active' : '' }}"
+                    data-tooltip="RAG Knowledge Base">
+                    <span class="nav-icon"><i class="bi bi-database-fill-gear"></i></span>
+                    <span>RAG Knowledge Base</span>
                 </a>
 
                 <div class="labeler-nav-divider"></div>
-                <a href="{{ route('dashboard') }}" class="labeler-nav-link">
-                    <span class="nav-icon"><i class="bi bi-house-door-fill text-success"></i></span> Về Hệ Thống IoT
-                    Chính
+                <a href="{{ route('dashboard') }}" class="labeler-nav-link" data-tooltip="Về Hệ Thống IoT Chính">
+                    <span class="nav-icon"><i class="bi bi-house-door-fill text-success"></i></span>
+                    <span>Về Hệ Thống IoT Chính</span>
                 </a>
             </nav>
         </aside>
@@ -508,6 +678,42 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.labeler-sidebar');
+            const toggleBtn = document.querySelector('.labeler-sidebar-toggle');
+            const toggleIcon = toggleBtn ? toggleBtn.querySelector('.toggle-icon, i') : null;
+
+            function updateToggleIcon(isCollapsed) {
+                if (toggleIcon) {
+                    if (isCollapsed) {
+                        toggleIcon.className = 'bi bi-chevron-right toggle-icon';
+                        toggleBtn.setAttribute('title', 'Mở rộng menu');
+                    } else {
+                        toggleIcon.className = 'bi bi-chevron-left toggle-icon';
+                        toggleBtn.setAttribute('title', 'Thu gọn menu');
+                    }
+                }
+            }
+
+            if (toggleBtn && sidebar) {
+                const savedState = localStorage.getItem('labeler_sidebar_collapsed');
+                if (savedState === 'true') {
+                    sidebar.classList.add('collapsed');
+                    updateToggleIcon(true);
+                } else {
+                    updateToggleIcon(false);
+                }
+
+                toggleBtn.addEventListener('click', function () {
+                    sidebar.classList.toggle('collapsed');
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('labeler_sidebar_collapsed', isCollapsed);
+                    updateToggleIcon(isCollapsed);
+                });
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 
