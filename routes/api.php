@@ -15,11 +15,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// IoT Hardware Ingestion Routes (UC 50, 51)
+// IoT Hardware Ingestion & Control Routes (UC 50, 51)
 Route::prefix('iot')->group(function () {
     Route::post('/telemetry', [IotIngestionController::class, 'ingestSensorData']);
     Route::post('/camera/upload', [IotIngestionController::class, 'ingestCameraImage']);
+    Route::post('/stations/{stationCode}/command', [IotIngestionController::class, 'sendCommand']);
 });
+
 
 // Mobile App API Routes (User Role)
 Route::prefix('mobile')->group(function () {

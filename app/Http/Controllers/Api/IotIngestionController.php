@@ -83,4 +83,23 @@ class IotIngestionController extends Controller
             'message' => 'Lưu ảnh camera trạm quan trắc thành công.',
         ]);
     }
+
+    public function sendCommand(string $stationCode, Request $request, \App\Services\Iot\MqttService $mqttService)
+    {
+        $validated = $request->validate([
+            'action' => 'required|string',
+            'params' => 'nullable|array',
+        ]);
+
+        $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
+        $result = $mqttService->publishCommand($station->code, $validated['action'], $validated['params'] ?? []);
+
+        return response()->json([
+            'success' => $result['success'],
+            'station_code' => $stationCode,
+            'command' => $result,
+            'message' => $result['success'] ? 'Đã gửi lệnh điều khiển xuống trạm thành công.' : 'Gửi lệnh thất bại.',
+        ], $result['success'] ? 200 : 500);
+    }
 }
+
