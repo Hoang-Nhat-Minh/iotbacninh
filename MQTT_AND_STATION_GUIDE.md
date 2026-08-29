@@ -27,31 +27,23 @@ Do máy trạm hiện trường sử dụng SIM 4G (IP động, không mở port
 ## 2. CẤU HÌNH MOSQUITTO MQTT BROKER TRÊN MÁY CHỦ (VPS)
 
 ### 2.1. Cấu hình file `mosquitto.conf`
-Mở file cấu hình Mosquitto (thường nằm ở `/etc/mosquitto/mosquitto.conf` trên Linux Ubuntu hoặc thư mục cài đặt trên Windows):
+Mở file cấu hình Mosquitto (`/etc/mosquitto/mosquitto.conf`):
 
 ```conf
-# Lắng nghe ở mọi card mạng trên cổng 1883
-listener 1883 0.0.0.0
+# Lắng nghe ở mọi card mạng trên cổng 9070 (được cấp phép mở trên Router)
+listener 9070 0.0.0.0
 
-# Cho phép kết nối không cần user/password (chế độ phát triển)
-allow_anonymous true
-
-# Nếu muốn bảo mật bằng username/password (khuyến nghị cho Production):
-# allow_anonymous false
-# password_file /etc/mosquitto/passwd
+# Bắt buộc xác thực tài khoản
+allow_anonymous false
+password_file /etc/mosquitto/passwd
 ```
 
-### 2.2. Mở cổng Firewall (Tường lửa)
-Để máy trạm cắm SIM 4G có thể kết nối vào Broker trên VPS:
+Tạo user `iastadmin` với mật khẩu:
 ```bash
-# Trên Ubuntu Linux:
-sudo ufw allow 1883/tcp
-sudo ufw reload
-
-# Khởi động lại Mosquitto
+sudo mosquitto_passwd -c -b /etc/mosquitto/passwd iastadmin iast@6688
 sudo systemctl restart mosquitto
-sudo systemctl status mosquitto
 ```
+
 
 ---
 
