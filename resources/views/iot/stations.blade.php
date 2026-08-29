@@ -503,18 +503,19 @@
                                                 <td class="text-center">
                                                     <span
                                                         class="badge bg-warning-subtle text-dark border border-warning-subtle fs-6 px-2.5 py-1.5 font-monospace">
-                                                        {{ number_format($st['light']) }} Lux
+                                                        {{ number_format((float) $st['light']) }} Lux
                                                     </span>
                                                 </td>
                                                 <td class="text-center font-monospace fw-medium text-secondary">
-                                                    {{ number_format(max(0, $st['light'] - 6000)) }} Lux
+                                                    {{ number_format(max(0, (float) $st['light'] - 6000)) }} Lux
                                                 </td>
                                                 <td class="text-center font-monospace small">
                                                     <span class="text-muted me-1">0 Lux</span> -
                                                     <span
-                                                        class="text-warning ms-1">{{ number_format($st['light'] + 12000) }}
+                                                        class="text-warning ms-1">{{ number_format((float) $st['light'] + 12000) }}
                                                         Lux</span>
                                                 </td>
+
                                                 <td class="pe-3 text-center">
                                                     <span
                                                         class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
@@ -651,8 +652,9 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Cường độ sáng</div>
-                                        <strong class="fs-6 text-dark">{{ number_format($st['light']) }} Lux</strong>
+                                        <strong class="fs-6 text-dark">{{ number_format((float) $st['light']) }} Lux</strong>
                                     </div>
+
                                 </div>
                             </div>
 

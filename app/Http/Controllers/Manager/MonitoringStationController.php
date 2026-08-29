@@ -87,8 +87,9 @@ class MonitoringStationController extends Controller
                 'temp' => round($temp, 1),
                 'humidity' => round($humidity, 1),
                 'rain' => round($rain, 1),
-                'light' => number_format($light),
+                'light' => (int) $light,
                 'wind' => round($wind, 1),
+
                 'soil_ph' => round($soilPh, 1),
                 'soil_temp' => round($soilTemp, 1),
                 'soil_moist' => round($soilMoist, 1),
