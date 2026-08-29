@@ -28,37 +28,46 @@ class MonitoringStationController extends Controller
             $latestReadings = $this->getLatestStationReadings($st);
 
             // 2. Health check thực tế:
-            // Trạm được coi là Mất kết nối/Báo đỏ nếu:
-            // - Status trong DB là 'danger' hoặc 'inactive' (do MQTT LWT báo offline)
-            // - Hoặc không có gói tin nào trong khoảng thời gian (data_interval * 3) hoặc quá 15 phút
-            $intervalSeconds = $st->data_interval ?: 60;
+            // Chu kỳ gửi dữ liệu (mặc định tối thiểu 60s, ví dụ 900s = 15p)
+            $intervalSeconds = max(60, (int) ($st->data_interval ?: 60));
+            // Cho phép trễ tối đa 3 lần chu kỳ gửi, hoặc tối thiểu 30 phút
+            $timeoutSeconds = max(1800, $intervalSeconds * 3);
+
             $lastContact = $latestReadings['latest_time'] ?? $st->updated_at;
-            $secondsSinceLastContact = $lastContact ? Carbon::parse($lastContact)->diffInSeconds(now()) : 999999;
-            $isTimeout = $secondsSinceLastContact > max(120, $intervalSeconds * 3);
+            $secondsSinceLastContact = $lastContact
+                ? abs(now()->diffInSeconds(Carbon::parse($lastContact)))
+                : 999999;
 
-            $isDanger = ($st->status === 'danger' || $st->status === 'inactive' || $isTimeout);
+            $isTimeout = $latestReadings['has_real_data']
+                ? ($secondsSinceLastContact > $timeoutSeconds)
+                : true;
 
-            $statusLabel = 'Hoạt động ổn định';
             $statusClass = 'active';
+            $statusLabel = 'Hoạt động ổn định';
             $alertDesc = 'Các chỉ số vi khí hậu và dinh dưỡng đất nằm trong ngưỡng tối ưu cho cây trồng.';
+            $isDanger = false;
 
             if ($st->status === 'maintenance') {
-                $statusLabel = 'Bảo trì trạm';
                 $statusClass = 'maintenance';
-                $alertDesc = 'Trạm đang trong chế độ bảo trì hoặc kiểm tra định kỳ.';
-            } elseif ($isDanger) {
+                $statusLabel = 'Bảo trì trạm';
+                $alertDesc = 'Trạm đang trong chế độ bảo trì hoặc kiểm tra kỹ thuật định kỳ.';
+            } elseif ($st->status === 'danger') {
+                $isDanger = true;
                 $statusClass = 'danger';
-                if ($isTimeout && $latestReadings['has_real_data']) {
+                $statusLabel = 'Cảnh báo dịch bệnh / Nguy hiểm';
+                $alertDesc = 'Phát hiện chỉ số vi khí hậu vượt ngưỡng an toàn hoặc trạm gửi cảnh báo.';
+            } elseif ($isTimeout) {
+                $isDanger = true;
+                $statusClass = 'danger';
+                if ($latestReadings['has_real_data']) {
                     $statusLabel = 'Mất kết nối trạm';
-                    $alertDesc = 'Không nhận được tín hiệu quan trắc từ ' . Carbon::parse($lastContact)->diffForHumans() . '. Đang hiển thị dữ liệu đo đạc gần nhất.';
-                } elseif ($st->status === 'danger') {
-                    $statusLabel = 'Cảnh báo dịch bệnh / Nguy hiểm';
-                    $alertDesc = 'Phát hiện chỉ số vi khí hậu vượt ngưỡng an toàn hoặc trạm báo lỗi.';
+                    $alertDesc = 'Không nhận được tín hiệu từ ' . Carbon::parse($lastContact)->diffForHumans() . '. Đang hiển thị dữ liệu đo đạc gần nhất.';
                 } else {
                     $statusLabel = 'Chưa có tín hiệu';
                     $alertDesc = 'Trạm chưa phát tín hiệu telemetry nào lên máy chủ.';
                 }
             }
+
 
             // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất, nếu trạm hoàn toàn chưa có data thì fallback)
             $temp = $latestReadings['temp'];
@@ -127,12 +136,20 @@ class MonitoringStationController extends Controller
         $latestReadings = $this->getLatestStationReadings($st);
 
         // 2. Health check thực tế
-        $intervalSeconds = $st->data_interval ?: 60;
-        $lastContact = $latestReadings['latest_time'] ?? $st->updated_at;
-        $secondsSinceLastContact = $lastContact ? Carbon::parse($lastContact)->diffInSeconds(now()) : 999999;
-        $isTimeout = $secondsSinceLastContact > max(120, $intervalSeconds * 3);
+        $intervalSeconds = max(60, (int) ($st->data_interval ?: 60));
+        $timeoutSeconds = max(1800, $intervalSeconds * 3);
 
-        $isDanger = ($st->status === 'danger' || $st->status === 'inactive' || $isTimeout);
+        $lastContact = $latestReadings['latest_time'] ?? $st->updated_at;
+        $secondsSinceLastContact = $lastContact
+            ? abs(now()->diffInSeconds(Carbon::parse($lastContact)))
+            : 999999;
+
+        $isTimeout = $latestReadings['has_real_data']
+            ? ($secondsSinceLastContact > $timeoutSeconds)
+            : true;
+
+        $isDanger = ($st->status === 'danger' || $isTimeout);
+
 
         $latestTelemetry = SensorReading::whereHas('device', function ($q) use ($id) {
             $q->where('monitoring_station_id', $id);

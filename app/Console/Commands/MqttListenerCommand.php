@@ -100,8 +100,9 @@ class MqttListenerCommand extends Command
             }
 
             $recordedAt = isset($payload['timestamp'])
-                ? Carbon::parse($payload['timestamp'])
+                ? Carbon::parse($payload['timestamp'])->setTimezone(config('app.timezone', 'Asia/Ho_Chi_Minh'))
                 : now();
+
 
             $readings = $payload['readings'] ?? [];
             $savedCount = 0;
