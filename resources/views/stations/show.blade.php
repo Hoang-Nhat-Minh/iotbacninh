@@ -327,7 +327,8 @@
 
                 <!-- Các Nút Thao Tác Đưa Vào Bảng Điều Khiển -->
                 <div class="d-flex flex-column gap-2 pt-1">
-                    <button type="button" class="btn btn-outline-primary py-2 fw-medium" onclick="openSaveCurrentPresetModal()">
+                    <button type="button" class="btn btn-outline-primary py-2 fw-medium"
+                        onclick="openSaveCurrentPresetModal()">
                         <i class="bi bi-bookmark-plus-fill me-1"></i> Lưu góc chụp tự động
                     </button>
                     <button type="button" class="btn btn-outline-danger py-2 fw-medium" id="btn-record"
@@ -359,9 +360,12 @@
                         <div class="col-6">
                             <div class="preset-card-item"
                                 onclick="applyPreset('{{ addslashes($preset->name) }}', {{ $preset->pan_angle }}, {{ $preset->tilt_angle }}, {{ $preset->zoom_level }})">
-                                <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">{{ $preset->name }}</div>
+                                <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">
+                                    {{ $preset->name }}</div>
                                 <div class="text-muted small font-monospace" style="font-size: 11px;">
-                                    Pan: {{ number_format($preset->pan_angle, 1) }}° | Tilt: {{ number_format($preset->tilt_angle, 1) }}° | {{ number_format($preset->zoom_level, 1) }}x
+                                    Pan: {{ number_format($preset->pan_angle, 1) }}° | Tilt:
+                                    {{ number_format($preset->tilt_angle, 1) }}° |
+                                    {{ number_format($preset->zoom_level, 1) }}x
                                 </div>
                             </div>
                         </div>
@@ -428,20 +432,24 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Tên góc chụp (Preset) <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="Ví dụ: Góc luống dưa chuột tây #2" required>
+                        <input type="text" name="name" class="form-control"
+                            placeholder="Ví dụ: Góc luống dưa chuột tây #2" required>
                     </div>
                     <div class="row g-3">
                         <div class="col-4">
                             <label class="form-label">Góc Pan (°)</label>
-                            <input type="number" step="0.1" name="pan_angle" id="save-preset-pan" class="form-control" readonly>
+                            <input type="number" step="0.1" name="pan_angle" id="save-preset-pan"
+                                class="form-control" readonly>
                         </div>
                         <div class="col-4">
                             <label class="form-label">Góc Tilt (°)</label>
-                            <input type="number" step="0.1" name="tilt_angle" id="save-preset-tilt" class="form-control" readonly>
+                            <input type="number" step="0.1" name="tilt_angle" id="save-preset-tilt"
+                                class="form-control" readonly>
                         </div>
                         <div class="col-4">
                             <label class="form-label">Zoom Level</label>
-                            <input type="number" step="0.1" name="zoom_level" id="save-preset-zoom" class="form-control" readonly>
+                            <input type="number" step="0.1" name="zoom_level" id="save-preset-zoom"
+                                class="form-control" readonly>
                         </div>
                     </div>
                 </div>
@@ -562,5 +570,15 @@
                 document.exitFullscreen();
             }
         }
+
+        // Tự động làm mới dữ liệu trạm mỗi 300 giây (5 phút)
+        setInterval(function() {
+            // Không làm mới nếu đang mở modal lưu preset hoặc đang ghi hình
+            const isModalOpen = document.getElementById('modal-save-preset')?.classList.contains('show');
+            if (!isModalOpen && !isRecording) {
+                console.log('[IoT Station Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 300s)...');
+                window.location.reload();
+            }
+        }, 300000);
     </script>
 @endpush

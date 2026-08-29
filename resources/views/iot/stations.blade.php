@@ -1461,5 +1461,19 @@
                 }
             });
         }
+
+        // Tự động làm mới dữ liệu trạm quan trắc mỗi 300 giây (5 phút)
+        setInterval(function () {
+            // Không làm mới nếu người dùng đang thao tác mở modal thêm/sửa/xóa trạm
+            const isAddOpen = document.getElementById('addStationModal')?.classList.contains('show');
+            const isEditOpen = document.getElementById('editStationModal')?.classList.contains('show');
+            const isDelOpen = document.getElementById('deleteStationModal')?.classList.contains('show');
+
+            if (!isAddOpen && !isEditOpen && !isDelOpen) {
+                console.log('[IoT Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 300s)...');
+                window.location.reload();
+            }
+        }, 300000);
     </script>
 @endpush
+
