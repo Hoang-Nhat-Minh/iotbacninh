@@ -31,10 +31,11 @@ import paho.mqtt.client as mqtt
 # 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Thay đổi theo thực tế trạm)
 # =============================================================================
 STATION_CODE = "ST-PHUCHOA-01"        # Mã định danh trạm (khớp với mã trạm trên web Laravel)
-MQTT_BROKER_HOST = "127.0.0.1"        # IP hoặc Domain của máy chủ chạy Mosquitto Broker
-MQTT_BROKER_PORT = 1883               # Cổng MQTT Broker (mặc định 1883, TLS là 8883)
+MQTT_BROKER_HOST = "117.6.44.206"     # IP Public của máy chủ chạy Mosquitto Broker
+MQTT_BROKER_PORT = 9070               # Cổng MQTT Broker (được cấp cổng 9070)
 MQTT_USERNAME = "iastadmin"           # Tên tài khoản MQTT
 MQTT_PASSWORD = "iast@6688"           # Mật khẩu MQTT
+
 
 
 DEFAULT_DATA_INTERVAL = 60            # Chu kỳ gửi dữ liệu mặc định (giây)
