@@ -201,9 +201,9 @@
         </x-slot:breadcrumbs>
 
         <x-slot:actions>
-            <button type="button" class="btn btn-primary" onclick="openAddStationModal()">
+            <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm IoT
-            </button>
+            </a>
         </x-slot:actions>
     </x-page-header>
 
@@ -219,9 +219,9 @@
                 <h5 class="fw-bold text-dark">Chưa Có Trạm Quan Trắc IoT Nào</h5>
                 <p class="text-muted small mb-3">Hiện chưa có trạm quan trắc nào trong cơ sở dữ liệu. Vui lòng bấm nút bên dưới để khởi tạo trạm mới.</p>
                 <div>
-                    <button type="button" class="btn btn-primary" onclick="openAddStationModal()">
+                    <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm Quan Trắc Mới
-                    </button>
+                    </a>
                 </div>
             </div>
         @endif
@@ -255,10 +255,9 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-2"
-                                onclick="openEditStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}', {{ $st['garden_id'] ?? 'null' }}, {{ $st['data_interval'] }}, '{{ $st['raw_status'] }}', '{{ $st['latitude'] }}', '{{ $st['longitude'] }}')">
+                            <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-sm btn-outline-secondary px-3 py-2">
                                 <i class="bi bi-pencil-square me-1"></i> Sửa Trạm
-                            </button>
+                            </a>
                             <button type="button" class="btn btn-sm btn-outline-danger px-2 py-2"
                                 title="Xóa trạm quan trắc"
                                 onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
@@ -269,6 +268,7 @@
                             </a>
                         </div>
                     </div>
+
 
                     <!-- Nút Chuyển Tab: 1. Thông Tin Dữ Liệu | 2. Vị Trí Bản Đồ GIS -->
                     <ul class="nav station-nav-pills gap-2 mb-3" id="station-tabs-{{ $st['id'] }}">
@@ -779,7 +779,11 @@
                                         class="badge bg-light text-secondary border font-monospace">{{ $st['data_interval'] }}s</span>
                                 </td>
                                 <td>
-                                    @if ($st['status'] === 'danger')
+                                    @if (!$st['has_real_data'])
+                                        <span class="badge bg-light text-muted border fw-medium">
+                                            <i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu
+                                        </span>
+                                    @elseif ($st['status'] === 'danger')
                                         <span
                                             class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium">
                                             <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $st['status_label'] }}
@@ -802,16 +806,16 @@
                                             onclick="selectStation({{ $st['id'] }})">
                                             <i class="bi bi-geo-alt"></i> Xem
                                         </button>
-                                        <button class="btn btn-secondary btn-sm py-1 px-2" title="Chỉnh sửa trạm"
-                                            onclick="openEditStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}', {{ $st['garden_id'] ?? 'null' }}, {{ $st['data_interval'] }}, '{{ $st['raw_status'] }}', '{{ $st['latitude'] }}', '{{ $st['longitude'] }}')">
+                                        <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-secondary btn-sm py-1 px-2" title="Chỉnh sửa trạm">
                                             <i class="bi bi-pencil"></i>
-                                        </button>
+                                        </a>
                                         <button class="btn btn-secondary btn-sm py-1 px-2 text-danger" title="Xóa trạm"
                                             onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </td>
+
                             </tr>
                         @empty
                             <tr>
@@ -823,208 +827,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal Thêm Trạm Quan Trắc Mới -->
-    <div class="app-modal" id="modal-add-station">
-        <div class="modal-dialog" style="max-width: 580px;">
-            <form action="{{ url('/iot/stations/store') }}" method="POST">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle text-primary"></i> Thêm Trạm Quan Trắc IoT Mới
-                    </h5>
-                    <button type="button" class="modal-close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Mã trạm <span class="text-danger">*</span></label>
-                            <input type="text" name="code" class="form-control" placeholder="TT-01" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tên trạm quan trắc <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control"
-                                placeholder="Trạm Quan Trắc Thuận Thành" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Gắn với vùng trồng <span class="text-danger">*</span></label>
-                            <select name="garden_id" class="form-select" required>
-                                @foreach ($gardens as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->code }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Trạng thái ban đầu</label>
-                            <select name="status" class="form-select">
-                                <option value="active">Hoạt động ổn định</option>
-                                <option value="danger">Cảnh báo dịch bệnh / Nguy hiểm</option>
-                                <option value="maintenance">Bảo trì kỹ thuật</option>
-                                <option value="inactive">Tạm ngưng</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Chu kỳ gửi dữ liệu (Giây)</label>
-                            <input type="number" name="data_interval" class="form-control" value="60">
-                        </div>
-
-                        <!-- CỤM CHỌN TỌA ĐỘ MINI MAP TRONG MODAL THÊM TRẠM -->
-                        <div class="col-12">
-                            <div class="gis-picker-box">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label fw-bold mb-0 text-dark" style="font-size: 13px;">
-                                        <i class="bi bi-hand-index-thumb text-primary me-1"></i> Kéo Bản Đồ Chọn Tọa Độ Đặt
-                                        Trạm
-                                    </label>
-                                    <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2"
-                                        style="font-size: 12px;" onclick="getCurrentGpsPosition('add')">
-                                        <i class="bi bi-crosshair me-1"></i> GPS hiện tại
-                                    </button>
-                                </div>
-
-                                <!-- Ô Tìm Kiếm Địa Điểm -->
-                                <div class="input-group input-group-sm mb-2">
-                                    <input type="text" id="search-location-input-add" class="form-control"
-                                        placeholder="Tìm tên xã/huyện đặt trạm (vd: Thuận Thành, Gia Bình)..."
-                                        onkeypress="if(event.key==='Enter'){event.preventDefault();searchLocationGeocode('add');}">
-                                    <button type="button" class="btn btn-primary"
-                                        onclick="searchLocationGeocode('add')">
-                                        <i class="bi bi-search me-1"></i> Tìm Vị Trí
-                                    </button>
-                                </div>
-
-                                <div class="mini-map-container">
-                                    <div id="mini-map-add"></div>
-                                    <div class="mini-map-pin"><i class="bi bi-geo-alt-fill"></i></div>
-                                </div>
-
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Vĩ độ
-                                            (Latitude)</label>
-                                        <input type="text" name="latitude" id="add-station-lat"
-                                            class="form-control form-control-sm font-monospace fw-bold text-primary"
-                                            placeholder="21.0542">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Kinh độ
-                                            (Longitude)</label>
-                                        <input type="text" name="longitude" id="add-station-lng"
-                                            class="form-control form-control-sm font-monospace fw-bold text-primary"
-                                            placeholder="106.0712">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-modal-close">Hủy</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu Trạm Quan
-                        Trắc</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Chỉnh Sửa Trạm Quan Trắc -->
-    <div class="app-modal" id="modal-edit-station">
-        <div class="modal-dialog" style="max-width: 580px;">
-            <form id="form-edit-station" action="" method="POST">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil-square text-primary"></i> Chỉnh Sửa Trạm Quan Trắc</h5>
-                    <button type="button" class="modal-close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Mã trạm</label>
-                            <input type="text" id="edit-station-code" class="form-control bg-light" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tên trạm quan trắc <span class="text-danger">*</span></label>
-                            <input type="text" id="edit-station-name" name="name" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Gắn với vùng trồng</label>
-                            <select id="edit-station-garden" name="garden_id" class="form-select">
-                                @foreach ($gardens as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->code }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Trạng thái vận hành</label>
-                            <select id="edit-station-status" name="status" class="form-select">
-                                <option value="active">Hoạt động (Hoạt động ổn định)</option>
-                                <option value="danger">Cảnh báo dịch bệnh / Nguy hiểm</option>
-                                <option value="maintenance">Đang bảo trì kỹ thuật</option>
-                                <option value="inactive">Tạm ngưng hoạt động</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Chu kỳ gửi dữ liệu (Giây)</label>
-                            <input type="number" id="edit-station-interval" name="data_interval" class="form-control"
-                                placeholder="60">
-                        </div>
-
-                        <!-- CỤM CHỌN TỌA ĐỘ MINI MAP TRONG MODAL SỬA TRẠM -->
-                        <div class="col-12">
-                            <div class="gis-picker-box">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="form-label fw-bold mb-0 text-dark" style="font-size: 13px;">
-                                        <i class="bi bi-hand-index-thumb text-primary me-1"></i> Kéo Bản Đồ Chọn Tọa Độ Đặt
-                                        Trạm
-                                    </label>
-                                    <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2"
-                                        style="font-size: 12px;" onclick="getCurrentGpsPosition('edit')">
-                                        <i class="bi bi-crosshair me-1"></i> GPS hiện tại
-                                    </button>
-                                </div>
-
-                                <!-- Ô Tìm Kiếm Địa Điểm -->
-                                <div class="input-group input-group-sm mb-2">
-                                    <input type="text" id="search-location-input-edit" class="form-control"
-                                        placeholder="Nhập địa danh cần tìm (ví dụ: Gia Bình, Bắc Ninh)..."
-                                        onkeypress="if(event.key==='Enter'){event.preventDefault();searchLocationGeocode('edit');}">
-                                    <button type="button" class="btn btn-primary"
-                                        onclick="searchLocationGeocode('edit')">
-                                        <i class="bi bi-search me-1"></i> Tìm Vị Trí
-                                    </button>
-                                </div>
-
-                                <div class="mini-map-container">
-                                    <div id="mini-map-edit"></div>
-                                    <div class="mini-map-pin"><i class="bi bi-geo-alt-fill"></i></div>
-                                </div>
-
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Vĩ độ
-                                            (Latitude)</label>
-                                        <input type="text" id="edit-station-lat" name="latitude"
-                                            class="form-control form-control-sm font-monospace fw-bold text-primary">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" style="font-size: 11px;">Kinh độ
-                                            (Longitude)</label>
-                                        <input type="text" id="edit-station-lng" name="longitude"
-                                            class="form-control form-control-sm font-monospace fw-bold text-primary">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-modal-close">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu Thay Đổi</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -1060,14 +862,8 @@
         const stationsData = @json($stations);
         const chartsInstance = {};
         const singleMaps = {};
-        let miniMapAdd, miniMapEdit;
-        let isTypingCoords = false;
 
         document.addEventListener('DOMContentLoaded', () => {
-
-            initMiniMaps();
-            bindManualLatControl();
-
             // Khởi tạo trạm mặc định
             if (stationsData.length > 0) {
                 initStationChart(stationsData[0]);
@@ -1169,154 +965,6 @@
             }
         }
 
-        // 4. Khởi tạo Bản đồ Mini trong Modal Thêm & Sửa
-        function initMiniMaps() {
-            if (document.getElementById('mini-map-add') && !miniMapAdd) {
-                miniMapAdd = L.map('mini-map-add', {
-                    zoomControl: false
-                }).setView([21.0542, 106.0712], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapAdd);
-
-                const updateAddCenter = () => {
-                    if (isTypingCoords) return;
-                    const center = miniMapAdd.getCenter();
-                    document.getElementById('add-station-lat').value = center.lat.toFixed(6);
-                    document.getElementById('add-station-lng').value = center.lng.toFixed(6);
-                };
-
-                miniMapAdd.on('move', updateAddCenter);
-                updateAddCenter();
-            }
-
-            if (document.getElementById('mini-map-edit') && !miniMapEdit) {
-                miniMapEdit = L.map('mini-map-edit', {
-                    zoomControl: false
-                }).setView([21.0542, 106.0712], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapEdit);
-
-                const updateEditCenter = () => {
-                    if (isTypingCoords) return;
-                    const center = miniMapEdit.getCenter();
-                    document.getElementById('edit-station-lat').value = center.lat.toFixed(6);
-                    document.getElementById('edit-station-lng').value = center.lng.toFixed(6);
-                };
-                miniMapEdit.on('move', updateEditCenter);
-                updateEditCenter();
-            }
-        }
-
-        // 5. Lắng nghe nhập gõ tay Vĩ độ/Kinh độ
-        function bindManualLatControl() {
-            ['add-station-lat', 'add-station-lng'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', function() {
-                        isTypingCoords = true;
-                        const lat = parseFloat(document.getElementById('add-station-lat').value);
-                        const lng = parseFloat(document.getElementById('add-station-lng').value);
-                        if (!isNaN(lat) && !isNaN(lng) && miniMapAdd) {
-                            miniMapAdd.setView([lat, lng], miniMapAdd.getZoom());
-                        }
-                        setTimeout(() => { isTypingCoords = false; }, 300);
-                    });
-                }
-            });
-
-            ['edit-station-lat', 'edit-station-lng'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', function() {
-                        isTypingCoords = true;
-                        const lat = parseFloat(document.getElementById('edit-station-lat').value);
-                        const lng = parseFloat(document.getElementById('edit-station-lng').value);
-                        if (!isNaN(lat) && !isNaN(lng) && miniMapEdit) {
-                            miniMapEdit.setView([lat, lng], miniMapEdit.getZoom());
-                        }
-                        setTimeout(() => { isTypingCoords = false; }, 300);
-                    });
-                }
-            });
-        }
-
-
-        // 6. Dịch vụ Tìm kiếm Địa điểm Geocoding
-        function searchLocationGeocode(type) {
-            const inputId = type === 'add' ? 'search-location-input-add' : 'search-location-input-edit';
-            const query = document.getElementById(inputId).value.trim();
-            if (!query) {
-                showToast('Vui lòng nhập tên địa điểm cần tìm!', 'warning');
-                return;
-            }
-
-            showToast('Đang tìm kiếm vị trí: ' + query + '...', 'info');
-
-            const url =
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Bắc Ninh, Việt Nam')}`;
-
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const result = data[0];
-                        const lat = parseFloat(result.lat);
-                        const lng = parseFloat(result.lon);
-                        const placeName = result.display_name.split(',')[0];
-
-                        if (type === 'add' && miniMapAdd) {
-                            miniMapAdd.setView([lat, lng], 14);
-                        } else if (type === 'edit' && miniMapEdit) {
-                            miniMapEdit.setView([lat, lng], 14);
-                        }
-                        showToast('Đã định vị bản đồ tới: ' + placeName, 'success');
-                    } else {
-                        showToast('Không tìm thấy địa điểm trên bản đồ!', 'warning');
-                    }
-                })
-                .catch(err => {
-                    showToast('Không thể kết nối dịch vụ tìm kiếm địa điểm!', 'danger');
-                });
-        }
-
-        function openAddStationModal() {
-            openModal('modal-add-station');
-            setTimeout(() => {
-                if (miniMapAdd) {
-                    miniMapAdd.invalidateSize();
-                    miniMapAdd.setView([21.0542, 106.0712], 12);
-                }
-            }, 250);
-        }
-
-        function openEditStationModal(e, id, code, name, gardenId, interval, status, lat, lng) {
-            if (e && e.stopPropagation) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            document.getElementById('form-edit-station').action = window.location.origin + '/iot/stations/update/' + id;
-            document.getElementById('edit-station-code').value = code;
-            document.getElementById('edit-station-name').value = name;
-            if (gardenId && gardenId !== 'null') {
-                document.getElementById('edit-station-garden').value = gardenId;
-            }
-            document.getElementById('edit-station-interval').value = interval || 60;
-            document.getElementById('edit-station-status').value = status || 'active';
-
-            const targetLat = parseFloat(lat) || 21.0542;
-            const targetLng = parseFloat(lng) || 106.0712;
-            document.getElementById('edit-station-lat').value = targetLat;
-            document.getElementById('edit-station-lng').value = targetLng;
-
-            openModal('modal-edit-station');
-
-            setTimeout(() => {
-                if (miniMapEdit) {
-                    miniMapEdit.invalidateSize();
-                    miniMapEdit.setView([targetLat, targetLng], 14);
-                }
-            }, 300);
-        }
-
         function openDeleteStationModal(e, id, code, name) {
             if (e && e.stopPropagation) {
                 e.preventDefault();
@@ -1328,28 +976,6 @@
             openModal('modal-delete-station');
         }
 
-        function getCurrentGpsPosition(type) {
-            if ("geolocation" in navigator) {
-                showToast('Đang lấy vị trí GPS từ thiết bị...', 'info');
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        if (type === 'add' && miniMapAdd) {
-                            miniMapAdd.setView([lat, lng], 15);
-                        } else if (type === 'edit' && miniMapEdit) {
-                            miniMapEdit.setView([lat, lng], 15);
-                        }
-                        showToast('Đã di chuyển tới tọa độ GPS của bạn!', 'success');
-                    },
-                    function(error) {
-                        showToast('Không thể lấy vị trí GPS của thiết bị!', 'warning');
-                    }
-                );
-            } else {
-                showToast('Trình duyệt không hỗ trợ Geolocation!', 'warning');
-            }
-        }
 
         function selectStation(id) {
             // 1. Active row trong danh sách bảng dưới

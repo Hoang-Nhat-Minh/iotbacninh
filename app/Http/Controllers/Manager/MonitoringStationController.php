@@ -46,31 +46,33 @@ class MonitoringStationController extends Controller
                 ? ($secondsSinceLastContact > $timeoutSeconds)
                 : true;
 
-            $statusClass = 'active';
-            $statusLabel = 'Hoạt động ổn định';
-            $alertDesc = 'Các chỉ số vi khí hậu và dinh dưỡng đất nằm trong ngưỡng tối ưu cho cây trồng.';
-            $isDanger = false;
-
-            if ($st->status === 'maintenance') {
+            if (!$latestReadings['has_real_data']) {
+                $statusClass = 'danger';
+                $statusLabel = 'Chưa có tín hiệu';
+                $alertDesc = 'Trạm chưa nhận được gói tin dữ liệu quan trắc nào từ cảm biến hiện trường.';
+                $isDanger = true;
+            } elseif ($st->status === 'maintenance') {
                 $statusClass = 'maintenance';
                 $statusLabel = 'Bảo trì trạm';
                 $alertDesc = 'Trạm đang trong chế độ bảo trì hoặc kiểm tra kỹ thuật định kỳ.';
-            } elseif ($st->status === 'danger') {
+                $isDanger = false;
+            } elseif ($isTimeout) {
+                $statusClass = 'danger';
+                $statusLabel = 'Mất kết nối trạm';
+                $alertDesc = 'Không nhận được tín hiệu từ ' . Carbon::parse($lastContact)->diffForHumans() . '. Đang hiển thị dữ liệu đo đạc gần nhất.';
                 $isDanger = true;
+            } elseif ($st->status === 'danger' || ($latestReadings['humidity'] > 95)) {
                 $statusClass = 'danger';
                 $statusLabel = 'Cảnh báo dịch bệnh / Nguy hiểm';
                 $alertDesc = 'Phát hiện chỉ số vi khí hậu vượt ngưỡng an toàn hoặc trạm gửi cảnh báo.';
-            } elseif ($isTimeout) {
                 $isDanger = true;
-                $statusClass = 'danger';
-                if ($latestReadings['has_real_data']) {
-                    $statusLabel = 'Mất kết nối trạm';
-                    $alertDesc = 'Không nhận được tín hiệu từ ' . Carbon::parse($lastContact)->diffForHumans() . '. Đang hiển thị dữ liệu đo đạc gần nhất.';
-                } else {
-                    $statusLabel = 'Chưa có tín hiệu';
-                    $alertDesc = 'Trạm chưa phát tín hiệu telemetry nào lên máy chủ.';
-                }
+            } else {
+                $statusClass = 'active';
+                $statusLabel = 'Hoạt động ổn định';
+                $alertDesc = 'Các chỉ số vi khí hậu và dinh dưỡng đất nằm trong ngưỡng tối ưu cho cây trồng.';
+                $isDanger = false;
             }
+
 
             // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất, nếu trạm hoàn toàn chưa có data thì fallback)
             $temp = $latestReadings['temp'];
@@ -230,6 +232,19 @@ class MonitoringStationController extends Controller
         return view('stations.show', compact('station', 'latestTelemetry', 'presets'));
     }
 
+    public function create()
+    {
+        $gardens = Garden::orderBy('name')->get();
+        return view('iot.stations.create', compact('gardens'));
+    }
+
+    public function edit($id)
+    {
+        $station = MonitoringStation::findOrFail($id);
+        $gardens = Garden::orderBy('name')->get();
+        return view('iot.stations.edit', compact('station', 'gardens'));
+    }
+
     public function store(Request $request, MqttService $mqttService)
     {
         $validated = $request->validate([
@@ -251,7 +266,7 @@ class MonitoringStationController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Thêm trạm quan trắc thành công.');
+        return redirect()->route('iot.stations')->with('success', 'Thêm trạm quan trắc thành công.');
     }
 
     public function update(Request $request, $id, MqttService $mqttService)
@@ -276,11 +291,9 @@ class MonitoringStationController extends Controller
             ]);
         }
 
-
-        return redirect()->back()->with('success', 'Cập nhật trạm và đã gửi lệnh đổi chu kỳ xuống trạm thành công.');
-
-
+        return redirect()->route('iot.stations')->with('success', 'Cập nhật trạm và đã gửi lệnh đổi chu kỳ xuống trạm thành công.');
     }
+
 
     public function destroy($id)
     {
