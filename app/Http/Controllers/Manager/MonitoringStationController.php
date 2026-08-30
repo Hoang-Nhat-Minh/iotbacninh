@@ -95,8 +95,9 @@ class MonitoringStationController extends Controller
                 'longitude' => $st->longitude,
                 'raw_status' => $st->status,
                 'zone' => $gardenName,
-                'updated_at' => $lastContact ? Carbon::parse($lastContact)->diffForHumans() : 'Chưa có',
+                'updated_at' => $lastContact ? (Carbon::parse($lastContact)->format('H:i:s') . ' (' . Carbon::parse($lastContact)->diffForHumans() . ')') : 'Chưa có',
                 'temp' => round($temp, 1),
+
                 'humidity' => round($humidity, 1),
                 'rain' => round($rain, 1),
                 'light' => (int) $light,
@@ -114,8 +115,10 @@ class MonitoringStationController extends Controller
                 'temp_history' => $latestReadings['temp_history'],
                 'humidity_history' => $latestReadings['humidity_history'],
                 'soil_moist_history' => $latestReadings['soil_moist_history'],
+                'chart_labels' => $latestReadings['chart_labels'],
             ];
         })->toArray();
+
 
         // Sắp xếp các trạm có cảnh báo/mất kết nối lên đầu
         usort($stations, function ($a, $b) {
@@ -304,19 +307,20 @@ class MonitoringStationController extends Controller
         $hasRealData = false;
         $latestTime = null;
 
-        // Giá trị mặc định mô phỏng khi trạm mới chưa từng nhận được dữ liệu
-        $temp = 28.1 + (($st->id * 3) % 4) * 0.7;
-        $humidity = 76 + (($st->id * 2) % 5) * 3;
+        // Khi trạm chưa có dữ liệu, trả về 0 / rỗng
+        $temp = 0.0;
+        $humidity = 0.0;
         $rain = 0.0;
-        $light = 32000 + ($st->id * 4000);
-        $wind = 2.0 + ($st->id * 0.4);
-        $soilPh = 6.2 + (($st->id % 3) * 0.2);
-        $soilTemp = 25.4 + (($st->id % 3) * 0.5);
-        $soilMoist = 65.0 + (($st->id % 4) * 3);
+        $light = 0;
+        $wind = 0.0;
+        $soilPh = 0.0;
+        $soilTemp = 0.0;
+        $soilMoist = 0.0;
 
-        $tempHistory = [25.1, 24.8, 24.5, 24.2, 25.0, 26.4, 27.8, 28.5, 28.9, 28.1, 28.0, round($temp, 1)];
-        $humHistory = [96, 97, 98, 98, 95, 94, 91, 88, 86, 90, 91, round($humidity, 1)];
-        $soilHistory = [80, 80, 81, 81, 81, 82, 82, 82, 82, 82, 82, round($soilMoist, 1)];
+        $tempHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        $humHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        $soilHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        $chartLabels = [];
 
         // 1. Ưu tiên đọc từ bản ghi JSON mới nhất trong sensor_readings
         $latestJsonReading = $st->sensorReadings->sortByDesc('recorded_at')->first();
@@ -334,20 +338,32 @@ class MonitoringStationController extends Controller
             if (isset($parsed['soil_temp'])) $soilTemp = $parsed['soil_temp'];
             if (isset($parsed['soil_moist'])) $soilMoist = $parsed['soil_moist'];
 
-            // Xây dựng biểu đồ từ lịch sử các gói JSON
+            // Xây dựng biểu đồ từ lịch sử các mốc thời gian thực tế của các gói JSON
             $recentJsonList = $st->sensorReadings->sortBy('recorded_at')->take(12);
-            if ($recentJsonList->count() > 1) {
+            if ($recentJsonList->count() > 0) {
                 $tempHistory = [];
                 $humHistory = [];
                 $soilHistory = [];
+                $chartLabels = [];
+                $isShortInterval = ($st->data_interval ?: 60) < 300; // Dưới 5 phút (ví dụ 60s) -> hiển thị cả Giây
+
                 foreach ($recentJsonList as $r) {
                     $p = $this->extractReadingValues($r->data ?? []);
                     $tempHistory[] = round($p['temp'] ?? $temp, 1);
                     $humHistory[] = round($p['humidity'] ?? $humidity, 1);
                     $soilHistory[] = round($p['soil_moist'] ?? $soilMoist, 1);
+
+                    $recTime = Carbon::parse($r->recorded_at);
+                    if ($recTime->isToday()) {
+                        $chartLabels[] = $isShortInterval ? $recTime->format('H:i:s') : $recTime->format('H:i');
+                    } else {
+                        $chartLabels[] = $recTime->format('d/m H:i');
+                    }
                 }
             }
         } elseif ($st->devices && $st->devices->count() > 0) {
+
+
             // 2. Fallback đọc từ quan hệ device nếu có
             foreach ($st->devices as $device) {
                 $reading = $device->sensorReadings->sortByDesc('recorded_at')->first();
@@ -393,8 +409,10 @@ class MonitoringStationController extends Controller
             'temp_history' => $tempHistory,
             'humidity_history' => $humHistory,
             'soil_moist_history' => $soilHistory,
+            'chart_labels' => $chartLabels,
         ];
     }
+
 
     /**
      * Bóc tách các chỉ số cảm biến từ gói JSON
@@ -439,4 +457,3 @@ class MonitoringStationController extends Controller
         return $res;
     }
 }
-

@@ -70,26 +70,31 @@ def read_sensor_readings():
       
     Dưới đây là dữ liệu mẫu giả lập mô phỏng giá trị thực tế:
     """
-    # Sinh dữ liệu mô phỏng trong ngưỡng thực tế
-    temp = round(25.0 + random.uniform(0.5, 4.0), 1)      # Nhiệt độ không khí (°C)
-    humidity = round(75.0 + random.uniform(2.0, 15.0), 1) # Độ ẩm không khí (%)
-    soil_moist = round(70.0 + random.uniform(1.0, 10.0), 1) # Độ ẩm đất (%)
-    light = random.randint(12000, 35000)                  # Cường độ ánh sáng (Lux)
-    rain = round(random.uniform(0.0, 2.5), 1)             # Lượng mưa (mm)
-    soil_ph = round(6.2 + random.uniform(-0.3, 0.4), 1)   # Độ pH của đất
-    battery_v = round(12.2 + random.uniform(-0.4, 0.4), 2)# Điện áp ắc quy/pin mặt trời (V)
-    signal_csq = random.randint(18, 31)                   # Chất lượng sóng 4G (0-31)
+    # Sinh dữ liệu mô phỏng trong ngưỡng thực tế (khớp 6 cảm biến tiêu chuẩn)
+    temp = round(25.0 + random.uniform(0.5, 4.0), 1)        # Cảm biến ES-INTEGRATE-ODR-01: Nhiệt độ không khí (°C)
+    humidity = round(75.0 + random.uniform(2.0, 15.0), 1)   # Cảm biến ES-INTEGRATE-ODR-01: Độ ẩm không khí (%)
+    rain = round(random.uniform(0.0, 2.5), 1)               # Cảm biến ES-RAINF-01: Lượng mưa (mm)
+    light = random.randint(12000, 35000)                    # Cảm biến ES-ALS20: Cường độ ánh sáng (Lux)
+    wind = round(random.uniform(0.8, 3.5), 1)               # Cảm biến ES-WS-02: Tốc độ gió (m/s)
+    soil_ph = round(6.2 + random.uniform(-0.3, 0.4), 1)     # Cảm biến ES-PH-SOIL-01: Độ pH của đất
+    soil_moist = round(70.0 + random.uniform(1.0, 10.0), 1) # Cảm biến ES-SM-TH-01: Độ ẩm đất (%)
+    soil_temp = round(24.0 + random.uniform(0.5, 3.0), 1)   # Cảm biến ES-SM-TH-01: Nhiệt độ đất (°C)
+    battery_v = round(12.2 + random.uniform(-0.4, 0.4), 2)  # Điện áp ắc quy/pin mặt trời (V)
+    signal_csq = random.randint(18, 31)                     # Chất lượng sóng 4G (0-31)
 
     readings = [
-        {"device_code": "TEMP_AIR_01",   "value": temp,       "unit": "°C",  "status": "ok"},
-        {"device_code": "HUM_AIR_01",    "value": humidity,   "unit": "%",   "status": "ok"},
-        {"device_code": "SOIL_MOIST_01", "value": soil_moist, "unit": "%",   "status": "ok"},
-        {"device_code": "LIGHT_01",      "value": light,      "unit": "Lux", "status": "ok"},
-        {"device_code": "RAIN_01",       "value": rain,       "unit": "mm",  "status": "ok"},
-        {"device_code": "SOIL_PH_01",    "value": soil_ph,    "unit": "pH",  "status": "ok"},
+        {"device_code": "TEMP_AIR_01",   "name": "Nhiệt độ không khí",  "value": temp,       "unit": "°C",  "status": "ok"},
+        {"device_code": "HUM_AIR_01",    "name": "Độ ẩm không khí",     "value": humidity,   "unit": "%",   "status": "ok"},
+        {"device_code": "RAIN_01",       "name": "Lưu lượng mưa",       "value": rain,       "unit": "mm",  "status": "ok"},
+        {"device_code": "LIGHT_01",      "name": "Cường độ ánh sáng",   "value": light,      "unit": "Lux", "status": "ok"},
+        {"device_code": "WIND_01",       "name": "Tốc độ gió",          "value": wind,       "unit": "m/s", "status": "ok"},
+        {"device_code": "SOIL_PH_01",    "name": "Độ pH đất",           "value": soil_ph,    "unit": "pH",  "status": "ok"},
+        {"device_code": "SOIL_MOIST_01", "name": "Độ ẩm đất",          "value": soil_moist, "unit": "%",   "status": "ok"},
+        {"device_code": "SOIL_TEMP_01",  "name": "Nhiệt độ đất",        "value": soil_temp,  "unit": "°C",  "status": "ok"},
     ]
 
     return readings, battery_v, signal_csq
+
 
 
 # =============================================================================

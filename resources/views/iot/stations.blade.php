@@ -379,24 +379,28 @@
                                                 <td class="text-center">
                                                     <span
                                                         class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 px-2.5 py-1.5 font-monospace">
-                                                        {{ $st['temp'] }}°C
+                                                        {{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center font-monospace fw-medium text-secondary">
-                                                    {{ round($st['temp'] - 1.2, 1) }}°C
+                                                    {{ $st['has_real_data'] ? round($st['temp'] - 1.2, 1) . '°C' : '--' }}
                                                 </td>
                                                 <td class="text-center font-monospace small">
-                                                    <span
-                                                        class="text-success me-1">{{ round($st['temp'] - 4.1, 1) }}°C</span>
-                                                    -
-                                                    <span
-                                                        class="text-danger ms-1">{{ round($st['temp'] + 2.5, 1) }}°C</span>
+                                                    @if ($st['has_real_data'])
+                                                        <span class="text-success me-1">{{ round($st['temp'] - 4.1, 1) }}°C</span> -
+                                                        <span class="text-danger ms-1">{{ round($st['temp'] + 2.5, 1) }}°C</span>
+                                                    @else
+                                                        <span class="text-muted">--</span>
+                                                    @endif
                                                 </td>
                                                 <td class="pe-3 text-center">
-                                                    <span
-                                                        class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
-                                                        <i class="bi bi-shield-check me-1"></i> An toàn (18-35°C)
-                                                    </span>
+                                                    @if ($st['has_real_data'])
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
+                                                            <i class="bi bi-shield-check me-1"></i> An toàn (18-35°C)
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-light text-muted border rounded-pill px-3 py-1.5">Chưa có tín hiệu</span>
+                                                    @endif
                                                 </td>
                                             </tr>
 
@@ -416,22 +420,25 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <span
-                                                        class="badge {{ $st['humidity'] > 90 ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-info-subtle text-info border-info-subtle' }} border fs-6 px-2.5 py-1.5 font-monospace">
-                                                        {{ $st['humidity'] }}%
+                                                        class="badge {{ $st['has_real_data'] && $st['humidity'] > 90 ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-info-subtle text-info border-info-subtle' }} border fs-6 px-2.5 py-1.5 font-monospace">
+                                                        {{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center font-monospace fw-medium text-secondary">
-                                                    {{ round($st['humidity'] - 3, 1) }}%
+                                                    {{ $st['has_real_data'] ? round($st['humidity'] - 3, 1) . '%' : '--' }}
                                                 </td>
                                                 <td class="text-center font-monospace small">
-                                                    <span
-                                                        class="text-info me-1">{{ round($st['humidity'] - 18, 1) }}%</span>
-                                                    -
-                                                    <span
-                                                        class="text-danger ms-1">{{ round($st['humidity'] + 5, 1) }}%</span>
+                                                    @if ($st['has_real_data'])
+                                                        <span class="text-info me-1">{{ round($st['humidity'] - 18, 1) }}%</span> -
+                                                        <span class="text-danger ms-1">{{ round($st['humidity'] + 5, 1) }}%</span>
+                                                    @else
+                                                        <span class="text-muted">--</span>
+                                                    @endif
                                                 </td>
                                                 <td class="pe-3 text-center">
-                                                    @if ($st['humidity'] > 90)
+                                                    @if (!$st['has_real_data'])
+                                                        <span class="badge bg-light text-muted border rounded-pill px-3 py-1.5">Chưa có tín hiệu</span>
+                                                    @elseif ($st['humidity'] > 90)
                                                         <span
                                                             class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5">
                                                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Ẩm cao
@@ -444,6 +451,7 @@
                                                         </span>
                                                     @endif
                                                 </td>
+
                                             </tr>
 
                                             <!-- Lượng mưa -->
@@ -610,7 +618,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Nhiệt độ khí</div>
-                                        <strong class="fs-6 text-dark">{{ $st['temp'] }}°C</strong>
+                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -623,7 +631,7 @@
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Ẩm độ khí</div>
                                         <strong
-                                            class="fs-6 {{ $st['humidity'] > 90 ? 'text-danger' : 'text-dark' }}">{{ $st['humidity'] }}%</strong>
+                                            class="fs-6 {{ $st['has_real_data'] && $st['humidity'] > 90 ? 'text-danger' : 'text-dark' }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -635,7 +643,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Lượng mưa</div>
-                                        <strong class="fs-6 text-dark">{{ $st['rain'] }} mm</strong>
+                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -647,9 +655,8 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Cường độ sáng</div>
-                                        <strong class="fs-6 text-dark">{{ number_format((float) $st['light']) }} Lux</strong>
+                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? number_format((float) $st['light']) . ' Lux' : '--' }}</strong>
                                     </div>
-
                                 </div>
                             </div>
 
@@ -660,7 +667,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Tốc độ gió</div>
-                                        <strong class="fs-6 text-dark">{{ $st['wind'] }} m/s</strong>
+                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['wind'] . ' m/s' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -672,12 +679,18 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Độ ẩm đất / pH</div>
-                                        <strong class="fs-6 text-dark">{{ $st['soil_moist'] }}% <small
-                                                class="text-muted">({{ $st['soil_ph'] }}pH)</small></strong>
+                                        <strong class="fs-6 text-dark">
+                                            @if ($st['has_real_data'])
+                                                {{ $st['soil_moist'] }}% <small class="text-muted">({{ $st['soil_ph'] }}pH)</small>
+                                            @else
+                                                --
+                                            @endif
+                                        </strong>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- NỘI DUNG TAB 2: VỊ TRÍ BẢN ĐỒ GIS CỦA TRẠM -->
@@ -1376,9 +1389,10 @@
                 chartsInstance[st.id].destroy();
             }
 
-            const labels = ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00',
-                '20:00', 'Hiện tại'
-            ];
+            const labels = (st.chart_labels && st.chart_labels.length > 0)
+                ? st.chart_labels
+                : ['Chưa có dữ liệu'];
+
 
             chartsInstance[st.id] = new Chart(ctx, {
                 type: 'line',
