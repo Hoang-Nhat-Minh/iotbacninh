@@ -1061,8 +1061,10 @@
         const chartsInstance = {};
         const singleMaps = {};
         let miniMapAdd, miniMapEdit;
+        let isTypingCoords = false;
 
         document.addEventListener('DOMContentLoaded', () => {
+
             initMiniMaps();
             bindManualLatControl();
 
@@ -1175,13 +1177,13 @@
                 }).setView([21.0542, 106.0712], 12);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapAdd);
 
-                let isTypingCoords = false;
                 const updateAddCenter = () => {
                     if (isTypingCoords) return;
                     const center = miniMapAdd.getCenter();
                     document.getElementById('add-station-lat').value = center.lat.toFixed(6);
                     document.getElementById('add-station-lng').value = center.lng.toFixed(6);
                 };
+
                 miniMapAdd.on('move', updateAddCenter);
                 updateAddCenter();
             }
