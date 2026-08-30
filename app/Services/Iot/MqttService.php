@@ -33,8 +33,26 @@ class MqttService
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
         try {
-            $mqtt = MQTT::connection();
+            $host = config('mqtt-client.connections.default.host', env('MQTT_HOST', '127.0.0.1'));
+            $port = (int) config('mqtt-client.connections.default.port', env('MQTT_PORT', 9070));
+            $username = config('mqtt-client.connections.default.connection_settings.auth.username', env('MQTT_USERNAME'));
+            $password = config('mqtt-client.connections.default.connection_settings.auth.password', env('MQTT_PASSWORD'));
+
+            $clientId = 'laravel_cmd_' . Str::random(8);
+            $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
+
+            $settings = (new \PhpMqtt\Client\ConnectionSettings)
+                ->setKeepAliveInterval(10)
+                ->setConnectTimeout(3)
+                ->setSocketTimeout(3);
+
+            if ($username) {
+                $settings->setUsername($username)->setPassword($password);
+            }
+
+            $mqtt->connect($settings, true);
             $mqtt->publish($topic, $jsonPayload, 1, false);
+            $mqtt->disconnect();
 
             Log::info("MQTT Command Published to [{$topic}]: {$jsonPayload}");
 
@@ -68,12 +86,33 @@ class MqttService
     {
         try {
             $payload = is_array($message) ? json_encode($message, JSON_UNESCAPED_UNICODE) : (string) $message;
-            $mqtt = MQTT::connection();
+
+            $host = config('mqtt-client.connections.default.host', env('MQTT_HOST', '127.0.0.1'));
+            $port = (int) config('mqtt-client.connections.default.port', env('MQTT_PORT', 9070));
+            $username = config('mqtt-client.connections.default.connection_settings.auth.username', env('MQTT_USERNAME'));
+            $password = config('mqtt-client.connections.default.connection_settings.auth.password', env('MQTT_PASSWORD'));
+
+            $clientId = 'laravel_pub_' . Str::random(8);
+            $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
+
+            $settings = (new \PhpMqtt\Client\ConnectionSettings)
+                ->setKeepAliveInterval(10)
+                ->setConnectTimeout(3)
+                ->setSocketTimeout(3);
+
+            if ($username) {
+                $settings->setUsername($username)->setPassword($password);
+            }
+
+            $mqtt->connect($settings, true);
             $mqtt->publish($topic, $payload, $qos, $retain);
+            $mqtt->disconnect();
+
             return true;
         } catch (\Throwable $e) {
             Log::error("MQTT Publish Error on topic [{$topic}]: " . $e->getMessage());
             return false;
         }
     }
+
 }

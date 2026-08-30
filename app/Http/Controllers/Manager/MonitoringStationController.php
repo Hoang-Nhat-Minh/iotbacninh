@@ -267,17 +267,19 @@ class MonitoringStationController extends Controller
             'status' => 'required|string|in:active,inactive,maintenance,danger',
         ]);
 
-        $oldInterval = $station->data_interval;
         $station->update($validated);
 
         // TỰ ĐỘNG BẮN LỆNH MQTT 2 CHIỀU: Đổi chu kỳ gửi dữ liệu xuống máy trạm tức thời
-        if (!empty($validated['data_interval']) && $validated['data_interval'] != $oldInterval) {
+        if (!empty($validated['data_interval'])) {
             $mqttService->publishCommand($station->code, 'SET_INTERVAL', [
                 'interval_seconds' => (int) $validated['data_interval']
             ]);
         }
 
+
         return redirect()->back()->with('success', 'Cập nhật trạm và đã gửi lệnh đổi chu kỳ xuống trạm thành công.');
+
+
     }
 
     public function destroy($id)

@@ -1175,7 +1175,9 @@
                 }).setView([21.0542, 106.0712], 12);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapAdd);
 
+                let isTypingCoords = false;
                 const updateAddCenter = () => {
+                    if (isTypingCoords) return;
                     const center = miniMapAdd.getCenter();
                     document.getElementById('add-station-lat').value = center.lat.toFixed(6);
                     document.getElementById('add-station-lng').value = center.lng.toFixed(6);
@@ -1191,6 +1193,7 @@
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMapEdit);
 
                 const updateEditCenter = () => {
+                    if (isTypingCoords) return;
                     const center = miniMapEdit.getCenter();
                     document.getElementById('edit-station-lat').value = center.lat.toFixed(6);
                     document.getElementById('edit-station-lng').value = center.lng.toFixed(6);
@@ -1206,11 +1209,13 @@
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('input', function() {
+                        isTypingCoords = true;
                         const lat = parseFloat(document.getElementById('add-station-lat').value);
                         const lng = parseFloat(document.getElementById('add-station-lng').value);
                         if (!isNaN(lat) && !isNaN(lng) && miniMapAdd) {
                             miniMapAdd.setView([lat, lng], miniMapAdd.getZoom());
                         }
+                        setTimeout(() => { isTypingCoords = false; }, 300);
                     });
                 }
             });
@@ -1219,15 +1224,18 @@
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('input', function() {
+                        isTypingCoords = true;
                         const lat = parseFloat(document.getElementById('edit-station-lat').value);
                         const lng = parseFloat(document.getElementById('edit-station-lng').value);
                         if (!isNaN(lat) && !isNaN(lng) && miniMapEdit) {
                             miniMapEdit.setView([lat, lng], miniMapEdit.getZoom());
                         }
+                        setTimeout(() => { isTypingCoords = false; }, 300);
                     });
                 }
             });
         }
+
 
         // 6. Dịch vụ Tìm kiếm Địa điểm Geocoding
         function searchLocationGeocode(type) {
@@ -1475,16 +1483,15 @@
 
         // Tự động làm mới dữ liệu trạm quan trắc mỗi 300 giây (5 phút)
         setInterval(function () {
-            // Không làm mới nếu người dùng đang thao tác mở modal thêm/sửa/xóa trạm
-            const isAddOpen = document.getElementById('addStationModal')?.classList.contains('show');
-            const isEditOpen = document.getElementById('editStationModal')?.classList.contains('show');
-            const isDelOpen = document.getElementById('deleteStationModal')?.classList.contains('show');
+            // Không làm mới nếu người dùng đang thao tác mở bất kỳ modal nào
+            const anyModalOpen = document.querySelector('.app-modal.show') !== null;
 
-            if (!isAddOpen && !isEditOpen && !isDelOpen) {
+            if (!anyModalOpen) {
                 console.log('[IoT Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 300s)...');
                 window.location.reload();
             }
         }, 300000);
     </script>
 @endpush
+
 
