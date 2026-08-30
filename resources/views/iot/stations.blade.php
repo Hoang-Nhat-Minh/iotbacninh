@@ -372,8 +372,7 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Nhiệt độ không khí</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                SHT30</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-INTEGRATE-ODR-01</small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -411,8 +410,7 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Độ ẩm không khí</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                SHT30</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-INTEGRATE-ODR-01</small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -458,8 +456,7 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Lượng mưa đo được</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                Tipping Bucket</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-RAINF-01</small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -495,8 +492,7 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Cường độ ánh sáng</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                BH1750</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-ALS20</small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -534,8 +530,7 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Tốc độ gió</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                Anemometer</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-WS-02</small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -571,11 +566,11 @@
                                                         </div>
                                                         <div>
                                                             <div class="fw-bold text-dark mb-0">Độ ẩm đất &amp; pH</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến
-                                                                NPK / Soil Moisture</small>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-PH-SOIL-01 &amp; ES-SM-TH-01</small>
                                                         </div>
                                                     </div>
                                                 </td>
+
                                                 <td class="text-center">
                                                     <span
                                                         class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-2.5 py-1.5 font-monospace">

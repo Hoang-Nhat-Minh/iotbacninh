@@ -15,16 +15,20 @@ class MonitoringStationController extends Controller
 {
     public function index(Request $request)
     {
-        $dbStations = MonitoringStation::with(['garden.user', 'devices.sensorReadings' => function ($q) {
-            $q->latest('recorded_at')->take(20);
-        }])->get();
+        $dbStations = MonitoringStation::with([
+            'garden.user',
+            'devices',
+            'sensorReadings' => function ($q) {
+                $q->latest('recorded_at')->take(20);
+            }
+        ])->get();
 
         $gardens = Garden::all();
 
         $stations = $dbStations->map(function ($st) {
             $gardenName = $st->garden->name ?? 'Vùng trồng Bắc Ninh';
 
-            // 1. Thu thập dữ liệu cảm biến thực tế mới nhất từ Database
+            // 1. Thu thập dữ liệu cảm biến thực tế mới nhất từ Database (gói JSON)
             $latestReadings = $this->getLatestStationReadings($st);
 
             // 2. Health check thực tế:
@@ -68,7 +72,6 @@ class MonitoringStationController extends Controller
                 }
             }
 
-
             // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất, nếu trạm hoàn toàn chưa có data thì fallback)
             $temp = $latestReadings['temp'];
             $humidity = $latestReadings['humidity'];
@@ -98,7 +101,6 @@ class MonitoringStationController extends Controller
                 'rain' => round($rain, 1),
                 'light' => (int) $light,
                 'wind' => round($wind, 1),
-
                 'soil_ph' => round($soilPh, 1),
                 'soil_temp' => round($soilTemp, 1),
                 'soil_moist' => round($soilMoist, 1),
@@ -108,6 +110,7 @@ class MonitoringStationController extends Controller
                 'downy_alerts' => $downyAlerts,
                 'alert_desc' => $alertDesc,
                 'has_real_data' => $latestReadings['has_real_data'],
+                'devices_count' => $st->devices->count() ?: 6,
                 'temp_history' => $latestReadings['temp_history'],
                 'humidity_history' => $latestReadings['humidity_history'],
                 'soil_moist_history' => $latestReadings['soil_moist_history'],
@@ -126,9 +129,13 @@ class MonitoringStationController extends Controller
 
     public function show($id)
     {
-        $st = MonitoringStation::with(['garden.user', 'devices.sensorReadings' => function ($q) {
-            $q->latest('recorded_at')->take(50);
-        }])->findOrFail($id);
+        $st = MonitoringStation::with([
+            'garden.user',
+            'devices',
+            'sensorReadings' => function ($q) {
+                $q->latest('recorded_at')->take(50);
+            }
+        ])->findOrFail($id);
 
         $presets = ImageCaptureLocation::where('monitoring_station_id', $id)->get();
 
@@ -150,32 +157,27 @@ class MonitoringStationController extends Controller
 
         $isDanger = ($st->status === 'danger' || $isTimeout);
 
-
-        $latestTelemetry = SensorReading::whereHas('device', function ($q) use ($id) {
-            $q->where('monitoring_station_id', $id);
-        })->with('device')->latest('recorded_at')->take(50)->get();
+        $latestTelemetry = SensorReading::where('monitoring_station_id', $id)
+            ->orWhereHas('device', function ($q) use ($id) {
+                $q->where('monitoring_station_id', $id);
+            })
+            ->latest('recorded_at')
+            ->take(50)
+            ->get();
 
         // Lịch sử hiển thị
         $history = [];
-        if ($latestTelemetry->count() > 0) {
-            $grouped = $latestTelemetry->groupBy(function ($r) {
-                return Carbon::parse($r->recorded_at)->format('d/m/Y H:i');
-            })->take(6);
-
-            foreach ($grouped as $timeStr => $items) {
-                $tempVal = $items->first(fn($i) => str_contains(strtoupper($i->device->code ?? ''), 'TEMP'))?->value ?? $latestReadings['temp'];
-                $humVal = $items->first(fn($i) => str_contains(strtoupper($i->device->code ?? ''), 'HUM'))?->value ?? $latestReadings['humidity'];
-                $soilVal = $items->first(fn($i) => str_contains(strtoupper($i->device->code ?? ''), 'SOIL'))?->value ?? $latestReadings['soil_moist'];
-                $rainVal = $items->first(fn($i) => str_contains(strtoupper($i->device->code ?? ''), 'RAIN'))?->value ?? $latestReadings['rain'];
-                $lightVal = $items->first(fn($i) => str_contains(strtoupper($i->device->code ?? ''), 'LIGHT'))?->value ?? $latestReadings['light'];
-
+        if ($st->sensorReadings && $st->sensorReadings->count() > 0) {
+            $takeReadings = $st->sensorReadings->take(6);
+            foreach ($takeReadings as $sr) {
+                $parsed = $this->extractReadingValues($sr->data ?? []);
                 $history[] = [
-                    'time' => $timeStr,
-                    'temp' => round($tempVal, 1) . '°C',
-                    'humidity' => round($humVal) . '%',
-                    'soil_moisture' => round($soilVal) . '%',
-                    'rain' => round($rainVal, 1) . ' mm',
-                    'light' => number_format($lightVal) . ' Lux',
+                    'time' => Carbon::parse($sr->recorded_at)->format('d/m/Y H:i'),
+                    'temp' => round($parsed['temp'] ?? $latestReadings['temp'], 1) . '°C',
+                    'humidity' => round($parsed['humidity'] ?? $latestReadings['humidity']) . '%',
+                    'soil_moisture' => round($parsed['soil_moist'] ?? $latestReadings['soil_moist']) . '%',
+                    'rain' => round($parsed['rain'] ?? $latestReadings['rain'], 1) . ' mm',
+                    'light' => number_format((int) ($parsed['light'] ?? $latestReadings['light'])) . ' Lux',
                 ];
             }
         }
@@ -189,7 +191,7 @@ class MonitoringStationController extends Controller
                     'humidity' => (int)max(50, min(99, $latestReadings['humidity'] - ($i * 2))) . '%',
                     'soil_moisture' => (int)max(50, min(99, $latestReadings['soil_moist'] - ($i * 1))) . '%',
                     'rain' => round(max(0, $latestReadings['rain'] - ($i * 0.2)), 1) . ' mm',
-                    'light' => number_format(max(0, $latestReadings['light'] - ($i * 1500))) . ' Lux',
+                    'light' => number_format(max(0, (int) ($latestReadings['light'] - ($i * 1500)))) . ' Lux',
                 ];
             }
         }
@@ -210,13 +212,14 @@ class MonitoringStationController extends Controller
                 'temp' => round($latestReadings['temp'], 1),
                 'humidity' => round($latestReadings['humidity'], 1),
                 'soil_moisture' => round($latestReadings['soil_moist'], 1),
-                'light' => number_format($latestReadings['light']),
+                'light' => number_format((int) $latestReadings['light']),
                 'rain' => round($latestReadings['rain'], 1),
                 'wind' => round($latestReadings['wind'], 1),
             ],
             'camera_url' => 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=1000&q=80',
             'camera_label' => 'Camera IP PTZ #01 - Thường Trực 24/7',
             'history' => $history,
+            'devices' => $st->devices,
             'has_real_data' => $latestReadings['has_real_data'],
             'last_contact' => $lastContact ? Carbon::parse($lastContact)->diffForHumans() : 'Chưa có',
         ];
@@ -286,6 +289,7 @@ class MonitoringStationController extends Controller
 
         \App\Models\Iot\ImageCaptureLocation::where('monitoring_station_id', $id)->delete();
         \App\Models\Iot\ImageCollectionSchedule::where('monitoring_station_id', $id)->delete();
+        \App\Models\Iot\SensorReading::where('monitoring_station_id', $id)->delete();
 
         $station->delete();
 
@@ -293,7 +297,7 @@ class MonitoringStationController extends Controller
     }
 
     /**
-     * Trích xuất các chỉ số cảm biến thực tế mới nhất từ Database của trạm.
+     * Trích xuất các chỉ số cảm biến thực tế mới nhất từ Database của trạm (qua JSON telemetry hoặc device).
      */
     protected function getLatestStationReadings(MonitoringStation $st): array
     {
@@ -314,7 +318,37 @@ class MonitoringStationController extends Controller
         $humHistory = [96, 97, 98, 98, 95, 94, 91, 88, 86, 90, 91, round($humidity, 1)];
         $soilHistory = [80, 80, 81, 81, 81, 82, 82, 82, 82, 82, 82, round($soilMoist, 1)];
 
-        if ($st->devices && $st->devices->count() > 0) {
+        // 1. Ưu tiên đọc từ bản ghi JSON mới nhất trong sensor_readings
+        $latestJsonReading = $st->sensorReadings->sortByDesc('recorded_at')->first();
+        if ($latestJsonReading && !empty($latestJsonReading->data)) {
+            $hasRealData = true;
+            $latestTime = $latestJsonReading->recorded_at;
+
+            $parsed = $this->extractReadingValues($latestJsonReading->data);
+            if (isset($parsed['temp'])) $temp = $parsed['temp'];
+            if (isset($parsed['humidity'])) $humidity = $parsed['humidity'];
+            if (isset($parsed['rain'])) $rain = $parsed['rain'];
+            if (isset($parsed['light'])) $light = $parsed['light'];
+            if (isset($parsed['wind'])) $wind = $parsed['wind'];
+            if (isset($parsed['soil_ph'])) $soilPh = $parsed['soil_ph'];
+            if (isset($parsed['soil_temp'])) $soilTemp = $parsed['soil_temp'];
+            if (isset($parsed['soil_moist'])) $soilMoist = $parsed['soil_moist'];
+
+            // Xây dựng biểu đồ từ lịch sử các gói JSON
+            $recentJsonList = $st->sensorReadings->sortBy('recorded_at')->take(12);
+            if ($recentJsonList->count() > 1) {
+                $tempHistory = [];
+                $humHistory = [];
+                $soilHistory = [];
+                foreach ($recentJsonList as $r) {
+                    $p = $this->extractReadingValues($r->data ?? []);
+                    $tempHistory[] = round($p['temp'] ?? $temp, 1);
+                    $humHistory[] = round($p['humidity'] ?? $humidity, 1);
+                    $soilHistory[] = round($p['soil_moist'] ?? $soilMoist, 1);
+                }
+            }
+        } elseif ($st->devices && $st->devices->count() > 0) {
+            // 2. Fallback đọc từ quan hệ device nếu có
             foreach ($st->devices as $device) {
                 $reading = $device->sensorReadings->sortByDesc('recorded_at')->first();
                 if ($reading) {
@@ -361,4 +395,48 @@ class MonitoringStationController extends Controller
             'soil_moist_history' => $soilHistory,
         ];
     }
+
+    /**
+     * Bóc tách các chỉ số cảm biến từ gói JSON
+     */
+    protected function extractReadingValues(array $data): array
+    {
+        $res = [];
+
+        // Hỗ trợ dạng mảng readings: [{"device_code": "TEMP_AIR_01", "value": 26.8}, ...]
+        if (isset($data['readings']) && is_array($data['readings'])) {
+            foreach ($data['readings'] as $item) {
+                $code = strtoupper($item['device_code'] ?? '');
+                $val = $item['value'] ?? null;
+                if ($val === null) continue;
+
+                if (str_contains($code, 'TEMP_AIR') || $code === 'TEMP') $res['temp'] = (float) $val;
+                elseif (str_contains($code, 'HUM_AIR') || $code === 'HUM') $res['humidity'] = (float) $val;
+                elseif (str_contains($code, 'SOIL_MOIST')) $res['soil_moist'] = (float) $val;
+                elseif (str_contains($code, 'SOIL_PH') || $code === 'PH') $res['soil_ph'] = (float) $val;
+                elseif (str_contains($code, 'SOIL_TEMP')) $res['soil_temp'] = (float) $val;
+                elseif (str_contains($code, 'LIGHT') || $code === 'LUX') $res['light'] = (int) $val;
+                elseif (str_contains($code, 'RAIN')) $res['rain'] = (float) $val;
+                elseif (str_contains($code, 'WIND')) $res['wind'] = (float) $val;
+            }
+        }
+
+        // Hỗ trợ dạng JSON key-value phẳng: {"temp_air": 26.8, "humidity_air": 85.9, ...}
+        if (isset($data['temp_air'])) $res['temp'] = (float) $data['temp_air'];
+        if (isset($data['temperature'])) $res['temp'] = (float) $data['temperature'];
+        if (isset($data['humidity_air'])) $res['humidity'] = (float) $data['humidity_air'];
+        if (isset($data['humidity'])) $res['humidity'] = (float) $data['humidity'];
+        if (isset($data['rain'])) $res['rain'] = (float) $data['rain'];
+        if (isset($data['light'])) $res['light'] = (int) $data['light'];
+        if (isset($data['wind_speed'])) $res['wind'] = (float) $data['wind_speed'];
+        if (isset($data['wind'])) $res['wind'] = (float) $data['wind'];
+        if (isset($data['soil_ph'])) $res['soil_ph'] = (float) $data['soil_ph'];
+        if (isset($data['soil_temperature'])) $res['soil_temp'] = (float) $data['soil_temperature'];
+        if (isset($data['soil_temp'])) $res['soil_temp'] = (float) $data['soil_temp'];
+        if (isset($data['soil_moisture'])) $res['soil_moist'] = (float) $data['soil_moisture'];
+        if (isset($data['soil_moist'])) $res['soil_moist'] = (float) $data['soil_moist'];
+
+        return $res;
+    }
 }
+

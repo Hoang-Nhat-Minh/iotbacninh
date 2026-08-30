@@ -104,44 +104,20 @@ class MqttListenerCommand extends Command
                 : now();
 
 
-            $readings = $payload['readings'] ?? [];
-            $savedCount = 0;
-
-            foreach ($readings as $item) {
-                $deviceCode = $item['device_code'] ?? null;
-                $value = $item['value'] ?? null;
-
-                if (!$deviceCode || $value === null || !is_numeric($value)) {
-                    continue;
-                }
-
-                // Tự động tìm hoặc tạo thiết bị thuộc trạm
-                $device = Device::firstOrCreate([
-                    'monitoring_station_id' => $station->id,
-                    'code' => $deviceCode,
-                ], [
-                    'name' => $item['name'] ?? 'Cảm biến ' . $deviceCode,
-                    'type' => 'sensor',
-                    'sensor_type' => $this->detectSensorType($deviceCode),
-                    'status' => 'active',
-                ]);
-
-                // Lưu dữ liệu vào bảng sensor_readings
-                SensorReading::create([
-                    'device_id' => $device->id,
-                    'value' => (double) $value,
-                    'recorded_at' => $recordedAt,
-                    'created_at' => now(),
-                ]);
-
-                $savedCount++;
-            }
+            // Lưu toàn bộ gói tin JSON telemetry liên kết trực tiếp với trạm quan trắc
+            SensorReading::create([
+                'monitoring_station_id' => $station->id,
+                'data' => $payload,
+                'recorded_at' => $recordedAt,
+                'created_at' => now(),
+            ]);
 
             // Cập nhật trạng thái trạm về active
             $station->update(['status' => 'active']);
 
-            $this->info("[TELEMETRY] " . now()->format('H:i:s') . " | Trạm {$stationCode} | Đã lưu {$savedCount} chỉ số quan trắc.");
-            Log::info("MQTT Telemetry Ingested: Station {$stationCode}, {$savedCount} readings.");
+            $this->info("[TELEMETRY] " . now()->format('H:i:s') . " | Trạm {$stationCode} | Đã lưu gói tin JSON telemetry quan trắc.");
+            Log::info("MQTT Telemetry Ingested: Station {$stationCode} saved as JSON.");
+
 
         } catch (\Throwable $e) {
             $this->error("[TELEMETRY ERROR] Lỗi xử lý message: " . $e->getMessage());

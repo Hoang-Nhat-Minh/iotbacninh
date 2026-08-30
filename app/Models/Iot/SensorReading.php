@@ -15,20 +15,29 @@ class SensorReading extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'monitoring_station_id',
         'device_id',
         'value',
+        'data',
         'recorded_at',
         'created_at',
     ];
 
     protected $casts = [
+        'data' => 'array',
         'value' => 'double',
         'recorded_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
+    public function station(): BelongsTo
+    {
+        return $this->belongsTo(MonitoringStation::class, 'monitoring_station_id');
+    }
+
     public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class, 'device_id');
     }
+
 }

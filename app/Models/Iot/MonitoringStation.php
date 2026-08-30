@@ -61,4 +61,10 @@ class MonitoringStation extends Model
     {
         return $this->hasMany(ImageCaptureLocation::class, 'monitoring_station_id');
     }
+
+    public function sensorReadings(): HasMany
+    {
+        return $this->hasMany(SensorReading::class, 'monitoring_station_id');
+    }
 }
+

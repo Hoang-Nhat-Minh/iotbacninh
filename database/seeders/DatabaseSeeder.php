@@ -148,7 +148,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        MonitoringStation::firstOrCreate(
+        $station_luc_ngan_01 = MonitoringStation::firstOrCreate(
             ['code' => 'TLN-01'],
             [
                 'garden_id' => $gardenLucNgan->id,
@@ -156,11 +156,67 @@ class DatabaseSeeder extends Seeder
                 'latitude' => 21.3921040,
                 'longitude' => 106.6847560,
                 'status' => 'active',
-                'data_interval' => 60,
+                'data_interval' => 900,
             ]
         );
 
-        // 5. Demo Camera Device
+        // 5. Khởi tạo 6 Cảm biến chuẩn đề tài cho từng trạm
+        $allStations = [$station_phuc_hoa_01, $station_phuc_hoa_02, $station_luc_ngan_02, $station_luc_ngan_01];
+        $standardSensors = [
+            [
+                'suffix' => 'ENV',
+                'name' => 'Cảm biến giám sát môi trường ngoài trời ES-INTEGRATE-ODR-01',
+                'type' => 'sensor',
+                'sensor_type' => 'climate',
+            ],
+            [
+                'suffix' => 'RAIN',
+                'name' => 'Cảm biến đo lưu lượng mưa ES-RAINF-01',
+                'type' => 'sensor',
+                'sensor_type' => 'weather',
+            ],
+            [
+                'suffix' => 'LIGHT',
+                'name' => 'Cảm biến cường độ ánh sáng ES-ALS20',
+                'type' => 'sensor',
+                'sensor_type' => 'weather',
+            ],
+            [
+                'suffix' => 'WIND',
+                'name' => 'Cảm biến tốc độ gió ES-WS-02',
+                'type' => 'sensor',
+                'sensor_type' => 'weather',
+            ],
+            [
+                'suffix' => 'PH',
+                'name' => 'Cảm biến đo độ pH đất ES-PH-SOIL-01',
+                'type' => 'sensor',
+                'sensor_type' => 'soil',
+            ],
+            [
+                'suffix' => 'SOIL_TH',
+                'name' => 'Cảm biến độ ẩm đất, nhiệt độ đất ES-SM-TH-01',
+                'type' => 'sensor',
+                'sensor_type' => 'soil',
+            ],
+        ];
+
+        foreach ($allStations as $st) {
+            foreach ($standardSensors as $sensor) {
+                Device::firstOrCreate(
+                    ['code' => $st->code . '-' . $sensor['suffix']],
+                    [
+                        'monitoring_station_id' => $st->id,
+                        'name' => $sensor['name'],
+                        'type' => $sensor['type'],
+                        'sensor_type' => $sensor['sensor_type'],
+                        'status' => 'active',
+                    ]
+                );
+            }
+        }
+
+        // Demo Camera Device
         $cameraDevice = Device::firstOrCreate(
             ['code' => 'CAM-TT-01'],
             [
@@ -170,6 +226,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+
 
         // 6. Demo Camera Media
         CameraMedia::firstOrCreate(
