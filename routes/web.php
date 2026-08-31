@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
     // IoT Monitoring Views (UC 12-22, 44, 45, 46)
     Route::prefix('iot')->group(function () {
         Route::get('/stations', [ManagerStationController::class, 'index'])->name('iot.stations');
+        Route::get('/stations/live-data', [ManagerStationController::class, 'getLiveData'])->name('iot.stations.live_data');
         Route::get('/stations/create', [ManagerStationController::class, 'create'])->name('iot.stations.create');
         Route::get('/stations/{id}/edit', [ManagerStationController::class, 'edit'])->name('iot.stations.edit');
         Route::get('/stations/{id}', [ManagerStationController::class, 'show'])->name('iot.stations.show');
@@ -91,6 +92,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/media', [ManagerMediaController::class, 'index'])->name('iot.media');
         Route::get('/locations', [ManagerLocationController::class, 'index'])->name('iot.locations');
     });
+
 
 
     // AI Disease & Pest Prediction (UC 8, 23, 47, 48)

@@ -9,11 +9,38 @@ use App\Models\Iot\SensorReading;
 use App\Models\Farm\Garden;
 use App\Services\Iot\MqttService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class MonitoringStationController extends Controller
 {
     public function index(Request $request)
+    {
+        $gardens = Garden::all();
+        $stations = $this->formatStationsList();
+
+        return view('iot.stations', compact('stations', 'gardens'));
+    }
+
+    /**
+     * API trả về dữ liệu Telemetry mới nhất thời gian thực qua AJAX (không reload trang).
+     */
+    public function getLiveData(Request $request)
+    {
+        $stations = $this->formatStationsList();
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->format('H:i:s'),
+            'updated_time_human' => now()->diffForHumans(),
+            'stations' => $stations
+        ]);
+    }
+
+    /**
+     * Trích xuất và định dạng toàn bộ danh sách trạm cùng dữ liệu cảm biến mới nhất.
+     */
+    protected function formatStationsList(): array
     {
         $dbStations = MonitoringStation::with([
             'garden.user',
@@ -23,8 +50,6 @@ class MonitoringStationController extends Controller
             }
         ])->get();
 
-        $gardens = Garden::all();
-
         $stations = $dbStations->map(function ($st) {
             $gardenName = $st->garden->name ?? 'Vùng trồng Bắc Ninh';
 
@@ -32,9 +57,7 @@ class MonitoringStationController extends Controller
             $latestReadings = $this->getLatestStationReadings($st);
 
             // 2. Health check thực tế:
-            // Chu kỳ gửi dữ liệu (mặc định tối thiểu 60s, ví dụ 900s = 15p)
             $intervalSeconds = max(60, (int) ($st->data_interval ?: 60));
-            // Cho phép trễ tối đa 3 lần chu kỳ gửi, hoặc tối thiểu 30 phút
             $timeoutSeconds = max(1800, $intervalSeconds * 3);
 
             $lastContact = $latestReadings['latest_time'] ?? $st->updated_at;
@@ -78,9 +101,7 @@ class MonitoringStationController extends Controller
                 $isDanger = false;
             }
 
-
-
-            // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất, nếu trạm hoàn toàn chưa có data thì fallback)
+            // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất)
             $temp = $latestReadings['temp'];
             $humidity = $latestReadings['humidity'];
             $rain = $latestReadings['rain'];
@@ -105,7 +126,6 @@ class MonitoringStationController extends Controller
                 'zone' => $gardenName,
                 'updated_at' => $lastContact ? (Carbon::parse($lastContact)->format('H:i:s') . ' (' . Carbon::parse($lastContact)->diffForHumans() . ')') : 'Chưa có',
                 'temp' => round($temp, 1),
-
                 'humidity' => round($humidity, 1),
                 'rain' => round($rain, 1),
                 'light' => (int) $light,
@@ -127,7 +147,6 @@ class MonitoringStationController extends Controller
             ];
         })->toArray();
 
-
         // Sắp xếp các trạm có cảnh báo/mất kết nối lên đầu
         usort($stations, function ($a, $b) {
             if ($a['status'] === 'danger' && $b['status'] !== 'danger') return -1;
@@ -135,8 +154,9 @@ class MonitoringStationController extends Controller
             return ($b['pest_alerts'] + $b['downy_alerts']) <=> ($a['pest_alerts'] + $a['downy_alerts']);
         });
 
-        return view('iot.stations', compact('stations', 'gardens'));
+        return $stations;
     }
+
 
     public function show($id)
     {

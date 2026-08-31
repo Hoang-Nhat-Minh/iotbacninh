@@ -187,6 +187,31 @@
             filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
             line-height: 1;
         }
+
+        .live-dot-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: liveDotPulse 1.8s infinite;
+        }
+
+        @keyframes liveDotPulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
     </style>
 @endpush
 
@@ -201,9 +226,15 @@
         </x-slot:breadcrumbs>
 
         <x-slot:actions>
-            <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm IoT
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold d-flex align-items-center gap-2" style="font-size: 12.5px;">
+                    <span class="live-dot-pulse"></span>
+                    <span>Live 60s: <span id="live-timer-text">60s</span> (Cập nhật: <span id="live-last-updated">{{ now()->format('H:i:s') }}</span>)</span>
+                </span>
+                <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm IoT
+                </a>
+            </div>
         </x-slot:actions>
     </x-page-header>
 
@@ -236,26 +267,27 @@
                                 <h4 class="fw-bold text-dark mb-0">{{ $st['name'] }}</h4>
                                 <span
                                     class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6">{{ $st['code'] }}</span>
-                                @if (!$st['has_real_data'])
-                                    <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu</span>
-                                @elseif ($st['status'] === 'offline')
-                                    <span class="badge bg-secondary text-white border border-secondary"><i class="bi bi-wifi-off me-1"></i>
-                                        {{ $st['status_label'] }}</span>
-                                @elseif ($st['status'] === 'danger')
-                                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                        {{ $st['status_label'] }}</span>
-                                @elseif($st['status'] === 'maintenance')
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-tools me-1"></i>
-                                        {{ $st['status_label'] }}</span>
-                                @else
-                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>
-                                        {{ $st['status_label'] }}</span>
-                                @endif
-
+                                <span id="station-status-badge-{{ $st['id'] }}">
+                                    @if (!$st['has_real_data'])
+                                        <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu</span>
+                                    @elseif ($st['status'] === 'offline')
+                                        <span class="badge bg-secondary text-white border border-secondary"><i class="bi bi-wifi-off me-1"></i>
+                                            {{ $st['status_label'] }}</span>
+                                    @elseif ($st['status'] === 'danger')
+                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                            {{ $st['status_label'] }}</span>
+                                    @elseif($st['status'] === 'maintenance')
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-tools me-1"></i>
+                                            {{ $st['status_label'] }}</span>
+                                    @else
+                                        <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>
+                                            {{ $st['status_label'] }}</span>
+                                    @endif
+                                </span>
                             </div>
                             <div class="text-muted small d-flex align-items-center gap-3">
                                 <span><i class="bi bi-geo-alt text-danger me-1"></i> {{ $st['zone'] }}</span>
-                                <span><i class="bi bi-arrow-repeat text-primary me-1"></i> Cập nhật:
+                                <span id="station-updated-at-{{ $st['id'] }}"><i class="bi bi-arrow-repeat text-primary me-1"></i> Cập nhật:
                                     {{ $st['updated_at'] }}</span>
                             </div>
                         </div>
@@ -274,6 +306,7 @@
                             </a>
                         </div>
                     </div>
+
 
 
                     <!-- Nút Chuyển Tab: 1. Thông Tin Dữ Liệu | 2. Vị Trí Bản Đồ GIS -->
@@ -624,7 +657,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Nhiệt độ khí</div>
-                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong>
+                                        <strong class="fs-6 text-dark" id="kpi-temp-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -637,7 +670,7 @@
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Ẩm độ khí</div>
                                         <strong
-                                            class="fs-6 {{ $st['has_real_data'] && $st['humidity'] > 90 ? 'text-danger' : 'text-dark' }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong>
+                                            class="fs-6 {{ $st['has_real_data'] && $st['humidity'] > 90 ? 'text-danger' : 'text-dark' }}" id="kpi-hum-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -649,7 +682,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Lượng mưa</div>
-                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}</strong>
+                                        <strong class="fs-6 text-dark" id="kpi-rain-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -661,7 +694,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Cường độ sáng</div>
-                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? number_format((float) $st['light']) . ' Lux' : '--' }}</strong>
+                                        <strong class="fs-6 text-dark" id="kpi-lux-{{ $st['id'] }}">{{ $st['has_real_data'] ? number_format((float) $st['light']) . ' Lux' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -673,7 +706,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Tốc độ gió</div>
-                                        <strong class="fs-6 text-dark">{{ $st['has_real_data'] ? $st['wind'] . ' m/s' : '--' }}</strong>
+                                        <strong class="fs-6 text-dark" id="kpi-wind-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['wind'] . ' m/s' : '--' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -685,7 +718,7 @@
                                     </div>
                                     <div>
                                         <div class="text-muted" style="font-size: 11px;">Độ ẩm đất / pH</div>
-                                        <strong class="fs-6 text-dark">
+                                        <strong class="fs-6 text-dark" id="kpi-soil-{{ $st['id'] }}">
                                             @if ($st['has_real_data'])
                                                 {{ $st['soil_moist'] }}% <small class="text-muted">({{ $st['soil_ph'] }}pH)</small>
                                             @else
@@ -696,6 +729,7 @@
                                 </div>
                             </div>
                         </div>
+
 
                     </div>
 
@@ -773,11 +807,11 @@
                                 <td>
                                     <div class="d-flex gap-2 text-muted small" style="font-size: 11.5px;">
                                         <span><i class="bi bi-thermometer-half text-danger"></i>
-                                            <strong>{{ $st['temp'] }}°C</strong></span>
+                                            <strong id="tbl-temp-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong></span>
                                         <span><i class="bi bi-droplet-fill text-info"></i>
-                                            <strong>{{ $st['humidity'] }}%</strong></span>
+                                            <strong id="tbl-hum-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong></span>
                                         <span><i class="bi bi-moisture text-success"></i>
-                                            <strong>{{ $st['soil_moist'] }}%</strong></span>
+                                            <strong id="tbl-soil-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['soil_moist'] . '%' : '--' }}</strong></span>
                                     </div>
                                 </td>
                                 <td>
@@ -785,31 +819,34 @@
                                         class="badge bg-light text-secondary border font-monospace">{{ $st['data_interval'] }}s</span>
                                 </td>
                                 <td>
-                                    @if (!$st['has_real_data'])
-                                        <span class="badge bg-light text-muted border fw-medium">
-                                            <i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu
-                                        </span>
-                                    @elseif ($st['status'] === 'offline')
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium">
-                                            <i class="bi bi-wifi-off me-1"></i> Mất kết nối (Offline)
-                                        </span>
-                                    @elseif ($st['status'] === 'danger')
-                                        <span
-                                            class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium">
-                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $st['status_label'] }}
-                                        </span>
-                                    @elseif($st['status'] === 'maintenance')
-                                        <span
-                                            class="badge bg-warning-subtle text-warning border border-warning-subtle fw-medium">
-                                            <i class="bi bi-tools me-1"></i> Bảo trì
-                                        </span>
-                                    @else
-                                        <span
-                                            class="badge bg-success-subtle text-success border border-success-subtle fw-medium">
-                                            <i class="bi bi-shield-check me-1"></i> Ổn định
-                                        </span>
-                                    @endif
+                                    <span id="tbl-status-badge-{{ $st['id'] }}">
+                                        @if (!$st['has_real_data'])
+                                            <span class="badge bg-light text-muted border fw-medium">
+                                                <i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu
+                                            </span>
+                                        @elseif ($st['status'] === 'offline')
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium">
+                                                <i class="bi bi-wifi-off me-1"></i> Mất kết nối (Offline)
+                                            </span>
+                                        @elseif ($st['status'] === 'danger')
+                                            <span
+                                                class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $st['status_label'] }}
+                                            </span>
+                                        @elseif($st['status'] === 'maintenance')
+                                            <span
+                                                class="badge bg-warning-subtle text-warning border border-warning-subtle fw-medium">
+                                                <i class="bi bi-tools me-1"></i> Bảo trì
+                                            </span>
+                                        @else
+                                            <span
+                                                class="badge bg-success-subtle text-success border border-success-subtle fw-medium">
+                                                <i class="bi bi-shield-check me-1"></i> Ổn định
+                                            </span>
+                                        @endif
+                                    </span>
                                 </td>
+
 
                                 <td style="text-align: center;" onclick="event.stopPropagation();">
                                     <div class="btn-group btn-group-sm">
@@ -1120,18 +1157,132 @@
             });
         }
 
-        // Tự động làm mới dữ liệu trạm quan trắc mỗi 120 giây (2 phút)
-        setInterval(function () {
-            // Không làm mới nếu người dùng đang thao tác mở bất kỳ modal nào
-            const anyModalOpen = document.querySelector('.app-modal.show') !== null;
+        // =========================================================================
+        // ĐỒNG BỘ DỮ LIỆU TELEMETRY LIVE REAL-TIME QUA AJAX MỖI 60 GIÂY (KHÔNG RELOAD TRANG)
+        // =========================================================================
+        let liveCountdown = 60;
 
-            if (!anyModalOpen) {
-                console.log('[IoT Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 120s)...');
-                window.location.reload();
+        // Đồng hồ đếm ngược từng giây trên thanh Header Live
+        setInterval(() => {
+            liveCountdown--;
+            const timerEl = document.getElementById('live-timer-text');
+            if (timerEl) timerEl.textContent = liveCountdown + 's';
+
+            if (liveCountdown <= 0) {
+                liveCountdown = 60;
+                fetchLiveTelemetry();
             }
-        }, 120000);
+        }, 1000);
 
+        async function fetchLiveTelemetry() {
+            try {
+                const res = await fetch('{{ route("iot.stations.live_data") }}');
+                const data = await res.json();
+                if (data && data.success && data.stations) {
+                    const elTime = document.getElementById('live-last-updated');
+                    if (elTime) elTime.textContent = data.timestamp;
+
+                    data.stations.forEach(st => {
+                        // 1. Cập nhật mảng dữ liệu local
+                        const idx = stationsData.findIndex(s => s.id === st.id);
+                        if (idx !== -1) {
+                            stationsData[idx] = st;
+                        }
+
+                        // 2. Cập nhật thời gian cập nhật
+                        const updatedEl = document.getElementById('station-updated-at-' + st.id);
+                        if (updatedEl) {
+                            updatedEl.innerHTML = '<i class="bi bi-arrow-repeat text-primary me-1"></i> Cập nhật: ' + st.updated_at;
+                        }
+
+                        // 3. Cập nhật Badge Trạng Thái ở Header Trạm
+                        const badgeHeaderEl = document.getElementById('station-status-badge-' + st.id);
+                        if (badgeHeaderEl) {
+                            let badgeHtml = '';
+                            if (!st.has_real_data) {
+                                badgeHtml = '<span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu</span>';
+                            } else if (st.status === 'offline') {
+                                badgeHtml = '<span class="badge bg-secondary text-white border border-secondary"><i class="bi bi-wifi-off me-1"></i> ' + st.status_label + '</span>';
+                            } else if (st.status === 'danger') {
+                                badgeHtml = '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ' + st.status_label + '</span>';
+                            } else if (st.status === 'maintenance') {
+                                badgeHtml = '<span class="badge bg-warning text-dark"><i class="bi bi-tools me-1"></i> ' + st.status_label + '</span>';
+                            } else {
+                                badgeHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> ' + st.status_label + '</span>';
+                            }
+                            badgeHeaderEl.innerHTML = badgeHtml;
+                        }
+
+                        // 4. Cập nhật 6 Thẻ Micro KPI Cảm Biến
+                        const tempEl = document.getElementById('kpi-temp-' + st.id);
+                        if (tempEl) tempEl.textContent = st.has_real_data ? st.temp + '°C' : '--';
+
+                        const humEl = document.getElementById('kpi-hum-' + st.id);
+                        if (humEl) {
+                            humEl.textContent = st.has_real_data ? st.humidity + '%' : '--';
+                            humEl.className = 'fs-6 ' + (st.has_real_data && st.humidity > 90 ? 'text-danger' : 'text-dark');
+                        }
+
+                        const rainEl = document.getElementById('kpi-rain-' + st.id);
+                        if (rainEl) rainEl.textContent = st.has_real_data ? st.rain + ' mm' : '--';
+
+                        const luxEl = document.getElementById('kpi-lux-' + st.id);
+                        if (luxEl) luxEl.textContent = st.has_real_data ? Number(st.light).toLocaleString() + ' Lux' : '--';
+
+                        const windEl = document.getElementById('kpi-wind-' + st.id);
+                        if (windEl) windEl.textContent = st.has_real_data ? st.wind + ' m/s' : '--';
+
+                        const soilEl = document.getElementById('kpi-soil-' + st.id);
+                        if (soilEl) {
+                            soilEl.innerHTML = st.has_real_data 
+                                ? st.soil_moist + '% <small class="text-muted">(' + st.soil_ph + 'pH)</small>'
+                                : '--';
+                        }
+
+                        // 5. Cập nhật các dòng trong bảng danh sách phía dưới
+                        const rowTemp = document.getElementById('tbl-temp-' + st.id);
+                        if (rowTemp) rowTemp.textContent = st.has_real_data ? st.temp + '°C' : '--';
+
+                        const rowHum = document.getElementById('tbl-hum-' + st.id);
+                        if (rowHum) rowHum.textContent = st.has_real_data ? st.humidity + '%' : '--';
+
+                        const rowSoil = document.getElementById('tbl-soil-' + st.id);
+                        if (rowSoil) rowSoil.textContent = st.has_real_data ? st.soil_moist + '%' : '--';
+
+                        const tblBadge = document.getElementById('tbl-status-badge-' + st.id);
+                        if (tblBadge) {
+                            let tblBadgeHtml = '';
+                            if (!st.has_real_data) {
+                                tblBadgeHtml = '<span class="badge bg-light text-muted border fw-medium"><i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu</span>';
+                            } else if (st.status === 'offline') {
+                                tblBadgeHtml = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium"><i class="bi bi-wifi-off me-1"></i> Mất kết nối (Offline)</span>';
+                            } else if (st.status === 'danger') {
+                                tblBadgeHtml = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium"><i class="bi bi-exclamation-triangle-fill me-1"></i> ' + st.status_label + '</span>';
+                            } else if (st.status === 'maintenance') {
+                                tblBadgeHtml = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle fw-medium"><i class="bi bi-tools me-1"></i> Bảo trì</span>';
+                            } else {
+                                tblBadgeHtml = '<span class="badge bg-success-subtle text-success border border-success-subtle fw-medium"><i class="bi bi-shield-check me-1"></i> Ổn định</span>';
+                            }
+                            tblBadge.innerHTML = tblBadgeHtml;
+                        }
+
+                        // 6. Cập nhật biểu đồ Chart.js mượt mà không nhấp nháy
+                        if (chartsInstance[st.id]) {
+                            const chart = chartsInstance[st.id];
+                            chart.data.labels = (st.chart_labels && st.chart_labels.length > 0) ? st.chart_labels : ['Chưa có dữ liệu'];
+                            chart.data.datasets[0].data = st.temp_history;
+                            chart.data.datasets[1].data = st.humidity_history;
+                            chart.data.datasets[2].data = st.soil_moist_history;
+                            chart.update();
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('[Live Sync Error]', err);
+            }
+        }
     </script>
 @endpush
+
 
 
