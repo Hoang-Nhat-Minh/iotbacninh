@@ -38,7 +38,7 @@ MQTT_PASSWORD = "iast@6688"           # Mật khẩu MQTT
 
 
 
-DEFAULT_DATA_INTERVAL = 60            # Chu kỳ gửi dữ liệu mặc định (giây)
+DEFAULT_DATA_INTERVAL = 900            # Chu kỳ gửi dữ liệu mặc định (giây)
 CURRENT_INTERVAL = DEFAULT_DATA_INTERVAL
 
 # Cấu hình Topics MQTT theo chuẩn hệ thống
