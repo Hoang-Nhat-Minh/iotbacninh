@@ -56,15 +56,14 @@ class MqttService
             $settings = (new \PhpMqtt\Client\ConnectionSettings)
                 ->setKeepAliveInterval(10)
                 ->setConnectTimeout(5)
-                ->setSocketTimeout(5);
-
-            if ($username) {
-                $settings->setUsername($username)->setPassword($password);
-            }
+                ->setSocketTimeout(5)
+                ->setUsername((string) $username)
+                ->setPassword((string) $password);
 
             $mqtt->connect($settings, true);
             $mqtt->publish($topic, $jsonPayload, 1, false);
             $mqtt->disconnect();
+
 
             Log::info("MQTT [PUBLISH_COMMAND] THÀNH CÔNG: Đã gửi gói tin xuống topic [{$topic}]", [
                 'command_id' => $commandId,
