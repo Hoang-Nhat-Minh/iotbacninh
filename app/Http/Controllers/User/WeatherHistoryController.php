@@ -75,7 +75,7 @@ class WeatherHistoryController extends Controller
             $dayReadings = $readingsByDate->get($dateStr);
 
             if ($dayReadings && $dayReadings->count() > 0) {
-                // TÍNH TOÁN DỮ LIỆU THỰC TẾ TỪ CẢM BIẾN TRẠM
+                // TÍNH TOÁN DỮ LIỆU THỰC TẾ 100% TỪ CẢM BIẾN TRẠM
                 $tempList = [];
                 $humList = [];
                 $rainList = [];
@@ -97,63 +97,61 @@ class WeatherHistoryController extends Controller
                     if (isset($vals['light'])) $lightList[] = $vals['light'];
                 }
 
-                $tempAvg = count($tempList) > 0 ? round(collect($tempList)->avg(), 1) : 27.5;
-                $tempMin = count($tempList) > 0 ? round(collect($tempList)->min(), 1) : round($tempAvg - 2.5, 1);
-                $tempMax = count($tempList) > 0 ? round(collect($tempList)->max(), 1) : round($tempAvg + 3.0, 1);
-                $humidityAvg = count($humList) > 0 ? (int)round(collect($humList)->avg()) : 80;
+                $tempAvg = count($tempList) > 0 ? round(collect($tempList)->avg(), 1) : null;
+                $tempMin = count($tempList) > 0 ? round(collect($tempList)->min(), 1) : null;
+                $tempMax = count($tempList) > 0 ? round(collect($tempList)->max(), 1) : null;
+                $humidityAvg = count($humList) > 0 ? (int)round(collect($humList)->avg()) : null;
                 $rain = count($rainList) > 0 ? round(collect($rainList)->max(), 1) : 0.0;
-                $soilMoist = count($soilMoistList) > 0 ? (int)round(collect($soilMoistList)->avg()) : 70;
-                $soilPh = count($soilPhList) > 0 ? round(collect($soilPhList)->avg(), 1) : 6.5;
-                $wind = count($windList) > 0 ? round(collect($windList)->avg(), 1) : 1.8;
-                $light = count($lightList) > 0 ? (int)round(collect($lightList)->avg()) : 25000;
+                $soilMoist = count($soilMoistList) > 0 ? (int)round(collect($soilMoistList)->avg()) : null;
+                $soilPh = count($soilPhList) > 0 ? round(collect($soilPhList)->avg(), 1) : null;
+                $wind = count($windList) > 0 ? round(collect($windList)->avg(), 1) : null;
+                $light = count($lightList) > 0 ? (int)round(collect($lightList)->avg()) : null;
                 $isRealSensorData = true;
                 $recordsCount = $dayReadings->count();
-            } else {
-                // TẠO DỮ LIỆU CƠ SỞ MẪU KHÍ HẬU BẮC NINH (ĐỐI VỚI CÁC NGÀY TRƯỚC KHI LẮP ĐẶT TRẠM)
-                $stSeed = $selectedStation ? $selectedStation->id : 1;
-                $seed = ($stSeed * 100) + ($i * 7);
-                $baseTemp = 27.5 + sin($seed) * 3.2;
-                $tempMin = round($baseTemp - 2.8, 1);
-                $tempMax = round($baseTemp + 3.6, 1);
-                $tempAvg = round($baseTemp, 1);
 
-                $humidityAvg = (int)max(60, min(95, 78 + cos($seed) * 12));
-                $rain = max(0, round(sin($seed * 2) * 15 - 6, 1));
-                $soilMoist = (int)max(55, min(92, 68 + ($rain > 0 ? 12 : 0) + cos($seed) * 4));
-                $soilPh = round(6.3 + abs(cos($seed)) * 0.5, 1);
-                $wind = round(1.6 + abs(sin($seed)) * 2.0, 1);
-                $light = (int)max(6000, min(42000, 26000 + cos($seed * 3) * 10000));
+                // Đánh giá trạng thái vi khí hậu dựa trên số đo thật
+                if ($rain > 15) {
+                    $condition = 'Mưa to rào nặng hạt';
+                    $icon = 'bi-cloud-lightning-rain-fill text-primary';
+                    $rainyDays++;
+                } elseif ($rain > 0) {
+                    $condition = 'Mưa rào rải rác';
+                    $icon = 'bi-cloud-rain-fill text-info';
+                    $rainyDays++;
+                } elseif ($humidityAvg && $humidityAvg > 88) {
+                    $condition = 'Ẩm độ cao, âm u';
+                    $icon = 'bi-cloud-fill text-secondary';
+                } elseif ($tempMax && $tempMax > 34) {
+                    $condition = 'Nắng nóng gay gắt';
+                    $icon = 'bi-sun-fill text-warning';
+                } elseif ($tempAvg && $tempAvg < 20) {
+                    $condition = 'Se lạnh, hanh khô';
+                    $icon = 'bi-cloud-snow text-info';
+                } else {
+                    $condition = 'Nắng nhẹ, thời tiết mát';
+                    $icon = 'bi-cloud-sun-fill text-warning';
+                }
+
+                if ($tempAvg !== null) $totalTemp += $tempAvg;
+                if ($humidityAvg !== null) $totalHumidity += $humidityAvg;
+                if ($soilMoist !== null) $totalSoilMoist += $soilMoist;
+                $totalRain += $rain;
+            } else {
+                // Ngày chưa có gói tin nào ghi nhận vào Database
+                $tempAvg = null;
+                $tempMin = null;
+                $tempMax = null;
+                $humidityAvg = null;
+                $rain = null;
+                $soilMoist = null;
+                $soilPh = null;
+                $wind = null;
+                $light = null;
+                $condition = 'Chưa ghi nhận dữ liệu';
+                $icon = 'bi-dash-circle text-muted';
                 $isRealSensorData = false;
                 $recordsCount = 0;
             }
-
-            // Đánh giá trạng thái thời tiết vi khí hậu nông nghiệp
-            if ($rain > 15) {
-                $condition = 'Mưa to rào nặng hạt';
-                $icon = 'bi-cloud-lightning-rain-fill text-primary';
-                $rainyDays++;
-            } elseif ($rain > 0) {
-                $condition = 'Mưa rào rải rác';
-                $icon = 'bi-cloud-rain-fill text-info';
-                $rainyDays++;
-            } elseif ($humidityAvg > 88) {
-                $condition = 'Ẩm độ cao, âm u';
-                $icon = 'bi-cloud-fill text-secondary';
-            } elseif ($tempMax > 34) {
-                $condition = 'Nắng nóng kéo dài';
-                $icon = 'bi-sun-fill text-warning';
-            } elseif ($tempAvg < 20) {
-                $condition = 'Se lạnh, hanh khô';
-                $icon = 'bi-cloud-snow text-info';
-            } else {
-                $condition = 'Nắng nhẹ, thời tiết mát';
-                $icon = 'bi-cloud-sun-fill text-warning';
-            }
-
-            $totalTemp += $tempAvg;
-            $totalHumidity += $humidityAvg;
-            $totalRain += $rain;
-            $totalSoilMoist += $soilMoist;
 
             $dailyWeather[] = [
                 'date_str' => $dateStr,
@@ -168,7 +166,7 @@ class WeatherHistoryController extends Controller
                 'soil_moist' => $soilMoist,
                 'soil_ph' => $soilPh,
                 'wind' => $wind,
-                'light' => number_format($light),
+                'light' => $light ? number_format($light) : null,
                 'condition' => $condition,
                 'icon' => $icon,
                 'is_real_data' => $isRealSensorData,
@@ -176,12 +174,18 @@ class WeatherHistoryController extends Controller
             ];
         }
 
+        // Chỉ tính trung bình trên các ngày thực sự có dữ liệu đo đạc
+        $daysWithData = collect($dailyWeather)->where('is_real_data', true);
+        $daysCount = $daysWithData->count();
+
         $summaryStats = [
-            'avg_temp' => round($totalTemp / 30, 1),
-            'avg_humidity' => round($totalHumidity / 30, 1),
-            'avg_soil_moist' => round($totalSoilMoist / 30, 1),
+            'avg_temp' => $daysCount > 0 ? round($totalTemp / $daysCount, 1) : null,
+            'avg_humidity' => $daysCount > 0 ? round($totalHumidity / $daysCount, 1) : null,
+            'avg_soil_moist' => $daysCount > 0 ? round($totalSoilMoist / $daysCount, 1) : null,
             'total_rain' => round($totalRain, 1),
             'rainy_days' => $rainyDays,
+            'total_real_days' => $daysCount,
+            'total_records' => $readings->count(),
             'garden_name' => $selectedGarden ? $selectedGarden->name : 'Vùng trồng Bắc Ninh',
             'station_name' => $selectedStation ? $selectedStation->name : 'Tất cả trạm',
             'station_code' => $selectedStation ? $selectedStation->code : 'ALL',
@@ -191,7 +195,7 @@ class WeatherHistoryController extends Controller
     }
 
     /**
-     * Lấy chi tiết lịch sử đo đạc cảm biến theo từng giờ trong ngày được chọn.
+     * Lấy chi tiết lịch sử đo đạc cảm biến theo từng mốc thời gian thực tế trong ngày.
      */
     public function detail($stationId, $date)
     {
@@ -200,7 +204,7 @@ class WeatherHistoryController extends Controller
         $startOfDay = $carbonDate->copy()->startOfDay();
         $endOfDay = $carbonDate->copy()->endOfDay();
 
-        // 1. Lấy dữ liệu cảm biến thực tế trong ngày từ cơ sở dữ liệu
+        // 1. Lấy toàn bộ dữ liệu cảm biến thực tế trong ngày từ cơ sở dữ liệu
         $dayReadings = SensorReading::where('monitoring_station_id', $stationId)
             ->where('recorded_at', '>=', $startOfDay)
             ->where('recorded_at', '<=', $endOfDay)
@@ -208,80 +212,58 @@ class WeatherHistoryController extends Controller
             ->get();
 
         $hourly = [];
+        $tempAvg = null;
+        $humAvg = null;
+        $totalRain = null;
 
         if ($dayReadings->count() > 0) {
-            // Hiển thị các bản ghi đo đạc thực tế của cảm biến
             $tempList = [];
             $humList = [];
             $rainList = [];
 
             foreach ($dayReadings as $r) {
                 $vals = $this->extractReadingValues($r->data ?? []);
-                $t = $vals['temp'] ?? 27.5;
-                $h = $vals['humidity'] ?? 80;
+                $t = $vals['temp'] ?? null;
+                $h = $vals['humidity'] ?? null;
                 $rn = $vals['rain'] ?? 0;
-                $sm = $vals['soil_moist'] ?? 70;
-                $w = $vals['wind'] ?? 1.8;
+                $sm = $vals['soil_moist'] ?? null;
+                $w = $vals['wind'] ?? null;
 
-                $tempList[] = $t;
-                $humList[] = $h;
+                if ($t !== null) $tempList[] = $t;
+                if ($h !== null) $humList[] = $h;
                 $rainList[] = $rn;
 
                 $hourly[] = [
                     'time' => Carbon::parse($r->recorded_at)->format('H:i:s'),
-                    'temp' => round($t, 1),
-                    'humidity' => (int) round($h),
+                    'temp' => $t !== null ? round($t, 1) : '--',
+                    'humidity' => $h !== null ? (int) round($h) : '--',
                     'rain' => round($rn, 1),
-                    'soil_moist' => (int) round($sm),
-                    'wind' => round($w, 1),
+                    'soil_moist' => $sm !== null ? (int) round($sm) : '--',
+                    'wind' => $w !== null ? round($w, 1) : '--',
                     'is_real' => true,
                 ];
             }
 
-            $tempAvg = round(collect($tempList)->avg(), 1);
-            $humAvg = (int) round(collect($humList)->avg());
-            $totalRain = round(collect($rainList)->max(), 1);
-        } else {
-            // Fallback: Tạo phân bố 24h giả lập theo chu kỳ ngày đêm
-            $seed = ($stationId * 100) + (Carbon::now()->diffInDays($carbonDate) * 7);
-            $baseTemp = 27.5 + sin($seed) * 3.2;
-            $humidityAvg = (int)max(60, min(95, 78 + cos($seed) * 12));
-            $rain = max(0, round(sin($seed * 2) * 15 - 6, 1));
-
-            for ($h = 0; $h < 24; $h += 2) {
-                $hTemp = round($baseTemp + sin(($h - 6) / 24 * 2 * M_PI) * 4.2, 1);
-                $hHum = (int)max(50, min(99, $humidityAvg - sin(($h - 6) / 24 * 2 * M_PI) * 14));
-                $hRain = ($rain > 0 && ($h >= 14 && $h <= 18)) ? round($rain / 3, 1) : 0;
-
-                $hourly[] = [
-                    'time' => sprintf('%02d:00', $h),
-                    'temp' => $hTemp,
-                    'humidity' => $hHum,
-                    'rain' => $hRain,
-                    'soil_moist' => (int)max(50, min(99, 70 + cos($seed + $h) * 5)),
-                    'wind' => round(1.5 + abs(sin($h)) * 2, 1),
-                    'is_real' => false,
-                ];
-            }
-
-            $tempAvg = round($baseTemp, 1);
-            $humAvg = $humidityAvg;
-            $totalRain = $rain;
+            $tempAvg = count($tempList) > 0 ? round(collect($tempList)->avg(), 1) : null;
+            $humAvg = count($humList) > 0 ? (int) round(collect($humList)->avg()) : null;
+            $totalRain = count($rainList) > 0 ? round(collect($rainList)->max(), 1) : 0;
         }
 
         return response()->json([
             'success' => true,
+            'has_data' => $dayReadings->count() > 0,
             'station_name' => $st->name,
             'station_code' => $st->code,
             'zone_name' => $st->garden->name ?? 'Vùng trồng Bắc Ninh',
             'date_display' => $carbonDate->format('d/m/Y'),
-            'temp_avg' => $tempAvg,
-            'humidity_avg' => $humAvg,
-            'total_rain' => $totalRain,
+            'temp_avg' => $tempAvg !== null ? ($tempAvg . ' °C') : 'Chưa có',
+            'humidity_avg' => $humAvg !== null ? ($humAvg . ' %') : 'Chưa có',
+            'total_rain' => $totalRain !== null ? ($totalRain . ' mm') : '0.0 mm',
             'records_count' => $dayReadings->count(),
             'hourly' => $hourly,
         ]);
     }
+
 
     /**
      * Bóc tách các chỉ số cảm biến từ gói JSON

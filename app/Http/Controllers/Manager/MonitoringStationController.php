@@ -196,36 +196,23 @@ class MonitoringStationController extends Controller
             ->take(50)
             ->get();
 
-        // Lịch sử hiển thị
+        // Lịch sử hiển thị (Dữ liệu thật 100% từ Database)
         $history = [];
         if ($st->sensorReadings && $st->sensorReadings->count() > 0) {
-            $takeReadings = $st->sensorReadings->take(6);
+            $takeReadings = $st->sensorReadings->take(10);
             foreach ($takeReadings as $sr) {
                 $parsed = $this->extractReadingValues($sr->data ?? []);
                 $history[] = [
-                    'time' => Carbon::parse($sr->recorded_at)->format('d/m/Y H:i'),
-                    'temp' => round($parsed['temp'] ?? $latestReadings['temp'], 1) . '°C',
-                    'humidity' => round($parsed['humidity'] ?? $latestReadings['humidity']) . '%',
-                    'soil_moisture' => round($parsed['soil_moist'] ?? $latestReadings['soil_moist']) . '%',
-                    'rain' => round($parsed['rain'] ?? $latestReadings['rain'], 1) . ' mm',
-                    'light' => number_format((int) ($parsed['light'] ?? $latestReadings['light'])) . ' Lux',
+                    'time' => Carbon::parse($sr->recorded_at)->format('d/m/Y H:i:s'),
+                    'temp' => isset($parsed['temp']) ? (round($parsed['temp'], 1) . '°C') : '--',
+                    'humidity' => isset($parsed['humidity']) ? (round($parsed['humidity']) . '%') : '--',
+                    'soil_moisture' => isset($parsed['soil_moist']) ? (round($parsed['soil_moist']) . '%') : '--',
+                    'rain' => isset($parsed['rain']) ? (round($parsed['rain'], 1) . ' mm') : '--',
+                    'light' => isset($parsed['light']) ? (number_format((int) $parsed['light']) . ' Lux') : '--',
                 ];
             }
         }
 
-        // Nếu chưa có đủ 6 dòng lịch sử, bổ sung
-        if (count($history) === 0) {
-            for ($i = 0; $i < 6; $i++) {
-                $history[] = [
-                    'time' => now()->subHours($i * 2)->format('d/m/Y H:i'),
-                    'temp' => round($latestReadings['temp'] - ($i * 0.3), 1) . '°C',
-                    'humidity' => (int)max(50, min(99, $latestReadings['humidity'] - ($i * 2))) . '%',
-                    'soil_moisture' => (int)max(50, min(99, $latestReadings['soil_moist'] - ($i * 1))) . '%',
-                    'rain' => round(max(0, $latestReadings['rain'] - ($i * 0.2)), 1) . ' mm',
-                    'light' => number_format(max(0, (int) ($latestReadings['light'] - ($i * 1500)))) . ' Lux',
-                ];
-            }
-        }
 
         $station = [
             'id' => $st->id,

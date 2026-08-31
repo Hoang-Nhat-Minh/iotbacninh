@@ -118,8 +118,8 @@
                 </div>
                 <div>
                     <div class="text-muted small fw-medium">Nhiệt Độ TB Vùng Trồng</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_temp'] }} °C</div>
-                    <small class="text-muted" style="font-size: 11px;">Mức chuẩn 25° - 32°C</small>
+                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_temp'] !== null ? $summaryStats['avg_temp'] . ' °C' : '--' }}</div>
+                    <small class="text-muted" style="font-size: 11px;">{{ $summaryStats['total_real_days'] > 0 ? ('Tính trên ' . $summaryStats['total_real_days'] . ' ngày có dữ liệu') : 'Chưa có dữ liệu thực tế' }}</small>
                 </div>
             </div>
         </div>
@@ -131,8 +131,8 @@
                 </div>
                 <div>
                     <div class="text-muted small fw-medium">Độ Ẩm Khí Quyển TB</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_humidity'] }} %</div>
-                    <small class="text-muted" style="font-size: 11px;">Độ ẩm tối ưu cây ăn quả</small>
+                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_humidity'] !== null ? $summaryStats['avg_humidity'] . ' %' : '--' }}</div>
+                    <small class="text-muted" style="font-size: 11px;">{{ $summaryStats['total_records'] > 0 ? ($summaryStats['total_records'] . ' bản ghi cảm biến') : 'Chưa có dữ liệu đo' }}</small>
                 </div>
             </div>
         </div>
@@ -143,9 +143,9 @@
                     <i class="bi bi-cloud-rain-fill"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Tổng Lượng Mưa (30 Ngày)</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['total_rain'] }} mm</div>
-                    <small class="text-primary fw-medium" style="font-size: 11px;">{{ $summaryStats['rainy_days'] }} ngày có mưa</small>
+                    <div class="text-muted small fw-medium">Tổng Lượng Mưa Đo Đạc</div>
+                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['total_rain'] > 0 ? $summaryStats['total_rain'] . ' mm' : '0.0 mm' }}</div>
+                    <small class="text-primary fw-medium" style="font-size: 11px;">{{ $summaryStats['rainy_days'] }} ngày ghi nhận mưa</small>
                 </div>
             </div>
         </div>
@@ -157,8 +157,8 @@
                 </div>
                 <div>
                     <div class="text-muted small fw-medium">Độ Ẩm Đất Trung Bình</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_soil_moist'] }} %</div>
-                    <small class="text-success fw-medium" style="font-size: 11px;">Độ ẩm rễ đạt chuẩn</small>
+                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_soil_moist'] !== null ? $summaryStats['avg_soil_moist'] . ' %' : '--' }}</div>
+                    <small class="text-success fw-medium" style="font-size: 11px;">Đo từ cảm biến tầng rễ</small>
                 </div>
             </div>
         </div>
@@ -171,7 +171,7 @@
                 <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 14px;">
                     <i class="bi bi-graph-up-arrow text-primary"></i> Biểu Đồ Diễn Biến Vi Khí Hậu & Môi Trường Đất 30 Ngày Gần Nhất
                 </h6>
-                <small class="text-muted">Xu hướng nhiệt độ, độ ẩm không khí và độ ẩm tầng đất canh tác</small>
+                <small class="text-muted">Dữ liệu quan trắc thực tế được ghi nhận từ cảm biến trạm hiện trường</small>
             </div>
             <div class="d-flex gap-3 small text-muted">
                 <span><i class="bi bi-circle-fill text-danger me-1"></i> Nhiệt độ (°C)</span>
@@ -234,25 +234,41 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="fw-bold text-danger">{{ $w['temp_avg'] }} °C</span>
-                                    <span class="text-muted small ms-1">({{ $w['temp_min'] }}° - {{ $w['temp_max'] }}°)</span>
-                                </td>
-                                <td>
-                                    <span class="fw-semibold text-info">{{ $w['humidity_avg'] }}%</span>
-                                </td>
-                                <td>
-                                    @if ($w['rain'] > 0)
-                                        <span class="fw-bold text-primary"><i class="bi bi-umbrella-fill me-1"></i>{{ $w['rain'] }} mm</span>
+                                    @if ($w['temp_avg'] !== null)
+                                        <span class="fw-bold text-danger">{{ $w['temp_avg'] }} °C</span>
+                                        <span class="text-muted small ms-1">({{ $w['temp_min'] }}° - {{ $w['temp_max'] }}°)</span>
                                     @else
-                                        <span class="text-muted">0.0 mm</span>
+                                        <span class="text-muted">--</span>
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="fw-medium text-success">{{ $w['soil_moist'] }}%</span>
-                                    <small class="text-muted">({{ $w['soil_ph'] }} pH)</small>
+                                    @if ($w['humidity_avg'] !== null)
+                                        <span class="fw-semibold text-info">{{ $w['humidity_avg'] }}%</span>
+                                    @else
+                                        <span class="text-muted">--</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($w['rain'] !== null && $w['rain'] > 0)
+                                        <span class="fw-bold text-primary"><i class="bi bi-umbrella-fill me-1"></i>{{ $w['rain'] }} mm</span>
+                                    @elseif ($w['rain'] !== null)
+                                        <span class="text-muted">0.0 mm</span>
+                                    @else
+                                        <span class="text-muted">--</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($w['soil_moist'] !== null)
+                                        <span class="fw-medium text-success">{{ $w['soil_moist'] }}%</span>
+                                        @if ($w['soil_ph'] !== null)
+                                            <small class="text-muted">({{ $w['soil_ph'] }} pH)</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">--</span>
+                                    @endif
                                 </td>
                                 <td class="text-muted small">
-                                    {{ $w['wind'] }} m/s
+                                    {{ $w['wind'] !== null ? ($w['wind'] . ' m/s') : '--' }}
                                 </td>
                                 <td style="text-align: center;" onclick="event.stopPropagation();">
                                     <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1"
@@ -267,6 +283,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- MODAL CHI TIẾT THỜI TIẾT 1 NGÀY -->
     <div class="app-modal" id="modal-detail-weather-day">
@@ -352,7 +369,8 @@
                                 backgroundColor: 'rgba(239, 68, 68, 0.05)',
                                 tension: 0.35,
                                 borderWidth: 2,
-                                pointRadius: 2.5
+                                pointRadius: 3,
+                                spanGaps: true
                             },
                             {
                                 label: 'Độ ẩm khí (%)',
@@ -361,7 +379,8 @@
                                 backgroundColor: 'rgba(6, 182, 212, 0.05)',
                                 tension: 0.35,
                                 borderWidth: 2,
-                                pointRadius: 2.5
+                                pointRadius: 3,
+                                spanGaps: true
                             },
                             {
                                 label: 'Độ ẩm đất (%)',
@@ -370,9 +389,11 @@
                                 backgroundColor: 'rgba(34, 197, 94, 0.05)',
                                 tension: 0.35,
                                 borderWidth: 2,
-                                pointRadius: 2.5
+                                pointRadius: 3,
+                                spanGaps: true
                             }
                         ]
+
                     },
                     options: {
                         responsive: true,
