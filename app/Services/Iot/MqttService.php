@@ -34,10 +34,10 @@ class MqttService
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
         try {
-            $host = env('MQTT_HOST') ?: config('mqtt-client.connections.default.host', '117.6.44.206');
-            $port = (int) (env('MQTT_PORT') ?: config('mqtt-client.connections.default.port', 9070));
-            $username = env('MQTT_USERNAME') ?: config('mqtt-client.connections.default.connection_settings.auth.username', 'iastadmin');
-            $password = env('MQTT_PASSWORD') ?: config('mqtt-client.connections.default.connection_settings.auth.password', 'iast@6688');
+            $host = config('mqtt-client.connections.default.host') ?: env('MQTT_HOST', '117.6.44.206');
+            $port = (int) (config('mqtt-client.connections.default.port') ?: env('MQTT_PORT', 9070));
+            $username = config('mqtt-client.connections.default.connection_settings.auth.username') ?: env('MQTT_USERNAME', 'iastadmin');
+            $password = config('mqtt-client.connections.default.connection_settings.auth.password') ?: env('MQTT_PASSWORD', 'iast@6688');
 
             $clientId = 'laravel_cmd_' . Str::random(8);
 
@@ -49,7 +49,9 @@ class MqttService
                 'payload' => $payload,
             ]);
 
-            $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
+            // Khởi tạo MqttClient với NullLogger để không bị tràn log socket read
+            $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId, \PhpMqtt\Client\MqttClient::MQTT_3_1_1, null, new \Psr\Log\NullLogger());
+
 
             $settings = (new \PhpMqtt\Client\ConnectionSettings)
                 ->setKeepAliveInterval(10)

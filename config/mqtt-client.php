@@ -33,8 +33,8 @@ return [
         'default' => [
 
             // Host and Port of the Mosquitto MQTT broker
-            'host' => env('MQTT_HOST', '127.0.0.1'),
-            'port' => (int) env('MQTT_PORT', 1883),
+            'host' => env('MQTT_HOST', '117.6.44.206'),
+            'port' => (int) env('MQTT_PORT', 9070),
 
             // MQTT protocol version (MQTT 3.1 or 3.1.1)
             'protocol' => MqttClient::MQTT_3_1_1,
@@ -48,8 +48,8 @@ return [
             // Repository for QoS 1 and 2 pending messages
             'repository' => MemoryRepository::class,
 
-            // Logging settings
-            'enable_logging' => (bool) env('MQTT_ENABLE_LOGGING', true),
+            // Logging settings - TẮT ngầm định để tránh spam file log mỗi mili-giây
+            'enable_logging' => (bool) env('MQTT_ENABLE_LOGGING', false),
             'log_channel' => env('MQTT_LOG_CHANNEL', null),
 
             // All connection settings required by php-mqtt/laravel-client
@@ -57,9 +57,10 @@ return [
 
                 // Authentication credentials
                 'auth' => [
-                    'username' => env('MQTT_USERNAME', null),
-                    'password' => env('MQTT_PASSWORD', null),
+                    'username' => env('MQTT_USERNAME', 'iastadmin'),
+                    'password' => env('MQTT_PASSWORD', 'iast@6688'),
                 ],
+
 
                 // Connection and socket timeout settings
                 'connect_timeout' => (int) env('MQTT_CONNECT_TIMEOUT', 60),
