@@ -288,6 +288,18 @@ class MonitoringStationController extends Controller
             'status' => 'required|string|in:active,inactive,maintenance,danger,offline',
         ]);
 
+        Log::info("=== [STATION UPDATE] Bắt đầu lưu cấu hình trạm ID {$id} ({$station->code}) ===", [
+            'station_id' => $station->id,
+            'station_code' => $station->code,
+            'old_name' => $station->name,
+            'new_name' => $validated['name'],
+            'old_interval' => $station->data_interval,
+            'new_interval' => $validated['data_interval'] ?? null,
+            'new_status' => $validated['status'],
+            'user' => auth()->user()?->email ?? 'unknown',
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
         $station->update($validated);
 
         $msg = 'Cập nhật cấu hình trạm thành công.';
@@ -296,6 +308,12 @@ class MonitoringStationController extends Controller
         if (!empty($validated['data_interval'])) {
             $mqttResult = $mqttService->publishCommand($station->code, 'SET_INTERVAL', [
                 'interval_seconds' => (int) $validated['data_interval']
+            ]);
+
+            Log::info("=== [STATION MQTT COMMAND RESULT] Kết quả gửi lệnh SET_INTERVAL cho trạm {$station->code} ===", [
+                'station_code' => $station->code,
+                'target_interval_seconds' => (int) $validated['data_interval'],
+                'mqtt_result' => $mqttResult,
             ]);
 
             if (!empty($mqttResult['success'])) {
@@ -307,6 +325,7 @@ class MonitoringStationController extends Controller
 
         return redirect()->route('iot.stations')->with('success', $msg);
     }
+
 
 
 

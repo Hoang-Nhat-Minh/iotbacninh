@@ -1120,16 +1120,17 @@
             });
         }
 
-        // Tự động làm mới dữ liệu trạm quan trắc mỗi 300 giây (5 phút)
+        // Tự động làm mới dữ liệu trạm quan trắc mỗi 120 giây (2 phút)
         setInterval(function () {
             // Không làm mới nếu người dùng đang thao tác mở bất kỳ modal nào
             const anyModalOpen = document.querySelector('.app-modal.show') !== null;
 
             if (!anyModalOpen) {
-                console.log('[IoT Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 300s)...');
+                console.log('[IoT Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 120s)...');
                 window.location.reload();
             }
-        }, 300000);
+        }, 120000);
+
     </script>
 @endpush
 

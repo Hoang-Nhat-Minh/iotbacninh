@@ -40,6 +40,15 @@ class MqttService
             $password = env('MQTT_PASSWORD') ?: config('mqtt-client.connections.default.connection_settings.auth.password', 'iast@6688');
 
             $clientId = 'laravel_cmd_' . Str::random(8);
+
+            Log::info("MQTT [PUBLISH_COMMAND] Chuẩn bị gửi lệnh tới Broker", [
+                'broker' => "{$host}:{$port}",
+                'username' => $username,
+                'client_id' => $clientId,
+                'topic' => $topic,
+                'payload' => $payload,
+            ]);
+
             $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
 
             $settings = (new \PhpMqtt\Client\ConnectionSettings)
@@ -55,7 +64,11 @@ class MqttService
             $mqtt->publish($topic, $jsonPayload, 1, false);
             $mqtt->disconnect();
 
-            Log::info("MQTT Command Published to [{$topic}]: {$jsonPayload}");
+            Log::info("MQTT [PUBLISH_COMMAND] THÀNH CÔNG: Đã gửi gói tin xuống topic [{$topic}]", [
+                'command_id' => $commandId,
+                'topic' => $topic,
+            ]);
+
 
 
             return [
