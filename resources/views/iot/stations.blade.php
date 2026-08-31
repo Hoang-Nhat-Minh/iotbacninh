@@ -236,7 +236,12 @@
                                 <h4 class="fw-bold text-dark mb-0">{{ $st['name'] }}</h4>
                                 <span
                                     class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6">{{ $st['code'] }}</span>
-                                @if ($st['status'] === 'danger')
+                                @if (!$st['has_real_data'])
+                                    <span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu</span>
+                                @elseif ($st['status'] === 'offline')
+                                    <span class="badge bg-secondary text-white border border-secondary"><i class="bi bi-wifi-off me-1"></i>
+                                        {{ $st['status_label'] }}</span>
+                                @elseif ($st['status'] === 'danger')
                                     <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>
                                         {{ $st['status_label'] }}</span>
                                 @elseif($st['status'] === 'maintenance')
@@ -246,6 +251,7 @@
                                     <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>
                                         {{ $st['status_label'] }}</span>
                                 @endif
+
                             </div>
                             <div class="text-muted small d-flex align-items-center gap-3">
                                 <span><i class="bi bi-geo-alt text-danger me-1"></i> {{ $st['zone'] }}</span>
@@ -783,6 +789,10 @@
                                         <span class="badge bg-light text-muted border fw-medium">
                                             <i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu
                                         </span>
+                                    @elseif ($st['status'] === 'offline')
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium">
+                                            <i class="bi bi-wifi-off me-1"></i> Mất kết nối (Offline)
+                                        </span>
                                     @elseif ($st['status'] === 'danger')
                                         <span
                                             class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium">
@@ -800,6 +810,7 @@
                                         </span>
                                     @endif
                                 </td>
+
                                 <td style="text-align: center;" onclick="event.stopPropagation();">
                                     <div class="btn-group btn-group-sm">
                                         <button class="btn btn-primary btn-sm py-1 px-2" title="Định vị & chọn trạm"

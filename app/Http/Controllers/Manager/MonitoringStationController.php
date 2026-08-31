@@ -56,9 +56,14 @@ class MonitoringStationController extends Controller
                 $statusLabel = 'Bảo trì trạm';
                 $alertDesc = 'Trạm đang trong chế độ bảo trì hoặc kiểm tra kỹ thuật định kỳ.';
                 $isDanger = false;
+            } elseif ($st->status === 'offline' || $st->status === 'inactive') {
+                $statusClass = 'offline';
+                $statusLabel = 'Mất kết nối (Offline)';
+                $alertDesc = 'Trạm đã ngắt kết nối (Offline) hoặc mất nguồn / mất sóng 4G. Đang hiển thị dữ liệu đo đạc gần nhất.';
+                $isDanger = true;
             } elseif ($isTimeout) {
-                $statusClass = 'danger';
-                $statusLabel = 'Mất kết nối trạm';
+                $statusClass = 'offline';
+                $statusLabel = 'Mất kết nối (Timeout)';
                 $alertDesc = 'Không nhận được tín hiệu từ ' . Carbon::parse($lastContact)->diffForHumans() . '. Đang hiển thị dữ liệu đo đạc gần nhất.';
                 $isDanger = true;
             } elseif ($st->status === 'danger' || ($latestReadings['humidity'] > 95)) {
@@ -72,6 +77,7 @@ class MonitoringStationController extends Controller
                 $alertDesc = 'Các chỉ số vi khí hậu và dinh dưỡng đất nằm trong ngưỡng tối ưu cho cây trồng.';
                 $isDanger = false;
             }
+
 
 
             // Dữ liệu hiển thị (Lấy dữ liệu Database thật gần nhất, nếu trạm hoàn toàn chưa có data thì fallback)
@@ -279,20 +285,29 @@ class MonitoringStationController extends Controller
             'data_interval' => 'nullable|integer|min:5',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'status' => 'required|string|in:active,inactive,maintenance,danger',
+            'status' => 'required|string|in:active,inactive,maintenance,danger,offline',
         ]);
 
         $station->update($validated);
 
+        $msg = 'Cập nhật cấu hình trạm thành công.';
+
         // TỰ ĐỘNG BẮN LỆNH MQTT 2 CHIỀU: Đổi chu kỳ gửi dữ liệu xuống máy trạm tức thời
         if (!empty($validated['data_interval'])) {
-            $mqttService->publishCommand($station->code, 'SET_INTERVAL', [
+            $mqttResult = $mqttService->publishCommand($station->code, 'SET_INTERVAL', [
                 'interval_seconds' => (int) $validated['data_interval']
             ]);
+
+            if (!empty($mqttResult['success'])) {
+                $msg .= " Đã phát lệnh MQTT SET_INTERVAL ({$validated['data_interval']}s) xuống máy trạm.";
+            } else {
+                $msg .= " (Lưu ý: Không thể phát lệnh MQTT tới trạm - " . ($mqttResult['error'] ?? 'Mất kết nối Broker') . ").";
+            }
         }
 
-        return redirect()->route('iot.stations')->with('success', 'Cập nhật trạm và đã gửi lệnh đổi chu kỳ xuống trạm thành công.');
+        return redirect()->route('iot.stations')->with('success', $msg);
     }
+
 
 
     public function destroy($id)

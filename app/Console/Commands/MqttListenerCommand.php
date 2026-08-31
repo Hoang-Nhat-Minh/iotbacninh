@@ -139,12 +139,13 @@ class MqttListenerCommand extends Command
 
             $station = MonitoringStation::where('code', $stationCode)->first();
             if ($station) {
-                $dbStatus = ($status === 'online') ? 'active' : (($status === 'offline') ? 'danger' : 'maintenance');
+                $dbStatus = ($status === 'online') ? 'active' : (($status === 'offline') ? 'offline' : 'maintenance');
                 $station->update(['status' => $dbStatus]);
 
                 $this->warn("[STATUS] " . now()->format('H:i:s') . " | Trạm {$stationCode} chuyển trạng thái: {$status} -> DB status: {$dbStatus}");
                 Log::info("MQTT Station Status Update: Station {$stationCode} is now {$status}");
             }
+
         } catch (\Throwable $e) {
             Log::error("MQTT Status Handler Error: " . $e->getMessage());
         }

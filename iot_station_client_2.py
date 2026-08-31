@@ -51,8 +51,10 @@ TOPIC_ACK       = f"khcn/stations/{STATION_CODE}/ack"        # Trạm -> Server:
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S',
+    stream=sys.stdout
 )
+
 
 
 # =============================================================================
@@ -115,7 +117,9 @@ def execute_command(action: str, params: dict) -> tuple[bool, str]:
         if new_interval < 5:
             return False, "Chu kỳ tối thiểu là 5 giây."
         CURRENT_INTERVAL = new_interval
+        logging.info(f"★★★ [ĐỔI CHU KỲ THÀNH CÔNG] Đã chuyển chu kỳ trạm {STATION_CODE} thành {CURRENT_INTERVAL} giây ★★★")
         return True, f"Đã cập nhật chu kỳ gửi dữ liệu thành {CURRENT_INTERVAL} giây."
+
 
     elif action == "TRIGGER_COLLECT":
         # Yêu cầu đọc và gửi dữ liệu ngay tức thì

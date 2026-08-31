@@ -19,6 +19,7 @@ class MqttService
      */
     public function publishCommand(string $stationCode, string $action, array $params = [], ?string $commandId = null): array
     {
+        $stationCode = trim($stationCode);
         $commandId = $commandId ?: 'CMD-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
         $topic = "khcn/stations/{$stationCode}/command";
 
@@ -33,18 +34,18 @@ class MqttService
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
         try {
-            $host = config('mqtt-client.connections.default.host', env('MQTT_HOST', '127.0.0.1'));
-            $port = (int) config('mqtt-client.connections.default.port', env('MQTT_PORT', 9070));
-            $username = config('mqtt-client.connections.default.connection_settings.auth.username', env('MQTT_USERNAME'));
-            $password = config('mqtt-client.connections.default.connection_settings.auth.password', env('MQTT_PASSWORD'));
+            $host = env('MQTT_HOST') ?: config('mqtt-client.connections.default.host', '117.6.44.206');
+            $port = (int) (env('MQTT_PORT') ?: config('mqtt-client.connections.default.port', 9070));
+            $username = env('MQTT_USERNAME') ?: config('mqtt-client.connections.default.connection_settings.auth.username', 'iastadmin');
+            $password = env('MQTT_PASSWORD') ?: config('mqtt-client.connections.default.connection_settings.auth.password', 'iast@6688');
 
             $clientId = 'laravel_cmd_' . Str::random(8);
             $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
 
             $settings = (new \PhpMqtt\Client\ConnectionSettings)
                 ->setKeepAliveInterval(10)
-                ->setConnectTimeout(3)
-                ->setSocketTimeout(3);
+                ->setConnectTimeout(5)
+                ->setSocketTimeout(5);
 
             if ($username) {
                 $settings->setUsername($username)->setPassword($password);
@@ -55,6 +56,7 @@ class MqttService
             $mqtt->disconnect();
 
             Log::info("MQTT Command Published to [{$topic}]: {$jsonPayload}");
+
 
             return [
                 'success' => true,
