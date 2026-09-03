@@ -90,20 +90,29 @@ class DegreeDaysSurveyController extends Controller
         // 2. Dữ liệu biểu đồ trực quan (Chỉ tạo khi là Admin hoặc Manager)
         $chartData = null;
         if ($user->isAdmin() || $user->isManager()) {
-            // Biểu đồ diễn biến 14 ngày gần nhất
-            $trendLabels = [];
-            $trendPest = [];
-            $trendDisease = [];
-
-            for ($i = 13; $i >= 0; $i--) {
-                $day = Carbon::today()->subDays($i);
-                $dayStr = $day->format('Y-m-d');
-                $trendLabels[] = $day->format('d/m');
-
-                $daySurveys = DegreeDaysSurvey::whereDate('surveyed_at', $dayStr)->get();
-                $trendPest[] = $daySurveys->where('object_type', 'pest')->count();
-                $trendDisease[] = $daySurveys->where('object_type', 'disease')->count();
-            }
+            // Biểu đồ phân bố mức độ bệnh hại lá
+            $leafDiseaseCounts = [
+                'Không có' => DegreeDaysSurvey::where('object_type', 'disease')
+                    ->where(function ($q) {
+                        $q->where('affected_part', 'leaf')->orWhereNull('affected_part');
+                    })->where('severity', 'none')->count(),
+                'Ít' => DegreeDaysSurvey::where('object_type', 'disease')
+                    ->where(function ($q) {
+                        $q->where('affected_part', 'leaf')->orWhereNull('affected_part');
+                    })->where('severity', 'low')->count(),
+                'Trung bình' => DegreeDaysSurvey::where('object_type', 'disease')
+                    ->where(function ($q) {
+                        $q->where('affected_part', 'leaf')->orWhereNull('affected_part');
+                    })->where('severity', 'medium')->count(),
+                'Nhiều' => DegreeDaysSurvey::where('object_type', 'disease')
+                    ->where(function ($q) {
+                        $q->where('affected_part', 'leaf')->orWhereNull('affected_part');
+                    })->where('severity', 'high')->count(),
+                'Bùng phát' => DegreeDaysSurvey::where('object_type', 'disease')
+                    ->where(function ($q) {
+                        $q->where('affected_part', 'leaf')->orWhereNull('affected_part');
+                    })->where('severity', 'outbreak')->count(),
+            ];
 
             // Biểu đồ phân bố giai đoạn sâu đục cuống quả
             $stageCounts = [
@@ -114,28 +123,14 @@ class DegreeDaysSurveyController extends Controller
                 'Không phát hiện' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'none')->count(),
             ];
 
-            // Biểu đồ mức độ gây hại
-            $severityCounts = [
-                'Không có' => DegreeDaysSurvey::where('severity', 'none')->count(),
-                'Ít' => DegreeDaysSurvey::where('severity', 'low')->count(),
-                'Trung bình' => DegreeDaysSurvey::where('severity', 'medium')->count(),
-                'Nhiều' => DegreeDaysSurvey::where('severity', 'high')->count(),
-                'Bùng phát' => DegreeDaysSurvey::where('severity', 'outbreak')->count(),
-            ];
-
             $chartData = [
-                'trend' => [
-                    'labels' => $trendLabels,
-                    'pest' => $trendPest,
-                    'disease' => $trendDisease,
+                'leaf_disease' => [
+                    'labels' => array_keys($leafDiseaseCounts),
+                    'data' => array_values($leafDiseaseCounts),
                 ],
                 'stages' => [
                     'labels' => array_keys($stageCounts),
                     'data' => array_values($stageCounts),
-                ],
-                'severity' => [
-                    'labels' => array_keys($severityCounts),
-                    'data' => array_values($severityCounts),
                 ],
             ];
         }

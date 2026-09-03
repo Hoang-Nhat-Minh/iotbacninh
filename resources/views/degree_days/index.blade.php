@@ -134,9 +134,7 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- KHỐI THỐNG KÊ VÀ BIỂU ĐỒ TRỰC QUAN: CHỈ HIỂN THỊ VỚI ADMIN HOẶC MANAGER --}}
     @if (Auth::user()->isAdmin() || Auth::user()->isManager())
-        <!-- 4 THẺ KPI TỔNG QUAN -->
         <div class="row g-3 mb-4">
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="survey-card p-3 d-flex align-items-center gap-3">
@@ -191,36 +189,28 @@
             </div>
         </div>
 
-
-        <!-- CÁC BIỂU ĐỒ TRỰC QUAN CHO ADMIN / MANAGER -->
         <div class="row g-3 mb-4">
-            <!-- Biểu đồ 1: Diễn biến khảo sát 14 ngày gần nhất -->
-            <div class="col-lg-7">
-                <div class="card border-0 bg-white shadow-xs rounded-4 p-3.5 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-2.5">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
-                            <i class="bi bi-graph-up-arrow text-primary"></i> Diễn Biến Khảo Sát 14 Ngày Gần Nhất
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 bg-white shadow-xs rounded-4 p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 14px;">
+                            <i class="bi bi-pie-chart-fill text-danger"></i> Phân Bố Mức Độ Bệnh Hại Lá
                         </h6>
-                        <div class="d-flex gap-3 small text-muted" style="font-size: 11.5px;">
-                            <span><i class="bi bi-circle-fill text-warning me-1"></i> Sâu đục cuống</span>
-                            <span><i class="bi bi-circle-fill text-danger me-1"></i> Bệnh hại</span>
-                        </div>
                     </div>
-                    <div style="height: 220px; position: relative;">
-                        <canvas id="surveyTrendChart"></canvas>
+                    <div style="height: 230px; position: relative;">
+                        <canvas id="surveyLeafDiseaseChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Biểu đồ 2: Phân bố giai đoạn sâu & Mức độ gây hại -->
-            <div class="col-lg-5">
-                <div class="card border-0 bg-white shadow-xs rounded-4 p-3.5 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-2.5">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 13.5px;">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 bg-white shadow-xs rounded-4 p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 14px;">
                             <i class="bi bi-pie-chart-fill text-success"></i> Phân Bố Giai Đoạn Sâu Phát Triển
                         </h6>
                     </div>
-                    <div style="height: 220px; position: relative;">
+                    <div style="height: 230px; position: relative;">
                         <canvas id="surveyStageChart"></canvas>
                     </div>
                 </div>
@@ -228,7 +218,6 @@
         </div>
     @endif
 
-    <!-- TABS ĐIỀU HƯỚNG: KHẢO SÁT MỚI & LỊCH SỬ KHẢO SÁT -->
     <div class="survey-card mb-4">
         <div class="card-header bg-white border-bottom p-0">
             <ul class="nav nav-tabs survey-nav-tabs px-3" id="surveyTabs" role="tablist">
@@ -250,7 +239,6 @@
 
         <div class="card-body p-4">
             <div class="tab-content" id="surveyTabsContent">
-                <!-- ================= TAB 1: FORM KHẢO SÁT MỚI ================= -->
                 <div class="tab-pane fade show active" id="tab-survey-form" role="tabpanel">
                     @if ($allowedStations->isEmpty())
                         <div class="alert alert-warning border-0 rounded-4 d-flex align-items-center gap-3 p-3">
@@ -269,7 +257,6 @@
                             id="degreeDaysSurveyForm">
                             @csrf
 
-                            <!-- SECTION 1: THÔNG TIN KHẢO SÁT -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <span class="badge bg-primary text-white rounded-circle p-1"
@@ -278,7 +265,6 @@
                                 </div>
 
                                 <div class="row g-3">
-                                    <!-- Thời gian khảo sát -->
                                     <div class="col-md-4">
                                         <label for="surveyed_at" class="form-label fw-semibold text-dark small mb-1">
                                             Thời gian khảo sát <span class="text-danger">*</span>
@@ -292,7 +278,6 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Trạm quan trắc -->
                                     <div class="col-md-5">
                                         <label for="monitoring_station_id"
                                             class="form-label fw-semibold text-dark small mb-1">
@@ -314,7 +299,6 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Người khảo sát -->
                                     <div class="col-md-3">
                                         <label class="form-label fw-semibold text-dark small mb-1">Người khảo sát</label>
                                         <input type="text"
@@ -326,7 +310,6 @@
 
                             <hr class="my-4" style="border-color: #f1f5f9;">
 
-                            <!-- SECTION 2: DỮ LIỆU IOT GẦN NHẤT -->
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex align-items-center gap-2">
@@ -343,7 +326,6 @@
 
                                 <div class="p-3 bg-light rounded-4 border">
                                     <div class="row g-2 text-center" id="iot-kpi-container">
-                                        <!-- Nhiệt độ -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -354,7 +336,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Độ ẩm -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -365,7 +346,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Lượng mưa -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -376,7 +356,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Tốc độ gió -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -387,7 +366,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Độ ẩm đất -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -398,7 +376,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Ánh sáng -->
                                         <div class="col-6 col-md-4 col-lg-2">
                                             <div class="iot-kpi-box">
                                                 <div class="text-muted small" style="font-size: 11.5px;"><i
@@ -414,7 +391,6 @@
 
                             <hr class="my-4" style="border-color: #f1f5f9;">
 
-                            <!-- SECTION 3: QUAN SÁT THỰC ĐỊA -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <span class="badge bg-primary text-white rounded-circle p-1"
@@ -422,7 +398,6 @@
                                     <h6 class="fw-bold text-dark mb-0">Quan Sát Thực Địa</h6>
                                 </div>
 
-                                <!-- Chọn Đối tượng khảo sát -->
                                 <label class="form-label fw-semibold text-dark small mb-2">
                                     Chọn đối tượng khảo sát <span class="text-danger">*</span>
                                 </label>
@@ -456,10 +431,8 @@
                                     </div>
                                 </div>
 
-                                <!-- KHỐI TRƯỜNG DÀNH RIÊNG CHO SÂU ĐỤC CUỐNG QUẢ -->
                                 <div id="fields-pest-group" class="p-3 bg-light rounded-4 border mb-3">
                                     <div class="row g-3">
-                                        <!-- Giai đoạn phát triển -->
                                         <div class="col-md-6">
                                             <label for="development_stage"
                                                 class="form-label fw-semibold text-dark small mb-1">
@@ -476,7 +449,6 @@
                                             </select>
                                         </div>
 
-                                        <!-- Mức độ phát sinh chung -->
                                         <div class="col-md-6">
                                             <label for="severity_pest"
                                                 class="form-label fw-semibold text-dark small mb-1">
@@ -492,7 +464,6 @@
                                             </select>
                                         </div>
 
-                                        <!-- Số lượng quan sát được -->
                                         <div class="col-12">
                                             <label class="form-label fw-semibold text-dark small mb-1.5">
                                                 Số lượng sâu quan sát được <span class="text-danger">*</span>
@@ -515,11 +486,9 @@
                                     </div>
                                 </div>
 
-                                <!-- KHỐI TRƯỜNG DÀNH RIÊNG CHO BỆNH HẠI (ẨN MẶC ĐỊNH) -->
                                 <div id="fields-disease-group" class="p-3 bg-light rounded-4 border mb-3"
                                     style="display: none;">
                                     <div class="row g-3">
-                                        <!-- Bộ phận bị bệnh -->
                                         <div class="col-md-6">
                                             <label for="affected_part"
                                                 class="form-label fw-semibold text-dark small mb-1">
@@ -535,7 +504,6 @@
                                             </select>
                                         </div>
 
-                                        <!-- Mức độ phát sinh -->
                                         <div class="col-md-6">
                                             <label for="severity_disease"
                                                 class="form-label fw-semibold text-dark small mb-1">
@@ -551,7 +519,6 @@
                                             </select>
                                         </div>
 
-                                        <!-- Tỷ lệ số cây nhiễm -->
                                         <div class="col-12">
                                             <label class="form-label fw-semibold text-dark small mb-1.5">
                                                 Tỷ lệ số cây bị nhiễm bệnh <span class="text-danger">*</span>
@@ -577,7 +544,6 @@
 
                             <hr class="my-4" style="border-color: #f1f5f9;">
 
-                            <!-- SECTION 4: HÌNH ẢNH & GHI CHÚ -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <span class="badge bg-primary text-white rounded-circle p-1"
@@ -586,13 +552,11 @@
                                 </div>
 
                                 <div class="row g-3">
-                                    <!-- Ảnh chụp thực địa -->
                                     <div class="col-md-5">
                                         <label class="form-label fw-semibold text-dark small mb-1">Ảnh chụp thực
                                             địa</label>
                                         <div class="d-flex flex-column gap-2">
                                             <div class="d-flex gap-2">
-                                                <!-- Chụp từ Camera trên mobile -->
                                                 <label
                                                     class="btn btn-outline-secondary btn-sm rounded-3 d-flex align-items-center gap-1.5 cursor-pointer">
                                                     <i class="bi bi-camera-fill text-primary"></i> Chụp ảnh
@@ -600,7 +564,6 @@
                                                         accept="image/*" capture="environment" class="d-none"
                                                         onchange="previewSurveyImage(this)">
                                                 </label>
-                                                <!-- Chọn từ file máy tính/thư viện -->
                                                 <label
                                                     class="btn btn-outline-secondary btn-sm rounded-3 d-flex align-items-center gap-1.5 cursor-pointer">
                                                     <i class="bi bi-image text-info"></i> Chọn từ máy
@@ -610,7 +573,6 @@
                                                 </label>
                                             </div>
 
-                                            <!-- Thumbnail preview container -->
                                             <div id="survey-image-preview" style="display: none;">
                                                 <div class="image-preview-wrapper mt-2">
                                                     <img id="survey-preview-img" src="" alt="Ảnh khảo sát">
@@ -621,17 +583,15 @@
                                         </div>
                                     </div>
 
-                                    <!-- Ghi chú bổ sung -->
                                     <div class="col-md-7">
-                                        <label for="notes" class="form-label fw-semibold text-dark small mb-1">Ghi chú
-                                            quan sát</label>
+                                        <label for="notes" class="form-label fw-semibold text-dark small mb-1">Ghi
+                                            chú</label>
                                         <textarea class="form-control form-control-sm rounded-3" id="notes" name="notes" rows="3"
-                                            placeholder="Nhập ghi chú quan sát cụ thể tại thời điểm kiểm tra" maxlength="1000"></textarea>
+                                            placeholder="Nhập ghi chú cụ thể tại thời điểm kiểm tra" maxlength="1000"></textarea>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- NÚT LƯU FORM -->
                             <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                                 <button type="reset" class="btn btn-light btn-sm px-3 rounded-3"
                                     onclick="resetSurveyForm()">Khôi phục</button>
@@ -645,9 +605,7 @@
                     @endif
                 </div>
 
-                <!-- ================= TAB 2: LỊCH SỬ KHẢO SÁT ================= -->
                 <div class="tab-pane fade" id="tab-survey-history" role="tabpanel">
-                    <!-- BỘ LỌC LỊCH SỬ -->
                     <form method="GET" action="{{ route('degree-days.surveys.index') }}"
                         class="row g-2 mb-3 align-items-end">
                         <div class="col-12 col-sm-6 col-md-3">
@@ -704,8 +662,6 @@
                         </div>
                     </form>
 
-
-                    <!-- BẢNG LỊCH SỬ KHẢO SÁT -->
                     <div class="table-responsive">
                         <table class="custom-table w-100 mb-0">
                             <thead>
@@ -807,7 +763,6 @@
                         </table>
                     </div>
 
-                    <!-- PHÂN TRANG -->
                     <div class="mt-3">
                         {{ $surveys->links() }}
                     </div>
@@ -816,7 +771,6 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT BẢN GHI KHẢO SÁT & SNAPSHOT IOT -->
     <div class="app-modal" id="modal-survey-detail">
         <div class="modal-dialog" style="max-width: 720px;">
             <div class="modal-header">
@@ -825,14 +779,14 @@
                 <button type="button" class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body py-3">
-                <!-- Thông tin người khảo sát & thời gian -->
                 <div
                     class="p-3 bg-light rounded-4 border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
                         <div class="text-muted small">Trạm quan trắc & Vùng trồng:</div>
                         <div class="fw-bold text-dark fs-6" id="m-station-name">--</div>
                         <div class="text-secondary small"><i class="bi bi-person me-1 text-primary"></i> Người khảo sát:
-                            <span id="m-surveyor" class="fw-semibold text-dark">--</span></div>
+                            <span id="m-surveyor" class="fw-semibold text-dark">--</span>
+                        </div>
                     </div>
                     <div class="text-end">
                         <div class="text-muted small">Thời điểm khảo sát:</div>
@@ -840,7 +794,6 @@
                     </div>
                 </div>
 
-                <!-- Thông tin quan sát thực địa -->
                 <div class="card border mb-3 rounded-3 p-3">
                     <h6 class="fw-bold text-dark mb-2.5"><i class="bi bi-binoculars-fill text-warning me-1.5"></i> Kết Quả
                         Quan Sát Thực Địa:</h6>
@@ -863,13 +816,11 @@
                         </div>
                     </div>
 
-                    <!-- Ghi chú nếu có -->
                     <div class="mt-2 pt-2 border-top" id="m-notes-box">
                         <div class="text-muted small">Ghi chú bổ sung:</div>
                         <div class="text-dark small fst-italic" id="m-notes-content">--</div>
                     </div>
 
-                    <!-- Ảnh nếu có -->
                     <div class="mt-2 pt-2 border-top" id="m-image-box" style="display: none;">
                         <div class="text-muted small mb-1.5">Ảnh chụp thực địa:</div>
                         <a id="m-image-link" href="#" target="_blank">
@@ -879,7 +830,6 @@
                     </div>
                 </div>
 
-                <!-- Snapshot IoT gắn liền -->
                 <div class="card border rounded-3 p-3 bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold text-dark mb-0"><i class="bi bi-broadcast-pin text-primary me-1.5"></i>
@@ -938,90 +888,24 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // 0. Khởi tạo Biểu đồ Thống kê Trực quan (Chỉ dành cho Admin / Manager)
         @if (!empty($chartData))
             document.addEventListener('DOMContentLoaded', function() {
                 const chartData = @json($chartData);
 
-                // Biểu đồ 1: Diễn biến 14 ngày (Line/Bar)
-                const trendCtx = document.getElementById('surveyTrendChart');
-                if (trendCtx) {
-                    new Chart(trendCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: chartData.trend.labels,
-                            datasets: [{
-                                    label: 'Sâu đục cuống',
-                                    data: chartData.trend.pest,
-                                    backgroundColor: '#f59e0b',
-                                    borderRadius: 6,
-                                    barPercentage: 0.6
-                                },
-                                {
-                                    label: 'Bệnh hại',
-                                    data: chartData.trend.disease,
-                                    backgroundColor: '#ef4444',
-                                    borderRadius: 6,
-                                    barPercentage: 0.6
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: '#0f172a',
-                                    padding: 8,
-                                    borderRadius: 6
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    grid: {
-                                        display: false
-                                    },
-                                    ticks: {
-                                        font: {
-                                            size: 11
-                                        }
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1,
-                                        font: {
-                                            size: 11
-                                        }
-                                    },
-                                    grid: {
-                                        color: '#f1f5f9'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Biểu đồ 2: Phân bố giai đoạn phát triển sâu (Doughnut)
-                const stageCtx = document.getElementById('surveyStageChart');
-                if (stageCtx) {
-                    new Chart(stageCtx, {
+                const leafDiseaseCtx = document.getElementById('surveyLeafDiseaseChart');
+                if (leafDiseaseCtx && chartData.leaf_disease) {
+                    new Chart(leafDiseaseCtx, {
                         type: 'doughnut',
                         data: {
-                            labels: chartData.stages.labels,
+                            labels: chartData.leaf_disease.labels,
                             datasets: [{
-                                data: chartData.stages.data,
+                                data: chartData.leaf_disease.data,
                                 backgroundColor: [
-                                    '#38bdf8', // Trứng
-                                    '#f59e0b', // Sâu non
-                                    '#8b5cf6', // Nhộng
-                                    '#ef4444', // Trưởng thành
-                                    '#94a3b8' // Không phát hiện
+                                    '#10b981',
+                                    '#38bdf8',
+                                    '#f59e0b',
+                                    '#f97316',
+                                    '#ef4444'
                                 ],
                                 borderWidth: 2,
                                 borderColor: '#ffffff'
@@ -1030,11 +914,72 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    top: 10,
+                                    bottom: 10,
+                                    left: 10,
+                                    right: 15
+                                }
+                            },
                             plugins: {
                                 legend: {
                                     position: 'right',
                                     labels: {
                                         boxWidth: 12,
+                                        padding: 14,
+                                        font: {
+                                            size: 11
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    padding: 8,
+                                    borderRadius: 6
+                                }
+                            },
+                            cutout: '65%'
+                        }
+                    });
+                }
+
+                const stageCtx = document.getElementById('surveyStageChart');
+                if (stageCtx && chartData.stages) {
+                    new Chart(stageCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartData.stages.labels,
+                            datasets: [{
+                                data: chartData.stages.data,
+                                backgroundColor: [
+                                    '#38bdf8',
+                                    '#f59e0b',
+                                    '#8b5cf6',
+                                    '#ef4444',
+                                    '#94a3b8'
+                                ],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    top: 10,
+                                    bottom: 10,
+                                    left: 10,
+                                    right: 15
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 14,
                                         font: {
                                             size: 11
                                         }
@@ -1053,7 +998,6 @@
             });
         @endif
 
-        // 1. Chuyển đổi đối tượng khảo sát (Sâu đục cuống quả / Bệnh)
         function selectObjectType(type) {
             const cardPest = document.getElementById('card-type-pest');
             const cardDisease = document.getElementById('card-type-disease');
@@ -1099,21 +1043,18 @@
             }
         }
 
-        // 2. Chọn khoảng số lượng sâu
         function selectQuantity(val, btn) {
             document.getElementById('quantity_range').value = val;
             document.querySelectorAll('#quantity-pill-group .btn-range-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
 
-        // 3. Chọn khoảng tỷ lệ bệnh
         function selectInfection(val, btn) {
             document.getElementById('infection_rate_range').value = val;
             document.querySelectorAll('#infection-pill-group .btn-range-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
 
-        // 4. Xem trước ảnh thực địa
         function previewSurveyImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1125,7 +1066,6 @@
             }
         }
 
-        // 5. Xóa ảnh thực địa
         function removeSurveyImage() {
             document.getElementById('survey-camera-input').value = '';
             document.getElementById('survey-file-input').value = '';
@@ -1133,7 +1073,6 @@
             document.getElementById('survey-image-preview').style.display = 'none';
         }
 
-        // 6. Reset form
         function resetSurveyForm() {
             removeSurveyImage();
             selectObjectType('pest');
@@ -1142,7 +1081,6 @@
             }, 100);
         }
 
-        // 7. Tự động fetch snapshot IoT khi đổi trạm hoặc thời gian khảo sát
         function fetchStationSnapshot() {
             const stationSelect = document.getElementById('monitoring_station_id');
             const surveyedAtInput = document.getElementById('surveyed_at');
@@ -1156,7 +1094,8 @@
             if (timeBadge) timeBadge.textContent = 'Đang cập nhật...';
 
             fetch(
-                    `{{ route('degree-days.surveys.snapshot') }}?station_id=${stationId}&surveyed_at=${encodeURIComponent(surveyedAt)}`)
+                    `{{ route('degree-days.surveys.snapshot') }}?station_id=${stationId}&surveyed_at=${encodeURIComponent(surveyedAt)}`
+                )
                 .then(res => res.json())
                 .then(res => {
                     if (res.success && res.data) {
@@ -1185,7 +1124,6 @@
                 });
         }
 
-        // Lắng nghe sự kiện thay đổi trạm hoặc thời gian khảo sát
         document.addEventListener('DOMContentLoaded', function() {
             const stationSelect = document.getElementById('monitoring_station_id');
             const surveyedAtInput = document.getElementById('surveyed_at');
@@ -1197,7 +1135,6 @@
                 surveyedAtInput.addEventListener('change', fetchStationSnapshot);
             }
 
-            // Mở tab lịch sử nếu URL có query param lọc
             @if (request()->hasAny(['station_id', 'object_type', 'severity', 'date', 'page']))
                 const tabHistoryBtn = document.getElementById('tab-survey-history-btn');
                 if (tabHistoryBtn) {
@@ -1206,7 +1143,6 @@
             @endif
         });
 
-        // 8. Xem chi tiết bản ghi khảo sát (Modal)
         function openSurveyDetailModal(surveyId) {
             fetch(`{{ url('/degree-days/surveys') }}/${surveyId}`)
                 .then(res => res.json())
@@ -1239,7 +1175,6 @@
                                 `${s.affected_part_label} - Tỷ lệ: ${s.infection_rate_label}`;
                         }
 
-                        // Ghi chú
                         const notesBox = document.getElementById('m-notes-box');
                         if (s.notes) {
                             notesBox.style.display = 'block';
@@ -1248,7 +1183,6 @@
                             notesBox.style.display = 'none';
                         }
 
-                        // Ảnh
                         const imgBox = document.getElementById('m-image-box');
                         if (s.image_url) {
                             imgBox.style.display = 'block';
@@ -1258,7 +1192,6 @@
                             imgBox.style.display = 'none';
                         }
 
-                        // IoT Snapshot
                         const iot = s.iot || {};
                         document.getElementById('m-iot-time').textContent = iot.recorded_at ? ('Gói tin lúc ' + iot
                             .recorded_at) : 'Chưa có dữ liệu trạm';

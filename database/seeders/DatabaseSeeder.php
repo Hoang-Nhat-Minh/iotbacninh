@@ -262,7 +262,6 @@ class DatabaseSeeder extends Seeder
             'organization' => 'Sở Khoa Học và Công Nghệ Tỉnh Bắc Ninh',
             'hotline' => '1800 6888',
             'admin_email' => 'khcn@bacninh.gov.vn',
-            'data_send_interval' => 60,
             'monitoring_system_active' => 1,
             'copyright' => '© 2026 Hệ Thống IoT Nông Nghiệp Bắc Ninh. Bảo lưu mọi quyền.',
         ];
