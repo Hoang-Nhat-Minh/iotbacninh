@@ -6,10 +6,14 @@
             </div>
             <span class="brand-text">IoT Bắc Ninh</span>
         </a>
-        <button type="button" class="sidebar-toggle-btn" title="Thu gọn / Mở rộng menu">
+        <button type="button" class="sidebar-toggle-btn d-none d-lg-flex" title="Thu gọn / Mở rộng menu">
             <i class="bi bi-chevron-left toggle-icon"></i>
         </button>
+        <button type="button" class="mobile-sidebar-close-btn d-flex d-lg-none" id="mobileSidebarClose" title="Đóng menu">
+            <i class="bi bi-x-lg"></i>
+        </button>
     </div>
+
 
     <div class="sidebar-nav">
         <!-- Trang tổng quan & Dán nhãn Tổng Nhiệt hữu hiệu (Direct Links) -->

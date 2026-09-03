@@ -23,7 +23,9 @@
 <body>
 
 <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     @include('partials.sidebar')
+
 
     <div class="app-main">
         @include('partials.header')

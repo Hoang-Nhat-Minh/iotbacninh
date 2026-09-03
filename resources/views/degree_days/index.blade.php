@@ -138,7 +138,7 @@
     @if (Auth::user()->isAdmin() || Auth::user()->isManager())
         <!-- 4 THẺ KPI TỔNG QUAN -->
         <div class="row g-3 mb-4">
-            <div class="col-xl-3 col-md-6">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="survey-card p-3 d-flex align-items-center gap-3">
                     <div class="rounded-4 bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center"
                         style="width: 48px; height: 48px; font-size: 22px;">
@@ -151,7 +151,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-md-6">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="survey-card p-3 d-flex align-items-center gap-3">
                     <div class="rounded-4 bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center"
                         style="width: 48px; height: 48px; font-size: 22px;">
@@ -164,7 +164,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-md-6">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="survey-card p-3 d-flex align-items-center gap-3">
                     <div class="rounded-4 bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center"
                         style="width: 48px; height: 48px; font-size: 22px;">
@@ -177,7 +177,7 @@
                 </div>
             </div>
 
-            <div class="col-xl-3 col-md-6">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="survey-card p-3 d-flex align-items-center gap-3">
                     <div class="rounded-4 bg-danger-subtle text-danger p-3 d-flex align-items-center justify-content-center"
                         style="width: 48px; height: 48px; font-size: 22px;">
@@ -190,6 +190,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- CÁC BIỂU ĐỒ TRỰC QUAN CHO ADMIN / MANAGER -->
         <div class="row g-3 mb-4">
@@ -649,7 +650,7 @@
                     <!-- BỘ LỌC LỊCH SỬ -->
                     <form method="GET" action="{{ route('degree-days.surveys.index') }}"
                         class="row g-2 mb-3 align-items-end">
-                        <div class="col-md-3">
+                        <div class="col-12 col-sm-6 col-md-3">
                             <label class="form-label small fw-semibold text-muted mb-1">Trạm quan trắc:</label>
                             <select name="station_id" class="form-select form-select-sm rounded-3">
                                 <option value="">-- Tất cả trạm --</option>
@@ -662,7 +663,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-12 col-sm-6 col-md-2">
                             <label class="form-label small fw-semibold text-muted mb-1">Đối tượng:</label>
                             <select name="object_type" class="form-select form-select-sm rounded-3">
                                 <option value="">-- Tất cả --</option>
@@ -673,7 +674,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-12 col-sm-6 col-md-2">
                             <label class="form-label small fw-semibold text-muted mb-1">Mức độ:</label>
                             <select name="severity" class="form-select form-select-sm rounded-3">
                                 <option value="">-- Tất cả --</option>
@@ -689,19 +690,20 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-12 col-sm-6 col-md-3">
                             <label class="form-label small fw-semibold text-muted mb-1">Ngày khảo sát:</label>
                             <input type="date" name="date" class="form-control form-control-sm rounded-3"
                                 value="{{ request('date') }}">
                         </div>
 
-                        <div class="col-md-2 d-flex gap-1.5">
+                        <div class="col-12 col-sm-12 col-md-2 d-flex gap-1.5">
                             <button type="submit" class="btn btn-primary btn-sm rounded-3 w-100"><i
                                     class="bi bi-funnel"></i> Lọc</button>
                             <a href="{{ route('degree-days.surveys.index') }}" class="btn btn-light btn-sm rounded-3"
                                 title="Xóa lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
                         </div>
                     </form>
+
 
                     <!-- BẢNG LỊCH SỬ KHẢO SÁT -->
                     <div class="table-responsive">

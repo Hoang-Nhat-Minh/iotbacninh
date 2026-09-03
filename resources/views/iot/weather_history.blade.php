@@ -121,7 +121,7 @@
 
     <!-- KHỐI 1: THỐNG KÊ TÓM TẮT 30 NGÀY -->
     <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
+        <div class="col-12 col-sm-6 col-lg-3">
             <div class="weather-kpi-card d-flex align-items-center gap-3">
                 <div class="weather-kpi-icon bg-warning-subtle text-warning border border-warning-subtle">
                     <i class="bi bi-thermometer-half"></i>
@@ -136,7 +136,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6">
+        <div class="col-12 col-sm-6 col-lg-3">
             <div class="weather-kpi-card d-flex align-items-center gap-3">
                 <div class="weather-kpi-icon bg-info-subtle text-info border border-info-subtle">
                     <i class="bi bi-droplet-half"></i>
@@ -151,7 +151,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6">
+        <div class="col-12 col-sm-6 col-lg-3">
             <div class="weather-kpi-card d-flex align-items-center gap-3">
                 <div class="weather-kpi-icon bg-primary-subtle text-primary border border-primary-subtle">
                     <i class="bi bi-cloud-rain-fill"></i>
@@ -166,7 +166,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6">
+        <div class="col-12 col-sm-6 col-lg-3">
             <div class="weather-kpi-card d-flex align-items-center gap-3">
                 <div class="weather-kpi-icon bg-success-subtle text-success border border-success-subtle">
                     <i class="bi bi-moisture"></i>

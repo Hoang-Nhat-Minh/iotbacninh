@@ -1,10 +1,14 @@
 <header class="app-header">
     <div class="header-left">
+        <button type="button" class="mobile-sidebar-toggle-btn d-flex d-lg-none" id="mobileSidebarToggle" aria-label="Mở menu điều hướng">
+            <i class="bi bi-list"></i>
+        </button>
         <div class="header-search">
             <i class="bi bi-search"></i>
             <input type="text" placeholder="Tìm kiếm tính năng hoặc dữ liệu...">
         </div>
     </div>
+
 
     <div class="header-right">
         <a href="{{ url('/notifications') }}" class="header-action-btn" title="Thông báo hệ thống">

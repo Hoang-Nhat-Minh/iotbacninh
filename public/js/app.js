@@ -32,6 +32,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Mobile Sidebar Drawer Toggle & Close
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    const mobileClose = document.getElementById('mobileSidebarClose');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    function openMobileSidebar() {
+        if (sidebar) {
+            sidebar.classList.add('show-mobile');
+            if (backdrop) backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeMobileSidebar() {
+        if (sidebar) {
+            sidebar.classList.remove('show-mobile');
+            if (backdrop) backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (mobileToggle) mobileToggle.addEventListener('click', openMobileSidebar);
+    if (mobileClose) mobileClose.addEventListener('click', closeMobileSidebar);
+    if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
+
+    if (sidebar) {
+        sidebar.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    closeMobileSidebar();
+                }
+            });
+        });
+    }
+
+
     // Sidebar Accordion Folder Toggle
     document.querySelectorAll('.sidebar-folder-toggle').forEach(btn => {
         btn.addEventListener('click', function (e) {

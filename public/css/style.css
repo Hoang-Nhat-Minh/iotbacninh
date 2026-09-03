@@ -1844,3 +1844,365 @@ html[data-theme="dark"] .custom-table td {
     border-color: #334155 !important;
     color: #cbd5e1 !important;
 }
+
+/* ===================================================
+   RESPONSIVE DESIGN SYSTEM (MOBILE & TABLET ADAPTATION)
+   =================================================== */
+
+/* Backdrop lớp phủ cho Drawer Sidebar trên Mobile */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1040;
+    transition: opacity 0.25s ease;
+}
+
+.sidebar-backdrop.active {
+    display: block;
+}
+
+/* Nút Hamburger mở Sidebar trên Mobile */
+.mobile-sidebar-toggle-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.mobile-sidebar-toggle-btn:hover {
+    background: var(--primary-subtle);
+    color: var(--primary);
+}
+
+/* Nút đóng Sidebar trên Mobile */
+.mobile-sidebar-close-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mobile-sidebar-close-btn:hover {
+    background: rgba(239, 68, 68, 0.85);
+    border-color: #ef4444;
+}
+
+/* Đảm bảo table responsive cuộn mượt mà trên cảm ứng */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+/* 1. MÀN HÌNH TABLET VÀ DƯỚI (<= 991.98px) */
+@media (max-width: 991.98px) {
+    .mobile-sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    .mobile-sidebar-close-btn {
+        display: flex !important;
+    }
+
+    /* Biến Sidebar thành Drawer trượt từ cạnh trái */
+    .app-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        z-index: 1050 !important;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none !important;
+    }
+
+    .app-sidebar.show-mobile {
+        transform: translateX(0) !important;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Giữ nguyên dạng mở rộng khi nằm trong mobile drawer */
+    .app-sidebar.collapsed {
+        width: 280px !important;
+    }
+
+    .app-sidebar.collapsed .brand-logo {
+        display: flex !important;
+    }
+
+    .app-sidebar.collapsed .sidebar-brand {
+        padding: 0 16px !important;
+        justify-content: space-between !important;
+    }
+
+    .app-sidebar.collapsed .sidebar-link span,
+    .app-sidebar.collapsed .sidebar-folder-toggle span,
+    .app-sidebar.collapsed .sidebar-folder-toggle .folder-chevron {
+        display: inline-block !important;
+    }
+
+    .app-sidebar.collapsed .sidebar-link {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        padding: 9px 12px !important;
+    }
+
+    .app-sidebar.collapsed .sidebar-folder .sidebar-submenu {
+        position: static !important;
+        width: 100% !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding-left: 12px !important;
+        display: none;
+    }
+
+    .app-sidebar.collapsed .sidebar-folder.open .sidebar-submenu {
+        display: block !important;
+    }
+
+    .app-main {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .app-header {
+        padding: 0 18px !important;
+        height: 64px !important;
+    }
+
+    .app-content {
+        padding: 18px 16px !important;
+    }
+
+    .header-search {
+        width: 220px;
+    }
+}
+
+/* 2. MÀN HÌNH ĐIỆN THOẠI DI ĐỘNG (<= 767.98px) */
+@media (max-width: 767.98px) {
+    .app-header {
+        padding: 0 12px !important;
+        height: 58px !important;
+    }
+
+    .app-content {
+        padding: 12px 10px !important;
+    }
+
+    .header-search {
+        width: 150px;
+    }
+
+    .header-search input {
+        font-size: 13px !important;
+        padding: 6px 10px 6px 30px !important;
+    }
+
+    .header-search i {
+        left: 9px !important;
+        font-size: 13px !important;
+    }
+
+    .header-right {
+        gap: 8px !important;
+    }
+
+    .header-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
+
+    .user-profile-menu {
+        padding: 4px 6px !important;
+        gap: 6px !important;
+    }
+
+    .user-avatar {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    /* Tiêu đề trang (Page Header) */
+    .page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .page-header .page-title,
+    .page-header h1 {
+        font-size: 1.25rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .page-header-actions {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+    }
+
+    .page-header-actions form {
+        width: 100% !important;
+    }
+
+    /* Modal Responsive trên điện thoại */
+    .app-modal .modal-dialog {
+        width: calc(100% - 16px) !important;
+        max-width: calc(100% - 16px) !important;
+        margin: 8px auto !important;
+        max-height: calc(100vh - 16px) !important;
+    }
+
+    .app-modal .modal-body {
+        max-height: calc(100vh - 140px) !important;
+        overflow-y: auto !important;
+        padding: 14px 12px !important;
+    }
+
+    .app-modal .modal-footer {
+        padding: 10px 14px !important;
+    }
+
+    /* Bảng dữ liệu */
+    .custom-table th,
+    .custom-table td {
+        padding: 8px 10px !important;
+        font-size: 12.5px !important;
+    }
+
+    /* Tabs điều hướng */
+    .survey-nav-tabs,
+    .nav-tabs {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        scrollbar-width: none;
+    }
+
+    .survey-nav-tabs::-webkit-scrollbar,
+    .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .survey-nav-tabs .nav-link {
+        padding: 0.65rem 0.9rem !important;
+        font-size: 13px !important;
+    }
+
+    /* Thẻ Form & Khảo sát */
+    .survey-card .card-body {
+        padding: 14px 12px !important;
+    }
+
+    /* Khối Chi tiết Trạm Quan trắc */
+    .station-detail-box {
+        padding: 14px 12px !important;
+        border-radius: 14px !important;
+    }
+
+    .station-nav-pills {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
+
+    .station-nav-pills .nav-link {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* Thẻ KPI Thời tiết */
+    .weather-kpi-card {
+        padding: 12px 14px !important;
+    }
+
+    /* Bản đồ GIS thu gọn trên di động */
+    #single-map-container,
+    .mini-map-container {
+        height: 220px !important;
+    }
+
+    /* Toast thông báo */
+    .toast-container {
+        left: 10px !important;
+        right: 10px !important;
+        top: 10px !important;
+    }
+
+    .toast-item {
+        min-width: unset !important;
+        width: 100% !important;
+    }
+}
+
+
+/* 3. MÀN HÌNH ĐIỆN THOẠI RẤT NHỎ (<= 480px) */
+@media (max-width: 480px) {
+    .header-search {
+        display: none !important; /* Ẩn ô tìm kiếm trên màn hình dưới 480px để tránh tràn thanh header */
+    }
+
+    .survey-card {
+        border-radius: 12px !important;
+    }
+
+    .iot-kpi-box {
+        padding: 0.5rem 0.55rem !important;
+    }
+
+    .btn-range-pill {
+        padding: 0.28rem 0.6rem !important;
+        font-size: 11.5px !important;
+    }
+}
+
+/* Tương thích Dark Theme cho phần tử Mobile */
+html[data-theme="dark"] .mobile-sidebar-toggle-btn {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .mobile-sidebar-toggle-btn:hover {
+    background-color: #334155 !important;
+    color: var(--primary-light) !important;
+}
