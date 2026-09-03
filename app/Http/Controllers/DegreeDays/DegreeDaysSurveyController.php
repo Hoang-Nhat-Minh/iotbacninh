@@ -87,6 +87,59 @@ class DegreeDaysSurveyController extends Controller
             $initialSnapshot = $this->getClosestIotSnapshot((int)$selectedStationId, Carbon::now());
         }
 
+        // 2. Dữ liệu biểu đồ trực quan (Chỉ tạo khi là Admin hoặc Manager)
+        $chartData = null;
+        if ($user->isAdmin() || $user->isManager()) {
+            // Biểu đồ diễn biến 14 ngày gần nhất
+            $trendLabels = [];
+            $trendPest = [];
+            $trendDisease = [];
+
+            for ($i = 13; $i >= 0; $i--) {
+                $day = Carbon::today()->subDays($i);
+                $dayStr = $day->format('Y-m-d');
+                $trendLabels[] = $day->format('d/m');
+
+                $daySurveys = DegreeDaysSurvey::whereDate('surveyed_at', $dayStr)->get();
+                $trendPest[] = $daySurveys->where('object_type', 'pest')->count();
+                $trendDisease[] = $daySurveys->where('object_type', 'disease')->count();
+            }
+
+            // Biểu đồ phân bố giai đoạn sâu đục cuống quả
+            $stageCounts = [
+                'Trứng' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'egg')->count(),
+                'Sâu non' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'larva')->count(),
+                'Nhộng' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'pupa')->count(),
+                'Trưởng thành' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'adult')->count(),
+                'Không phát hiện' => DegreeDaysSurvey::where('object_type', 'pest')->where('development_stage', 'none')->count(),
+            ];
+
+            // Biểu đồ mức độ gây hại
+            $severityCounts = [
+                'Không có' => DegreeDaysSurvey::where('severity', 'none')->count(),
+                'Ít' => DegreeDaysSurvey::where('severity', 'low')->count(),
+                'Trung bình' => DegreeDaysSurvey::where('severity', 'medium')->count(),
+                'Nhiều' => DegreeDaysSurvey::where('severity', 'high')->count(),
+                'Bùng phát' => DegreeDaysSurvey::where('severity', 'outbreak')->count(),
+            ];
+
+            $chartData = [
+                'trend' => [
+                    'labels' => $trendLabels,
+                    'pest' => $trendPest,
+                    'disease' => $trendDisease,
+                ],
+                'stages' => [
+                    'labels' => array_keys($stageCounts),
+                    'data' => array_values($stageCounts),
+                ],
+                'severity' => [
+                    'labels' => array_keys($severityCounts),
+                    'data' => array_values($severityCounts),
+                ],
+            ];
+        }
+
         return view('degree_days.index', compact(
             'allowedStations',
             'surveys',
@@ -95,9 +148,11 @@ class DegreeDaysSurveyController extends Controller
             'pestSurveys',
             'diseaseSurveys',
             'selectedStationId',
-            'initialSnapshot'
+            'initialSnapshot',
+            'chartData'
         ));
     }
+
 
     /**
      * API AJAX: Lấy snapshot dữ liệu IoT gần nhất theo trạm và thời gian khảo sát

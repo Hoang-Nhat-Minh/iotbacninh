@@ -21,12 +21,13 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="{{ route('degree-days.surveys.index') }}" class="sidebar-link {{ Request::is('degree-days*') ? 'active' : '' }}" data-tooltip="Dán nhãn Tổng Nhiệt hữu hiệu">
-                    <i class="bi bi-thermometer-sun"></i>
-                    <span>Dán nhãn Tổng Nhiệt hữu hiệu</span>
+                <a href="{{ route('degree-days.surveys.index') }}" class="sidebar-link {{ Request::is('degree-days*') ? 'active' : '' }}" data-tooltip="Khảo sát hàng ngày">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Khảo sát hàng ngày</span>
                 </a>
             </li>
         </ul>
+
 
 
         <!-- 1. Thư mục: Phân hệ tài khoản -->
