@@ -65,6 +65,10 @@ class AuthController extends Controller
 
         $request->session()->put('access_log_id', $accessLog->id);
 
+        if ($user->isUser() && !$user->degreeDaysSurveys()->exists()) {
+            $request->session()->put('show_survey_reminder', true);
+        }
+
         return redirect()->intended('/dashboard');
     }
 
