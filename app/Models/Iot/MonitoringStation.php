@@ -66,5 +66,11 @@ class MonitoringStation extends Model
     {
         return $this->hasMany(SensorReading::class, 'monitoring_station_id');
     }
+
+    public function degreeDaysSurveys(): HasMany
+    {
+        return $this->hasMany(\App\Models\DegreeDays\DegreeDaysSurvey::class, 'monitoring_station_id');
+    }
 }
+
 

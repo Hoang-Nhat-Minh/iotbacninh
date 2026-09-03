@@ -12,7 +12,7 @@
     </div>
 
     <div class="sidebar-nav">
-        <!-- Trang tổng quan (Direct Link) -->
+        <!-- Trang tổng quan & Dán nhãn Tổng Nhiệt hữu hiệu (Direct Links) -->
         <ul class="sidebar-menu mb-2">
             <li class="sidebar-item">
                 <a href="{{ url('/dashboard') }}" class="sidebar-link {{ Request::is('dashboard*') || Request::is('/') ? 'active' : '' }}" data-tooltip="Trang tổng quan">
@@ -20,7 +20,14 @@
                     <span>Trang tổng quan</span>
                 </a>
             </li>
+            <li class="sidebar-item">
+                <a href="{{ route('degree-days.surveys.index') }}" class="sidebar-link {{ Request::is('degree-days*') ? 'active' : '' }}" data-tooltip="Dán nhãn Tổng Nhiệt hữu hiệu">
+                    <i class="bi bi-thermometer-sun"></i>
+                    <span>Dán nhãn Tổng Nhiệt hữu hiệu</span>
+                </a>
+            </li>
         </ul>
+
 
         <!-- 1. Thư mục: Phân hệ tài khoản -->
         @php

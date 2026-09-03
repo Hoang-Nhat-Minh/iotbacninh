@@ -631,7 +631,7 @@
             wrapper.innerHTML = `
         <div class="p-3 rounded text-white shadow-sm" style="background-color: var(--primary); max-width: 80%;">
             <div class="fw-bold small mb-1 opacity-75">Bạn</div>
-            <div style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(text)}</div>
+            <div style="font-size: 14px; line-height: 1.6;">${escapeHtml(text)}</div>
         </div>
         <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
             <i class="bi bi-person-fill"></i>

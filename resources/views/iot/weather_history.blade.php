@@ -58,10 +58,13 @@
             <form method="GET" action="{{ route('iot.weather.history') }}" class="d-flex align-items-center flex-wrap gap-2">
                 <!-- Chọn Vùng Trồng -->
                 <div class="d-flex align-items-center gap-1.5">
-                    <label for="garden_id" class="text-nowrap fw-semibold text-muted small mb-0"><i class="bi bi-geo-alt text-danger"></i> Vùng trồng:</label>
-                    <select name="garden_id" id="garden_id" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 180px;">
+                    <label for="garden_id" class="text-nowrap fw-semibold text-muted small mb-0"><i
+                            class="bi bi-geo-alt text-danger"></i> Vùng trồng:</label>
+                    <select name="garden_id" id="garden_id" class="form-select form-select-sm" onchange="this.form.submit()"
+                        style="min-width: 180px;">
                         @foreach ($gardens as $gd)
-                            <option value="{{ $gd->id }}" {{ $selectedGarden && $selectedGarden->id == $gd->id ? 'selected' : '' }}>
+                            <option value="{{ $gd->id }}"
+                                {{ $selectedGarden && $selectedGarden->id == $gd->id ? 'selected' : '' }}>
                                 {{ $gd->name }}
                             </option>
                         @endforeach
@@ -70,10 +73,13 @@
 
                 <!-- Chọn Trạm Quan Trắc -->
                 <div class="d-flex align-items-center gap-1.5">
-                    <label for="station_id" class="text-nowrap fw-semibold text-muted small mb-0"><i class="bi bi-broadcast text-primary"></i> Trạm quan trắc:</label>
-                    <select name="station_id" id="station_id" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 200px;">
+                    <label for="station_id" class="text-nowrap fw-semibold text-muted small mb-0"><i
+                            class="bi bi-broadcast text-primary"></i> Trạm quan trắc:</label>
+                    <select name="station_id" id="station_id" class="form-select form-select-sm"
+                        onchange="this.form.submit()" style="min-width: 200px;">
                         @foreach ($stations as $st)
-                            <option value="{{ $st->id }}" {{ $selectedStation && $selectedStation->id == $st->id ? 'selected' : '' }}>
+                            <option value="{{ $st->id }}"
+                                {{ $selectedStation && $selectedStation->id == $st->id ? 'selected' : '' }}>
                                 [{{ $st->code }}] {{ $st->name }}
                             </option>
                         @endforeach
@@ -87,22 +93,26 @@
     <div class="card border-0 bg-white shadow-xs rounded-4 p-3 mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
-                <div class="rounded-4 bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 22px;">
+                <div class="rounded-4 bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center"
+                    style="width: 48px; height: 48px; font-size: 22px;">
                     <i class="bi bi-cloud-sun-fill"></i>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2">
                         <h5 class="fw-bold text-dark mb-0">{{ $summaryStats['garden_name'] }}</h5>
-                        <span class="badge bg-primary-subtle text-primary border font-monospace">{{ $summaryStats['station_code'] }}</span>
+                        <span
+                            class="badge bg-primary-subtle text-primary border font-monospace">{{ $summaryStats['station_code'] }}</span>
                     </div>
                     <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i> Dữ liệu vi khí hậu được tổng hợp từ cảm biến trạm quan trắc thực tế <strong>{{ $summaryStats['station_name'] }}</strong>
+                        <i class="bi bi-info-circle me-1"></i> Dữ liệu vi khí hậu được tổng hợp từ cảm biến trạm quan trắc
+                        thực tế <strong>{{ $summaryStats['station_name'] }}</strong>
                     </small>
                 </div>
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+                <span
+                    class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
                     <i class="bi bi-check-circle-fill me-1"></i> Nguồn: Cảm biến vi khí hậu hiện trường
                 </span>
             </div>
@@ -117,9 +127,11 @@
                     <i class="bi bi-thermometer-half"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Nhiệt Độ TB Vùng Trồng</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_temp'] !== null ? $summaryStats['avg_temp'] . ' °C' : '--' }}</div>
-                    <small class="text-muted" style="font-size: 11px;">{{ $summaryStats['total_real_days'] > 0 ? ('Tính trên ' . $summaryStats['total_real_days'] . ' ngày có dữ liệu') : 'Chưa có dữ liệu thực tế' }}</small>
+                    <div class="text-muted small fw-medium">Nhiệt Độ Trung Bình</div>
+                    <div class="fs-4 fw-bold text-dark">
+                        {{ $summaryStats['avg_temp'] !== null ? $summaryStats['avg_temp'] . ' °C' : '--' }}</div>
+                    <small class="text-muted"
+                        style="font-size: 11px;">{{ $summaryStats['total_real_days'] > 0 ? 'Tính trên ' . $summaryStats['total_real_days'] . ' ngày có dữ liệu' : 'Chưa có dữ liệu thực tế' }}</small>
                 </div>
             </div>
         </div>
@@ -130,9 +142,11 @@
                     <i class="bi bi-droplet-half"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Độ Ẩm Khí Quyển TB</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_humidity'] !== null ? $summaryStats['avg_humidity'] . ' %' : '--' }}</div>
-                    <small class="text-muted" style="font-size: 11px;">{{ $summaryStats['total_records'] > 0 ? ($summaryStats['total_records'] . ' bản ghi cảm biến') : 'Chưa có dữ liệu đo' }}</small>
+                    <div class="text-muted small fw-medium">Độ Ẩm Không Khí Trung Bình</div>
+                    <div class="fs-4 fw-bold text-dark">
+                        {{ $summaryStats['avg_humidity'] !== null ? $summaryStats['avg_humidity'] . ' %' : '--' }}</div>
+                    <small class="text-muted"
+                        style="font-size: 11px;">{{ $summaryStats['total_records'] > 0 ? $summaryStats['total_records'] . ' bản ghi cảm biến' : 'Chưa có dữ liệu đo' }}</small>
                 </div>
             </div>
         </div>
@@ -143,9 +157,11 @@
                     <i class="bi bi-cloud-rain-fill"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Tổng Lượng Mưa Đo Đạc</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['total_rain'] > 0 ? $summaryStats['total_rain'] . ' mm' : '0.0 mm' }}</div>
-                    <small class="text-primary fw-medium" style="font-size: 11px;">{{ $summaryStats['rainy_days'] }} ngày ghi nhận mưa</small>
+                    <div class="text-muted small fw-medium">Tổng Lượng Mưa</div>
+                    <div class="fs-4 fw-bold text-dark">
+                        {{ $summaryStats['total_rain'] > 0 ? $summaryStats['total_rain'] . ' mm' : '0.0 mm' }}</div>
+                    <small class="text-primary fw-medium" style="font-size: 11px;">{{ $summaryStats['rainy_days'] }} ngày
+                        ghi nhận mưa</small>
                 </div>
             </div>
         </div>
@@ -157,7 +173,9 @@
                 </div>
                 <div>
                     <div class="text-muted small fw-medium">Độ Ẩm Đất Trung Bình</div>
-                    <div class="fs-4 fw-bold text-dark">{{ $summaryStats['avg_soil_moist'] !== null ? $summaryStats['avg_soil_moist'] . ' %' : '--' }}</div>
+                    <div class="fs-4 fw-bold text-dark">
+                        {{ $summaryStats['avg_soil_moist'] !== null ? $summaryStats['avg_soil_moist'] . ' %' : '--' }}
+                    </div>
                     <small class="text-success fw-medium" style="font-size: 11px;">Đo từ cảm biến tầng rễ</small>
                 </div>
             </div>
@@ -169,7 +187,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
                 <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 14px;">
-                    <i class="bi bi-graph-up-arrow text-primary"></i> Biểu Đồ Diễn Biến Vi Khí Hậu & Môi Trường Đất 30 Ngày Gần Nhất
+                    <i class="bi bi-graph-up-arrow text-primary"></i> Biểu Đồ Diễn Biến Trung Bình Vi Khí Hậu & Môi Trường
+                    Đất 30 Ngày
+                    Gần Nhất
                 </h6>
                 <small class="text-muted">Dữ liệu quan trắc thực tế được ghi nhận từ cảm biến trạm hiện trường</small>
             </div>
@@ -188,9 +208,11 @@
     <div class="card mb-4">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0 text-dark fw-bold" style="font-size: 1.05rem;">
-                <i class="bi bi-calendar-week text-primary me-2"></i> Bảng Thống Kê Vi Khí Hậu Từng Ngày - {{ $summaryStats['garden_name'] }}
+                <i class="bi bi-calendar-week text-primary me-2"></i> Bảng Thống Kê Vi Khí Hậu Từng Ngày -
+                {{ $summaryStats['garden_name'] }}
             </h5>
-            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i> Bấm vào dòng bất kỳ để xem chi tiết các mốc giờ đo đạc</span>
+            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i> Bấm vào dòng bất kỳ để xem chi tiết các
+                mốc giờ đo đạc</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -200,11 +222,10 @@
                             <th style="width: 60px;">STT</th>
                             <th>Ngày Quan Trắc</th>
                             <th>Đánh Giá Khí Hậu</th>
-                            <th>Nhiệt Độ TB (°C)</th>
-                            <th>Độ Ẩm TB (%)</th>
+                            <th>Nhiệt Độ (°C)</th>
+                            <th>Độ Ẩm (%)</th>
                             <th>Lượng Mưa</th>
                             <th>Độ Ẩm Đất / pH</th>
-                            <th>Tốc Độ Gió</th>
                             <th style="width: 140px; text-align: center;">Thao Tác</th>
                         </tr>
                     </thead>
@@ -217,11 +238,14 @@
                                     <div class="fw-bold text-dark">
                                         {{ $w['date_display'] }}
                                         @if ($w['is_today'])
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Hôm nay</span>
+                                            <span
+                                                class="badge bg-success-subtle text-success border border-success-subtle ms-1">Hôm
+                                                nay</span>
                                         @endif
                                         @if (!empty($w['is_real_data']))
-                                            <span class="badge bg-primary-subtle text-primary border font-monospace ms-1" style="font-size: 10px;" title="Dữ liệu cảm biến trạm">
-                                                <i class="bi bi-broadcast me-0.5"></i>{{ $w['records_count'] }} mẫu
+                                            <span class="badge bg-primary-subtle text-primary border font-monospace ms-1"
+                                                style="font-size: 10px;" title="Dữ liệu cảm biến trạm">
+                                                <i class="bi bi-broadcast me-0.5"></i> {{ $w['records_count'] }} dữ liệu
                                             </span>
                                         @endif
                                     </div>
@@ -230,13 +254,15 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         <i class="bi {{ $w['icon'] }} fs-5"></i>
-                                        <span class="fw-medium text-dark" style="font-size: 13.5px;">{{ $w['condition'] }}</span>
+                                        <span class="fw-medium text-dark"
+                                            style="font-size: 13.5px;">{{ $w['condition'] }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     @if ($w['temp_avg'] !== null)
                                         <span class="fw-bold text-danger">{{ $w['temp_avg'] }} °C</span>
-                                        <span class="text-muted small ms-1">({{ $w['temp_min'] }}° - {{ $w['temp_max'] }}°)</span>
+                                        <span class="text-muted small ms-1">({{ $w['temp_min'] }}° -
+                                            {{ $w['temp_max'] }}°)</span>
                                     @else
                                         <span class="text-muted">--</span>
                                     @endif
@@ -250,7 +276,8 @@
                                 </td>
                                 <td>
                                     @if ($w['rain'] !== null && $w['rain'] > 0)
-                                        <span class="fw-bold text-primary"><i class="bi bi-umbrella-fill me-1"></i>{{ $w['rain'] }} mm</span>
+                                        <span class="fw-bold text-primary"><i
+                                                class="bi bi-umbrella-fill me-1"></i>{{ $w['rain'] }} mm</span>
                                     @elseif ($w['rain'] !== null)
                                         <span class="text-muted">0.0 mm</span>
                                     @else
@@ -267,13 +294,10 @@
                                         <span class="text-muted">--</span>
                                     @endif
                                 </td>
-                                <td class="text-muted small">
-                                    {{ $w['wind'] !== null ? ($w['wind'] . ' m/s') : '--' }}
-                                </td>
                                 <td style="text-align: center;" onclick="event.stopPropagation();">
                                     <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1"
                                         onclick="openWeatherDayModal('{{ $selectedStation->id ?? 1 }}', '{{ $w['date_str'] }}')">
-                                        <i class="bi bi-eye-fill me-1"></i> Chi tiết ngày
+                                        <i class="bi bi-eye-fill me-1"></i> Chi tiết
                                     </button>
                                 </td>
                             </tr>
@@ -289,15 +313,19 @@
     <div class="app-modal" id="modal-detail-weather-day">
         <div class="modal-dialog" style="max-width: 780px;">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-cloud-sun-fill text-primary me-2"></i> Chi Tiết Vi Khí Hậu Ngày <span id="w-modal-date" class="text-primary fw-bold"></span></h5>
+                <h5 class="modal-title"><i class="bi bi-cloud-sun-fill text-primary me-2"></i> Chi Tiết Vi Khí Hậu Ngày
+                    <span id="w-modal-date" class="text-primary fw-bold"></span>
+                </h5>
                 <button type="button" class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body py-3">
-                <div class="p-3 bg-light rounded-4 border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div
+                    class="p-3 bg-light rounded-4 border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
                         <div class="text-muted small">Trạm quan trắc cảm biến:</div>
                         <div class="fw-bold text-dark fs-6" id="w-modal-station"></div>
-                        <div class="text-secondary small"><i class="bi bi-geo-alt me-1 text-danger"></i> Vùng trồng: <span id="w-modal-zone"></span></div>
+                        <div class="text-secondary small"><i class="bi bi-geo-alt me-1 text-danger"></i> Vùng trồng: <span
+                                id="w-modal-zone"></span></div>
                     </div>
                     <div class="d-flex gap-2">
                         <div class="text-center px-3 py-1.5 bg-white rounded-3 border">
@@ -316,7 +344,8 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-secondary me-1"></i> Các Mốc Đo Đạc Cảm Biến Trong Ngày:</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-secondary me-1"></i> Các Mốc Đo
+                        Đạc Cảm Biến Trong Ngày:</h6>
                     <span class="badge bg-light text-muted border" id="w-modal-records-count"></span>
                 </div>
                 <div class="table-responsive rounded-3 border bg-white" style="max-height: 320px; overflow-y: auto;">
@@ -348,7 +377,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Khởi tạo Biểu đồ Xu hướng 30 ngày (Chart.js)
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('weatherTrendChart');
             if (ctx) {
                 const weatherData = @json(array_reverse($dailyWeather));
@@ -361,8 +390,7 @@
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [
-                            {
+                        datasets: [{
                                 label: 'Nhiệt độ (°C)',
                                 data: tempData,
                                 borderColor: '#ef4444',
@@ -403,12 +431,36 @@
                             intersect: false
                         },
                         plugins: {
-                            legend: { display: false },
-                            tooltip: { backgroundColor: '#0f172a', padding: 10, borderRadius: 8 }
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 10,
+                                borderRadius: 8
+                            }
                         },
                         scales: {
-                            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                            y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: '#f1f5f9'
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            }
                         }
                     }
                 });
@@ -421,12 +473,14 @@
                 .then(data => {
                     if (data.success) {
                         document.getElementById('w-modal-date').textContent = data.date_display;
-                        document.getElementById('w-modal-station').textContent = data.station_name + ' (' + data.station_code + ')';
+                        document.getElementById('w-modal-station').textContent = data.station_name + ' (' + data
+                            .station_code + ')';
                         document.getElementById('w-modal-zone').textContent = data.zone_name;
                         document.getElementById('w-modal-temp').textContent = data.temp_avg + ' °C';
                         document.getElementById('w-modal-humidity').textContent = data.humidity_avg + ' %';
                         document.getElementById('w-modal-rain').textContent = data.total_rain + ' mm';
-                        document.getElementById('w-modal-records-count').textContent = data.records_count > 0 ? (data.records_count + ' bản ghi cảm biến') : 'Ước lượng theo chu kỳ ngày/đêm';
+                        document.getElementById('w-modal-records-count').textContent = data.records_count > 0 ? (data
+                            .records_count + ' bản ghi cảm biến') : 'Ước lượng theo chu kỳ ngày/đêm';
 
                         const body = document.getElementById('w-modal-hourly-body');
                         body.innerHTML = '';
@@ -455,4 +509,3 @@
         }
     </script>
 @endpush
-

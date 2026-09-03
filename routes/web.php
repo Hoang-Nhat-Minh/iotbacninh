@@ -32,8 +32,10 @@ use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserNewsController;
 use App\Http\Controllers\User\UserKnowledgeController;
 use App\Http\Controllers\User\WeatherHistoryController;
+use App\Http\Controllers\DegreeDays\DegreeDaysSurveyController;
 
 Route::get('/', function () {
+
     return redirect('/dashboard');
 });
 
@@ -91,6 +93,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/weather-history/detail/{stationId}/{date}', [WeatherHistoryController::class, 'detail'])->name('iot.weather.detail');
         Route::get('/media', [ManagerMediaController::class, 'index'])->name('iot.media');
         Route::get('/locations', [ManagerLocationController::class, 'index'])->name('iot.locations');
+    });
+
+    // Dán nhãn Tổng Nhiệt hữu hiệu (Degree-Days Labeling & Survey)
+    Route::prefix('degree-days')->name('degree-days.')->group(function () {
+        Route::get('/surveys', [DegreeDaysSurveyController::class, 'index'])->name('surveys.index');
+        Route::post('/surveys', [DegreeDaysSurveyController::class, 'store'])->name('surveys.store');
+        Route::get('/surveys/{id}', [DegreeDaysSurveyController::class, 'show'])->name('surveys.show');
+        Route::get('/api/station-snapshot', [DegreeDaysSurveyController::class, 'getStationSnapshot'])->name('surveys.snapshot');
     });
 
 

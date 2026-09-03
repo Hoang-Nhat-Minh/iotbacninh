@@ -15,4 +15,12 @@ class SystemSetting extends Model
         'key',
         'value',
     ];
+
+    /**
+     * Lấy giá trị cấu hình theo key
+     */
+    public static function getValue(string $key, $default = null)
+    {
+        return static::where('key', $key)->value('value') ?? $default;
+    }
 }

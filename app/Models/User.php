@@ -156,4 +156,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(News::class, 'news_user_bookmarks', 'user_id', 'news_id');
     }
+
+    public function degreeDaysSurveys(): HasMany
+    {
+        return $this->hasMany(\App\Models\DegreeDays\DegreeDaysSurvey::class, 'user_id');
+    }
 }
+
