@@ -185,10 +185,10 @@ class CameraStreamManager:
                     preexec_fn=os.setsid if hasattr(os, 'setsid') else None
                 )
             except FileNotFoundError:
-                logging.error("✗ Lệnh 'ffmpeg' chưa được cài đặt trên Mini PC!")
+                logging.error("[ERROR] Lệnh 'ffmpeg' chưa được cài đặt trên Mini PC!")
                 return False, "Hệ thống trạm chưa cài đặt FFmpeg.", {}
             except Exception as e:
-                logging.error(f"✗ Không thể khởi chạy FFmpeg: {e}")
+                logging.error(f"[ERROR] Không thể khởi chạy FFmpeg: {e}")
                 return False, f"Lỗi khởi chạy FFmpeg: {str(e)}", {}
 
             # Hẹn giờ tự động tắt sau duration_sec để tiết kiệm 4G
@@ -204,7 +204,7 @@ class CameraStreamManager:
                 "stream_key": stream_key
             }
 
-            logging.info(f"✓ Đã bật stream On-Demand [{cam_id}]. Tự động tắt sau {duration_sec}s.")
+            logging.info(f"[OK] Đã bật stream On-Demand [{cam_id}]. Tự động tắt sau {duration_sec}s.")
             return True, f"Bật luồng trực tiếp thành công ({duration_sec}s)", {
                 "stream_key": stream_key,
                 "stream_url_rtmp": rtmp_target,
@@ -235,7 +235,7 @@ class CameraStreamManager:
                 except Exception:
                     proc.kill()
 
-            logging.info(f"✓ Đã dừng stream camera [{cam_id}], tiết kiệm data 4G.")
+            logging.info(f"[OK] Đã dừng stream camera [{cam_id}].")
             return True, f"Đã dừng luồng camera [{cam_id}]."
 
     def _on_stream_timeout(self, cam_id: str):
@@ -277,7 +277,7 @@ class CameraStreamManager:
         try:
             res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=10)
             if res.returncode == 0 and os.path.exists(filepath):
-                logging.info(f"✓ Chụp ảnh thành công: {filepath}")
+                logging.info(f"[OK] Chụp ảnh thành công: {filepath}")
                 return True, "Chụp ảnh thành công", filepath
             else:
                 return False, "FFmpeg không lấy được frame ảnh từ RTSP", ""
@@ -318,9 +318,9 @@ stream_manager = None
 def on_connect(client, userdata, flags, rc):
     """Kết nối thành công với Mosquitto Broker trên VPS."""
     if rc == 0:
-        logging.info(f"✓ Kết nối MQTT Broker thành công [{MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}]")
+        logging.info(f"[OK] Kết nối MQTT Broker thành công [{MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}]")
         client.subscribe(TOPIC_CAM_COMMAND, qos=1)
-        logging.info(f"✓ Đã subscribe topic lệnh camera: [{TOPIC_CAM_COMMAND}]")
+        logging.info(f"[OK] Đã subscribe topic lệnh camera: [{TOPIC_CAM_COMMAND}]")
 
         # Báo Online trạng thái dịch vụ Camera của trạm
         init_payload = {
@@ -332,7 +332,7 @@ def on_connect(client, userdata, flags, rc):
         }
         client.publish(TOPIC_CAM_STATUS, json.dumps(init_payload), qos=1, retain=True)
     else:
-        logging.error(f"✗ Kết nối MQTT Broker thất bại, rc={rc}")
+        logging.error(f"[ERROR] Kết nối MQTT Broker thất bại, rc={rc}")
 
 def on_message(client, userdata, msg):
     """Nhận và điều phối lệnh điều khiển Camera từ Server."""
@@ -403,7 +403,7 @@ def on_message(client, userdata, msg):
         logging.info(f"[GỬI ACK CAMERA] Lệnh {command_id} ({action}) -> {success}: {message}")
 
     except Exception as e:
-        logging.error(f"✗ Lỗi khi xử lý lệnh MQTT: {e}")
+        logging.error(f"[ERROR] Lỗi khi xử lý lệnh MQTT: {e}")
 
 # =============================================================================
 # 6. HÀM MAIN KHỞI CHẠY TIẾN TRÌNH CAMERA CLIENT
@@ -443,7 +443,7 @@ def main():
     try:
         client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT, keepalive=60)
     except Exception as e:
-        logging.error(f"✗ Không thể kết nối MQTT Broker tại {MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}: {e}")
+        logging.error(f"[ERROR] Không thể kết nối MQTT Broker tại {MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}: {e}")
         sys.exit(1)
 
     client.loop_start()
@@ -459,7 +459,7 @@ def main():
             stream_manager.cleanup_all()
         client.loop_stop()
         client.disconnect()
-        logging.info("✓ Dịch vụ camera đã dừng an toàn.")
+        logging.info("[OK] Dịch vụ camera đã dừng an toàn.")
 
 if __name__ == "__main__":
     main()

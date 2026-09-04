@@ -77,6 +77,15 @@
             }
         }
 
+        .play-btn-circle {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+        }
+
+        #camera-standby-cover:hover .play-btn-circle {
+            transform: scale(1.1);
+            box-shadow: 0 0 35px rgba(59, 130, 246, 0.6) !important;
+        }
+
         /* PTZ Control Wheel & Panel */
         .ptz-wheel-box {
             background: #ffffff;
@@ -228,17 +237,17 @@
 
                     <div class="d-flex align-items-center gap-2" id="stream-action-group">
                         <button type="button"
-                            class="btn btn-sm btn-success fw-medium shadow-sm d-flex align-items-center gap-1.5"
+                            class="btn btn-sm btn-primary fw-medium shadow-sm d-flex align-items-center gap-1.5"
                             id="btn-start-stream" onclick="startStream()">
-                            <i class="bi bi-play-circle-fill"></i> Bật Xem Trực Tiếp (180s)
+                            <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
                             onclick="stopStream()">
-                            <i class="bi bi-stop-circle"></i> Tắt Luồng
+                            <i class="bi bi-stop-fill fs-6"></i> Dừng phát
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-info fw-medium d-none" id="btn-renew-stream"
-                            onclick="renewStream()">
-                            <i class="bi bi-arrow-clockwise"></i> +3 Phút
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-stream"
+                            onclick="renewStream()" title="Gia hạn thêm thời gian xem">
+                            <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
                         </button>
                     </div>
                 </div>
@@ -249,26 +258,20 @@
                 <video id="camera-live-video" class="camera-feed-img w-100 h-100" playsinline controls autoplay muted
                     style="display: none; background: #000;"></video>
 
-                <!-- Màn hình chờ Standby (Bảo vệ dung lượng 4G) -->
+                <!-- Màn hình sẵn sàng phát trực tiếp (Cover Player) -->
                 <div id="camera-standby-cover"
                     class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center text-white p-4"
-                    style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95)); z-index: 5;">
-                    <div class="mb-3">
-                        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center"
-                            style="width: 72px; height: 72px;">
-                            <i class="bi bi-broadcast fs-1"></i>
-                        </div>
+                    style="background: radial-gradient(circle at center, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.96) 100%); z-index: 5; cursor: pointer;"
+                    onclick="startStream()">
+                    <div class="play-btn-circle mb-3 shadow-lg d-flex align-items-center justify-content-center"
+                        style="width: 84px; height: 84px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.25);">
+                        <i class="bi bi-play-fill text-white" style="font-size: 46px; margin-left: 5px;"></i>
                     </div>
-                    <h5 class="fw-bold mb-1">Chế Độ Chờ Tiết Kiệm SIM 4G</h5>
-                    <p class="text-secondary small mb-3" style="max-width: 460px;">
-                        Để tối ưu dung lượng mạng 4G tại trạm, luồng video chỉ kích hoạt khi có người xem. Nhấn nút bên dưới
-                        để bắt đầu truyền hình ảnh trực tiếp.
-                    </p>
-                    <button type="button"
-                        class="btn btn-primary btn-lg px-4 py-2.5 rounded-pill shadow fw-bold d-flex align-items-center gap-2"
-                        onclick="startStream()">
-                        <i class="bi bi-play-fill fs-4"></i> BẬT XEM TRỰC TIẾP (180 GIÂY)
-                    </button>
+                    <h5 class="fw-bold mb-1 tracking-wide">Xem Trực Tiếp Camera Hiện Trường</h5>
+                    <p class="text-secondary small mb-3">Nhấn để kết nối và xem hình ảnh thời gian thực</p>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill small fw-medium">
+                        <i class="bi bi-camera-video me-1"></i> Bấm để phát video
+                    </span>
                 </div>
 
                 <!-- Hình ảnh luồng Camera / Snapshot fallback -->
@@ -289,10 +292,10 @@
                     <span id="stream-status-badge"
                         class="badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm">
                         <span class="live-dot" id="stream-status-dot" style="background-color: #94a3b8;"></span>
-                        <span id="stream-status-text">CHẾ ĐỘ CHỜ</span>
+                        <span id="stream-status-text">SẴN SÀNG</span>
                     </span>
                     <span class="badge bg-dark text-white border border-secondary px-2.5 py-1.5 font-monospace">
-                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01</span>
+                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01 (Toàn cảnh)</span>
                     </span>
                 </div>
 
@@ -547,6 +550,16 @@
             checkInitialStreamStatus();
         });
 
+        // 0. Ghi log tương tác MQTT chi tiết
+        function logMqttAction(actionName, reqInfo, resInfo) {
+            console.groupCollapsed(`%c[MQTT CAMERA] ${actionName} - ${new Date().toLocaleTimeString('vi-VN')}`, 'background: #0f172a; color: #38bdf8; font-weight: bold; padding: 3px 8px; border-radius: 4px;');
+            console.log('%c[GỬI LỆNH ĐẾN MQTT]', 'color: #3b82f6; font-weight: bold;', reqInfo);
+            if (resInfo) {
+                console.log('%c[MQTT / TRẠM TRẢ LẠI KẾT QUẢ]', 'color: #10b981; font-weight: bold;', resInfo);
+            }
+            console.groupEnd();
+        }
+
         // 1. Chuyển đổi giữa Camera 01 và Camera 02
         function switchCamera(camId) {
             if (activeCamId === camId) return;
@@ -567,11 +580,23 @@
             }
         }
 
-        // 2. Kích hoạt xem trực tiếp On-Demand
+        // 2. Kích hoạt xem trực tiếp
         async function startStream(duration = 180) {
             const startBtn = document.getElementById('btn-start-stream');
             if (startBtn) startBtn.disabled = true;
-            showToast('📡 Đang gửi lệnh bật luồng camera qua 4G...', 'info');
+            showToast('Đang kết nối luồng camera trực tiếp...', 'info');
+
+            const reqPayload = {
+                camera_id: activeCamId,
+                duration_seconds: duration,
+                quality: 'sub'
+            };
+
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Bắt đầu xem stream trạm ${stationCode}:`, 'color: #2563eb; font-weight: bold;', {
+                topic: `khcn/stations/${stationCode}/camera/command`,
+                action: 'START_STREAM',
+                params: reqPayload
+            });
 
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/stream`, {
@@ -580,24 +605,32 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({
-                        camera_id: activeCamId,
-                        duration_seconds: duration,
-                        quality: 'sub'
-                    })
+                    body: JSON.stringify(reqPayload)
                 });
                 const result = await res.json();
+
+                // Ghi log chi tiết: Lệnh gửi đi & Kết quả MQTT trả lại
+                logMqttAction('START_STREAM', {
+                    topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
+                    action: 'START_STREAM',
+                    command_id: result.command?.command_id,
+                    payload_sent: result.command?.payload || reqPayload
+                }, {
+                    mqtt_published: result.command?.success ?? result.success,
+                    mqtt_response_ack: result.ack || 'Đang xử lý ngầm trên Broker/Worker',
+                    stream_info: result.stream
+                });
 
                 if (result.success && result.stream) {
                     initHlsPlayer(result.stream.hls_url);
                     startCountdown(duration);
-                    showToast('✓ Luồng trực tiếp đã kết nối thành công!', 'success');
+                    showToast('Đã kết nối camera trực tiếp!', 'success');
                 } else {
-                    showToast('✗ Không thể bật luồng camera: ' + (result.message || 'Lỗi server'), 'error');
+                    showToast('Không thể kết nối camera: ' + (result.message || 'Lỗi server'), 'error');
                 }
             } catch (err) {
-                console.error(err);
-                showToast('✗ Lỗi kết nối API trạm camera', 'error');
+                console.error('[MQTT CAMERA ERROR] Lỗi gửi lệnh startStream:', err);
+                showToast('Lỗi kết nối máy chủ camera', 'error');
             } finally {
                 if (startBtn) startBtn.disabled = false;
             }
@@ -648,7 +681,7 @@
             }
         }
 
-        // 4. Dừng luồng để tiết kiệm dung lượng SIM 4G
+        // 4. Dừng luồng phát video
         async function stopStream(callApi = true) {
             clearInterval(countdownTimer);
             if (hlsInstance) {
@@ -677,23 +710,39 @@
             statusBadge.className =
                 'badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
             statusDot.style.backgroundColor = '#94a3b8';
-            statusText.textContent = 'CHẾ ĐỘ CHỜ';
+            statusText.textContent = 'SẴN SÀNG';
             isStreamActive = false;
 
             if (callApi) {
-                showToast('🛑 Đã ngắt luồng video, bảo tồn dung lượng 4G.', 'info');
+                showToast('Đã dừng phát video.', 'info');
+                const reqPayload = { camera_id: activeCamId };
+                console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Dừng stream trạm ${stationCode}:`, 'color: #dc2626; font-weight: bold;', {
+                    topic: `khcn/stations/${stationCode}/camera/command`,
+                    action: 'STOP_STREAM',
+                    params: reqPayload
+                });
+
                 try {
-                    await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
+                    const res = await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            camera_id: activeCamId
-                        })
+                        body: JSON.stringify(reqPayload)
+                    });
+                    const result = await res.json();
+
+                    logMqttAction('STOP_STREAM', {
+                        topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
+                        action: 'STOP_STREAM',
+                        command_id: result.command?.command_id,
+                        payload_sent: result.command?.payload || reqPayload
+                    }, {
+                        mqtt_published: result.command?.success ?? result.success,
+                        mqtt_response_ack: result.ack || result
                     });
                 } catch (e) {
-                    console.error(e);
+                    console.error('[MQTT CAMERA ERROR] Lỗi dừng stream:', e);
                 }
             }
         }
@@ -702,7 +751,7 @@
             startStream(180);
         }
 
-        // 5. Đồng hồ đếm ngược thời gian xem On-Demand
+        // 5. Đồng hồ đếm ngược phiên xem
         function startCountdown(seconds) {
             clearInterval(countdownTimer);
             remainingSeconds = seconds;
@@ -721,7 +770,7 @@
                 if (remainingSeconds <= 0) {
                     clearInterval(countdownTimer);
                     stopStream(false);
-                    showToast('⏰ Đã hết thời gian xem On-Demand (Tự ngắt tiết kiệm 4G).', 'warning');
+                    showToast('Phiên phát trực tiếp đã kết thúc.', 'info');
                 } else {
                     updateCountdownDisplay();
                 }
@@ -731,7 +780,7 @@
         function updateCountdownDisplay() {
             const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
             const s = (remainingSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('stream-status-text').textContent = `LIVE 4G (${m}:${s})`;
+            document.getElementById('stream-status-text').textContent = `LIVE (${m}:${s})`;
         }
 
         // 6. Kiểm tra nếu luồng đang mở sẵn từ trước
@@ -765,20 +814,39 @@
             document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
             document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
 
+            const reqPayload = {
+                camera_id: activeCamId,
+                direction: directionName,
+                speed: 5
+            };
+
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Điều khiển PTZ [${directionName}]:`, 'color: #059669; font-weight: bold;', {
+                topic: `khcn/stations/${stationCode}/camera/command`,
+                action: 'PTZ_CONTROL',
+                params: reqPayload
+            });
+
             try {
-                await fetch(`/api/iot/stations/${stationCode}/camera/ptz`, {
+                const res = await fetch(`/api/iot/stations/${stationCode}/camera/ptz`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        camera_id: activeCamId,
-                        direction: directionName,
-                        speed: 5
-                    })
+                    body: JSON.stringify(reqPayload)
+                });
+                const result = await res.json();
+
+                logMqttAction(`PTZ_CONTROL (${directionName})`, {
+                    topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
+                    action: 'PTZ_CONTROL',
+                    command_id: result.command?.command_id,
+                    payload_sent: result.command?.payload || reqPayload
+                }, {
+                    mqtt_published: result.command?.success ?? result.success,
+                    mqtt_response_ack: result.ack || result
                 });
             } catch (e) {
-                console.error('PTZ Error:', e);
+                console.error('[MQTT CAMERA ERROR] Lỗi điều khiển PTZ:', e);
             }
         }
 
@@ -801,27 +869,45 @@
             updateZoom(zoom);
         }
 
-        // 10. Chụp Ảnh Tức Thời & Gửi Lệnh Chụp Xuống Trạm
+        // 10. Chụp ảnh từ camera
         async function takeSnapshot() {
-            showToast('📸 Đang gửi lệnh chụp ảnh tới camera hiện trường...', 'info');
+            showToast('Đang chụp ảnh...', 'info');
+            const reqPayload = { camera_id: activeCamId };
+
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Chụp ảnh snapshot camera:`, 'color: #7c3aed; font-weight: bold;', {
+                topic: `khcn/stations/${stationCode}/camera/command`,
+                action: 'CAPTURE_SNAPSHOT',
+                params: reqPayload
+            });
+
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/snapshot`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        camera_id: activeCamId
-                    })
+                    body: JSON.stringify(reqPayload)
                 });
                 const result = await res.json();
+
+                logMqttAction('CAPTURE_SNAPSHOT', {
+                    topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
+                    action: 'CAPTURE_SNAPSHOT',
+                    command_id: result.command?.command_id,
+                    payload_sent: result.command?.payload || reqPayload
+                }, {
+                    mqtt_published: result.command?.success ?? result.success,
+                    mqtt_response_ack: result.ack || result
+                });
+
                 if (result.success) {
-                    showToast('✓ Lệnh chụp ảnh đã được gửi xuống trạm!', 'success');
+                    showToast('Đã chụp ảnh thành công!', 'success');
                 } else {
-                    showToast('✗ Không thể gửi lệnh chụp ảnh', 'error');
+                    showToast('Không thể chụp ảnh lúc này', 'error');
                 }
             } catch (err) {
-                console.error(err);
+                console.error('[MQTT CAMERA ERROR] Lỗi chụp ảnh:', err);
+                showToast('Không thể chụp ảnh lúc này', 'error');
             }
         }
 
@@ -836,7 +922,7 @@
                     isRecording = false;
                     btn.className = 'btn btn-outline-danger py-2 fw-medium';
                     btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
-                    showToast('✅ Đã lưu video clip ghi hình!', 'success');
+                    showToast('Đã lưu video clip ghi hình!', 'success');
                 }, 10000);
             }
         }
@@ -844,7 +930,7 @@
         function runAiCropScan() {
             const overlay = document.getElementById('ai-detection-overlay');
             overlay.style.display = 'flex';
-            showToast('🤖 Đã kích hoạt quét AI sâu bệnh trên luồng camera!', 'info');
+            showToast('Đã kích hoạt quét AI sâu bệnh trên luồng camera!', 'info');
         }
 
         function openSaveCurrentPresetModal() {

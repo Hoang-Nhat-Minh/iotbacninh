@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Iot\MonitoringStation;
 use App\Services\Iot\MqttService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class IotCameraController extends Controller
 {
@@ -33,6 +34,32 @@ class IotCameraController extends Controller
             'quality' => $quality,
         ]);
 
+        // Ghi log chi tiết lệnh gửi tới MQTT
+        Log::info("[MQTT_CAMERA_SENT] Gửi lệnh START_STREAM tới MQTT Broker", [
+            'station' => $station->code,
+            'camera_id' => $camId,
+            'action' => 'START_STREAM',
+            'topic' => $result['topic'] ?? "khcn/stations/{$station->code}/camera/command",
+            'command_id' => $result['command_id'] ?? null,
+            'payload' => $result['payload'] ?? null,
+            'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
+        ]);
+
+        // Đợi gói ACK phản hồi từ trạm qua MQTT (nếu trạm đang online)
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        if ($ack) {
+            Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh START_STREAM qua MQTT", [
+                'station' => $station->code,
+                'command_id' => $result['command_id'] ?? null,
+                'ack' => $ack,
+            ]);
+        } else {
+            Log::info("[MQTT_CAMERA_ACK_PENDING] Broker đã nhận lệnh START_STREAM (chờ worker hoặc trạm phản hồi ngầm)", [
+                'station' => $station->code,
+                'command_id' => $result['command_id'] ?? null,
+            ]);
+        }
+
         $streamKey = "{$station->code}_{$camId}";
         $mediaHost = env('MEDIA_SERVER_HOST', $request->getHost());
         $hlsPort = env('MEDIA_SERVER_HLS_PORT', 8888);
@@ -57,12 +84,13 @@ class IotCameraController extends Controller
                 ? "Đã gửi lệnh kích hoạt luồng camera {$camId} ({$duration}s) xuống trạm."
                 : "Gửi lệnh kích hoạt luồng camera thất bại.",
             'command' => $result,
+            'ack' => $ack,
             'stream' => $streamInfo,
         ], $result['success'] ? 200 : 500);
     }
 
     /**
-     * Tắt luồng phát trực tiếp để tiết kiệm dung lượng 4G.
+     * Tắt luồng phát trực tiếp.
      */
     public function stopStream(string $stationCode, Request $request, MqttService $mqttService)
     {
@@ -78,12 +106,33 @@ class IotCameraController extends Controller
             'camera_id' => $camId,
         ]);
 
+        // Ghi log chi tiết lệnh dừng stream gửi tới MQTT
+        Log::info("[MQTT_CAMERA_SENT] Gửi lệnh STOP_STREAM tới MQTT Broker", [
+            'station' => $station->code,
+            'camera_id' => $camId,
+            'action' => 'STOP_STREAM',
+            'topic' => $result['topic'] ?? "khcn/stations/{$station->code}/camera/command",
+            'command_id' => $result['command_id'] ?? null,
+            'payload' => $result['payload'] ?? null,
+            'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
+        ]);
+
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        if ($ack) {
+            Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh STOP_STREAM qua MQTT", [
+                'station' => $station->code,
+                'command_id' => $result['command_id'] ?? null,
+                'ack' => $ack,
+            ]);
+        }
+
         Cache::forget("camera_stream_{$station->code}_{$camId}");
 
         return response()->json([
             'success' => $result['success'],
             'message' => "Đã gửi lệnh dừng luồng camera {$camId}.",
             'command' => $result,
+            'ack' => $ack,
         ]);
     }
 
@@ -110,10 +159,33 @@ class IotCameraController extends Controller
             'speed' => $speed,
         ]);
 
+        // Ghi log chi tiết lệnh điều khiển PTZ gửi tới MQTT
+        Log::info("[MQTT_CAMERA_SENT] Gửi lệnh PTZ_CONTROL [{$direction}] tới MQTT Broker", [
+            'station' => $station->code,
+            'camera_id' => $camId,
+            'action' => 'PTZ_CONTROL',
+            'direction' => $direction,
+            'speed' => $speed,
+            'topic' => $result['topic'] ?? "khcn/stations/{$station->code}/camera/command",
+            'command_id' => $result['command_id'] ?? null,
+            'payload' => $result['payload'] ?? null,
+            'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
+        ]);
+
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        if ($ack) {
+            Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh PTZ_CONTROL qua MQTT", [
+                'station' => $station->code,
+                'command_id' => $result['command_id'] ?? null,
+                'ack' => $ack,
+            ]);
+        }
+
         return response()->json([
             'success' => $result['success'],
             'message' => "Đã gửi lệnh PTZ [{$direction}] tới camera {$camId}.",
             'command' => $result,
+            'ack' => $ack,
         ]);
     }
 
@@ -134,10 +206,31 @@ class IotCameraController extends Controller
             'camera_id' => $camId,
         ]);
 
+        // Ghi log chi tiết lệnh chụp ảnh snapshot gửi tới MQTT
+        Log::info("[MQTT_CAMERA_SENT] Gửi lệnh CAPTURE_SNAPSHOT tới MQTT Broker", [
+            'station' => $station->code,
+            'camera_id' => $camId,
+            'action' => 'CAPTURE_SNAPSHOT',
+            'topic' => $result['topic'] ?? "khcn/stations/{$station->code}/camera/command",
+            'command_id' => $result['command_id'] ?? null,
+            'payload' => $result['payload'] ?? null,
+            'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
+        ]);
+
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        if ($ack) {
+            Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh CAPTURE_SNAPSHOT qua MQTT", [
+                'station' => $station->code,
+                'command_id' => $result['command_id'] ?? null,
+                'ack' => $ack,
+            ]);
+        }
+
         return response()->json([
             'success' => $result['success'],
             'message' => "Đã gửi yêu cầu chụp ảnh snapshot tới camera {$camId}.",
             'command' => $result,
+            'ack' => $ack,
         ]);
     }
 
@@ -164,7 +257,31 @@ class IotCameraController extends Controller
         return response()->json([
             'active' => false,
             'camera_id' => $camId,
-            'message' => 'Camera hiện đang ở chế độ chờ (tắt stream để bảo vệ 4G).',
+            'message' => 'Camera hiện đang ở chế độ chờ.',
         ]);
     }
+
+    /**
+     * Chờ gói ACK phản hồi từ trạm qua MQTT Cache trong khoảng thời gian ngắn (tối đa 1.2 giây).
+     */
+    private function waitForMqttAck(string $stationCode, ?string $commandId, float $timeoutSeconds = 1.2): ?array
+    {
+        if (!$commandId) {
+            return null;
+        }
+
+        $ackKey = "camera_ack_{$stationCode}_{$commandId}";
+        $startTime = microtime(true);
+
+        while ((microtime(true) - $startTime) < $timeoutSeconds) {
+            $cached = Cache::get($ackKey);
+            if ($cached) {
+                return $cached;
+            }
+            usleep(80000); // 80ms
+        }
+
+        return null;
+    }
 }
+

@@ -202,7 +202,28 @@ class MqttListenerCommand extends Command
             $action = strtoupper($payload['action'] ?? '');
             $camId = $payload['camera_id'] ?? 'cam_1';
             $success = $payload['success'] ?? false;
+            $commandId = $payload['command_id'] ?? null;
+            $messageText = $payload['message'] ?? '';
             $data = $payload['data'] ?? [];
+
+            // Ghi log chi tiết phản hồi MQTT trả lại từ trạm
+            Log::info("[MQTT_ACK_RECEIVED] MQTT nhận ACK phản hồi từ trạm", [
+                'topic' => $topic,
+                'station_code' => $stationCode,
+                'camera_id' => $camId,
+                'action' => $action,
+                'command_id' => $commandId,
+                'success' => $success,
+                'message' => $messageText,
+                'data' => $data,
+                'full_payload' => $payload,
+            ]);
+
+            // Lưu ACK vào Cache để các API Web Controller có thể đọc ngay lập tức
+            if ($commandId) {
+                Cache::put("camera_ack_{$stationCode}_{$commandId}", $payload, 60);
+            }
+            Cache::put("camera_last_ack_{$stationCode}_{$camId}", $payload, 60);
 
             $cacheKey = "camera_stream_{$stationCode}_{$camId}";
 
@@ -225,7 +246,7 @@ class MqttListenerCommand extends Command
                 $this->info("[CAMERA STREAM OFF] " . now()->format('H:i:s') . " | Trạm {$stationCode} - {$camId} đã dừng luồng.");
             }
 
-            Log::info("MQTT Camera ACK: {$stationCode} | {$camId} | {$action} | Success: " . ($success ? '1' : '0'));
+            $this->info("[MQTT CAMERA ACK] " . now()->format('H:i:s') . " | Trạm {$stationCode} | Lệnh {$action}" . ($commandId ? " ({$commandId})" : "") . " -> " . ($success ? 'THÀNH CÔNG' : 'THẤT BẠI: ' . $messageText));
         } catch (\Throwable $e) {
             Log::error("MQTT Camera ACK Handler Error: " . $e->getMessage());
         }

@@ -175,11 +175,11 @@ def execute_command(action: str, params: dict) -> tuple[bool, str]:
 def on_connect(client, userdata, flags, rc):
     """Callback khi trạm kết nối thành công với Mosquitto Broker."""
     if rc == 0:
-        logging.info(f"✓ Kết nối thành công tới Mosquitto Broker [{MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}]")
+        logging.info(f"[OK] Kết nối thành công tới Mosquitto Broker [{MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}]")
         
         # 1. Đăng ký nhận lệnh điều khiển từ Server
         client.subscribe(TOPIC_COMMAND, qos=1)
-        logging.info(f"✓ Đã subscribe topic nhận lệnh: [{TOPIC_COMMAND}]")
+        logging.info(f"[OK] Đã subscribe topic nhận lệnh: [{TOPIC_COMMAND}]")
 
         # 2. Phát thông điệp ONLINE lên Broker (Retain = True để Server/Client vào sau vẫn biết)
         online_payload = {
@@ -189,9 +189,9 @@ def on_connect(client, userdata, flags, rc):
             "firmware_version": "1.0.0"
         }
         client.publish(TOPIC_STATUS, json.dumps(online_payload), qos=1, retain=True)
-        logging.info(f"✓ Đã phát tín hiệu ONLINE trạm [{STATION_CODE}]")
+        logging.info(f"[OK] Đã phát tín hiệu ONLINE trạm [{STATION_CODE}]")
     else:
-        logging.error(f"✗ Kết nối MQTT Broker thất bại, mã lỗi (rc): {rc}")
+        logging.error(f"[ERROR] Kết nối MQTT Broker thất bại, mã lỗi (rc): {rc}")
 
 
 def on_message(client, userdata, msg):
@@ -226,7 +226,7 @@ def on_message(client, userdata, msg):
         logging.info(f"[GỬI PHẢN HỒI ACK] Lệnh {command_id} -> Thành công: {success} | {message}")
 
     except Exception as e:
-        logging.error(f"✗ Lỗi khi xử lý message từ MQTT: {e}")
+        logging.error(f"[ERROR] Lỗi khi xử lý message từ MQTT: {e}")
 
 
 def on_disconnect(client, userdata, rc):
@@ -257,10 +257,10 @@ def send_telemetry(client):
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
             logging.info(f"→ [TELEMETRY] Đã gửi {len(readings)} chỉ số cảm biến từ trạm {STATION_CODE}")
         else:
-            logging.warning(f"✗ Không thể gửi telemetry (mã lỗi: {result.rc})")
+            logging.warning(f"[ERROR] Không thể gửi telemetry (mã lỗi: {result.rc})")
 
     except Exception as e:
-        logging.error(f"✗ Lỗi khi thu thập và gửi Telemetry: {e}")
+        logging.error(f"[ERROR] Lỗi khi thu thập và gửi Telemetry: {e}")
 
 
 # =============================================================================
