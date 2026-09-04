@@ -19,6 +19,7 @@ Yêu cầu môi trường Python tại trạm:
 =============================================================================
 """
 
+import os
 import sys
 import time
 import json
@@ -28,13 +29,13 @@ import logging
 import paho.mqtt.client as mqtt
 
 # =============================================================================
-# 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Thay đổi theo thực tế trạm)
+# 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Đọc từ biến môi trường hoặc thay đổi theo thực tế)
 # =============================================================================
-STATION_CODE = "ST-PHUCHOA-01"        # Mã định danh trạm (khớp với mã trạm trên web Laravel)
-MQTT_BROKER_HOST = "117.6.44.206"     # IP Public của máy chủ chạy Mosquitto Broker
-MQTT_BROKER_PORT = 9070               # Cổng MQTT Broker (được cấp cổng 9070)
-MQTT_USERNAME = "iastadmin"           # Tên tài khoản MQTT
-MQTT_PASSWORD = "iast@6688"           # Mật khẩu MQTT
+STATION_CODE = os.getenv("STATION_CODE", "ST-PHUCHOA-01")        # Mã định danh trạm (khớp với mã trạm trên web Laravel)
+MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")   # IP Public hoặc Domain của máy chủ Mosquitto Broker
+MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", 9070))      # Cổng MQTT Broker
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "")                  # Tên tài khoản MQTT
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")                  # Mật khẩu MQTT
 
 
 

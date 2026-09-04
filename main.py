@@ -88,9 +88,10 @@ def print_banner():
     print(banner)
 
 
-def check_mqtt_broker(host: str = "117.6.44.206", port: int = 9070, timeout: float = 3.0) -> bool:
-
+def check_mqtt_broker(host: str = None, port: int = None, timeout: float = 3.0) -> bool:
     """Kiểm tra kết nối TCP tới máy chủ MQTT Broker"""
+    host = host or os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
+    port = port or int(os.getenv("MQTT_BROKER_PORT", 9070))
     print(f"[*] Đang kiểm tra kết nối tới MQTT Broker [{host}:{port}] (timeout {timeout}s)...")
     try:
         sock = socket.create_connection((host, port), timeout=timeout)

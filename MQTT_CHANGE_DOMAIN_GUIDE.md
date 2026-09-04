@@ -35,7 +35,7 @@ Tài liệu này cung cấp hướng dẫn từng bước khi hệ thống thự
 
 1. **Trỏ bản ghi DNS**:
    - Truy cập trang quản lý tên miền mới (như Cloudflare, PA Vietnam, Mat Bao,...).
-   - Thêm bản ghi **`A`** trỏ tên miền mới về IP của VPS (Ví dụ: `117.6.44.206`).
+   - Thêm bản ghi **`A`** trỏ tên miền mới về IP của VPS (Ví dụ: `103.xxx.xxx.xxx`).
 
 2. **Cập nhật cấu hình Nginx trên VPS**:
    - Mở file cấu hình Nginx:
@@ -114,7 +114,7 @@ Tài liệu này cung cấp hướng dẫn từng bước khi hệ thống thự
 
 Trong file script chạy tại các trạm ngoài hiện trường (`iot_station_client_*.py`):
 
-* **Nếu trạm đang dùng IP Public** (Ví dụ `MQTT_BROKER_HOST = "117.6.44.206"`):
+* **Nếu trạm đang dùng IP Public** (Ví dụ `MQTT_BROKER_HOST = "103.xxx.xxx.xxx"`):
   👉 **HOÀN TOÀN KHÔNG CẦN CHỈNH SỬA GÌ**. Trạm vẫn gửi dữ liệu liên tục về VPS bình thường.
 
 * **Nếu trạm đang dùng Domain cũ** (Ví dụ `MQTT_BROKER_HOST = "smartagriculture.kennatech.vn"`):

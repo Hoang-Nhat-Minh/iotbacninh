@@ -33,8 +33,8 @@ return [
         'default' => [
 
             // Host and Port of the Mosquitto MQTT broker
-            'host' => env('MQTT_HOST', '117.6.44.206'),
-            'port' => (int) env('MQTT_PORT', 9070),
+            'host' => env('MQTT_HOST', '127.0.0.1'),
+            'port' => (int) env('MQTT_PORT', 1883),
 
             // MQTT protocol version (MQTT 3.1 or 3.1.1)
             'protocol' => MqttClient::MQTT_3_1_1,
@@ -57,8 +57,8 @@ return [
 
                 // Authentication credentials
                 'auth' => [
-                    'username' => env('MQTT_USERNAME', 'iastadmin'),
-                    'password' => env('MQTT_PASSWORD', 'iast@6688'),
+                    'username' => env('MQTT_USERNAME'),
+                    'password' => env('MQTT_PASSWORD'),
                 ],
 
 

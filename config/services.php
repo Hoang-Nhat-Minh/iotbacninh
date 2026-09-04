@@ -32,7 +32,7 @@ return [
     ],
 
     'rag' => [
-        'base_url' => env('RAG_API_BASE_URL', 'http://117.6.44.206:9059/api/v1'),
+        'base_url' => env('RAG_API_BASE_URL', 'http://127.0.0.1:9059/api/v1'),
         'default_token' => env('RAG_API_DEFAULT_TOKEN', ''),
     ],
 

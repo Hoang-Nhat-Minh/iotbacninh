@@ -38,9 +38,9 @@ allow_anonymous false
 password_file /etc/mosquitto/passwd
 ```
 
-Tạo user `iastadmin` với mật khẩu:
+Tạo user MQTT (ví dụ: `iastadmin`) với mật khẩu bảo mật:
 ```bash
-sudo mosquitto_passwd -c -b /etc/mosquitto/passwd iastadmin iast@6688
+sudo mosquitto_passwd -c -b /etc/mosquitto/passwd <username> <your_password>
 sudo systemctl restart mosquitto
 ```
 

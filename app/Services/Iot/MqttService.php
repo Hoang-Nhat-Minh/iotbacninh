@@ -34,10 +34,10 @@ class MqttService
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
         try {
-            $host = config('mqtt-client.connections.default.host') ?: env('MQTT_HOST', '117.6.44.206');
-            $port = (int) (config('mqtt-client.connections.default.port') ?: env('MQTT_PORT', 9070));
-            $username = config('mqtt-client.connections.default.connection_settings.auth.username') ?: env('MQTT_USERNAME', 'iastadmin');
-            $password = config('mqtt-client.connections.default.connection_settings.auth.password') ?: env('MQTT_PASSWORD', 'iast@6688');
+            $host = config('mqtt-client.connections.default.host') ?: env('MQTT_HOST', '127.0.0.1');
+            $port = (int) (config('mqtt-client.connections.default.port') ?: env('MQTT_PORT', 1883));
+            $username = config('mqtt-client.connections.default.connection_settings.auth.username') ?: env('MQTT_USERNAME');
+            $password = config('mqtt-client.connections.default.connection_settings.auth.password') ?: env('MQTT_PASSWORD');
 
             $clientId = 'laravel_cmd_' . Str::random(8);
 
