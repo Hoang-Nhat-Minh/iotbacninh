@@ -207,14 +207,77 @@
     <div class="row g-4 mb-4">
         <!-- 1. CỘT BÊN TRÁI (8 COLS): KHUNG CAMERA LIVE STREAM -->
         <div class="col-lg-8">
-            <div class="camera-viewport">
-                <!-- Hình ảnh luồng Camera (Live Feed) -->
+            <!-- Thanh Điều Khiển Camera On-Demand -->
+            <div class="card border-0 shadow-sm mb-3 bg-light">
+                <div class="card-body py-2.5 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold">
+                            <i class="bi bi-camera-video-fill text-primary me-1"></i> Chọn Camera:
+                        </span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-primary active" id="btn-cam-1"
+                                onclick="switchCamera('cam_1')">
+                                <i class="bi bi-eye me-1"></i> Cam 01 (Toàn cảnh)
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btn-cam-2"
+                                onclick="switchCamera('cam_2')">
+                                <i class="bi bi-zoom-in me-1"></i> Cam 02 (Cận cảnh)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2" id="stream-action-group">
+                        <button type="button"
+                            class="btn btn-sm btn-success fw-medium shadow-sm d-flex align-items-center gap-1.5"
+                            id="btn-start-stream" onclick="startStream()">
+                            <i class="bi bi-play-circle-fill"></i> Bật Xem Trực Tiếp (180s)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
+                            onclick="stopStream()">
+                            <i class="bi bi-stop-circle"></i> Tắt Luồng
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info fw-medium d-none" id="btn-renew-stream"
+                            onclick="renewStream()">
+                            <i class="bi bi-arrow-clockwise"></i> +3 Phút
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="camera-viewport position-relative">
+                <!-- Video Player phát trực tiếp (Hls.js) -->
+                <video id="camera-live-video" class="camera-feed-img w-100 h-100" playsinline controls autoplay muted
+                    style="display: none; background: #000;"></video>
+
+                <!-- Màn hình chờ Standby (Bảo vệ dung lượng 4G) -->
+                <div id="camera-standby-cover"
+                    class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center text-white p-4"
+                    style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95)); z-index: 5;">
+                    <div class="mb-3">
+                        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center"
+                            style="width: 72px; height: 72px;">
+                            <i class="bi bi-broadcast fs-1"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1">Chế Độ Chờ Tiết Kiệm SIM 4G</h5>
+                    <p class="text-secondary small mb-3" style="max-width: 460px;">
+                        Để tối ưu dung lượng mạng 4G tại trạm, luồng video chỉ kích hoạt khi có người xem. Nhấn nút bên dưới
+                        để bắt đầu truyền hình ảnh trực tiếp.
+                    </p>
+                    <button type="button"
+                        class="btn btn-primary btn-lg px-4 py-2.5 rounded-pill shadow fw-bold d-flex align-items-center gap-2"
+                        onclick="startStream()">
+                        <i class="bi bi-play-fill fs-4"></i> BẬT XEM TRỰC TIẾP (180 GIÂY)
+                    </button>
+                </div>
+
+                <!-- Hình ảnh luồng Camera / Snapshot fallback -->
                 <img id="camera-feed"
                     src="{{ $station['camera_url'] ?? 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=1000&q=80' }}"
-                    alt="Camera Live Feed" class="camera-feed-img">
+                    alt="Camera Live Feed" class="camera-feed-img" style="display: none;">
 
                 <!-- AI Bounding Box Cảnh Báo Sâu Bệnh (Mô phỏng) -->
-                <div id="ai-detection-overlay" class="ai-detect-box">
+                <div id="ai-detection-overlay" class="ai-detect-box" style="display: none;">
                     <span class="badge bg-danger text-white style-badge font-monospace" style="font-size: 10px;">AI DETECT:
                         SƯƠNG MAI (94.5%)</span>
                     <span class="text-white font-monospace text-end"
@@ -223,11 +286,13 @@
 
                 <!-- Overlay Top Left -->
                 <div class="cam-overlay-top-left d-flex align-items-center gap-2">
-                    <span class="badge bg-danger text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm">
-                        <span class="live-dot"></span> LIVE 24/7
+                    <span id="stream-status-badge"
+                        class="badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm">
+                        <span class="live-dot" id="stream-status-dot" style="background-color: #94a3b8;"></span>
+                        <span id="stream-status-text">CHẾ ĐỘ CHỜ</span>
                     </span>
                     <span class="badge bg-dark text-white border border-secondary px-2.5 py-1.5 font-monospace">
-                        {{ $station['code'] ?? 'TRẠM-01' }} | {{ $station['name'] ?? 'Trạm Quan Trắc' }}
+                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01</span>
                     </span>
                 </div>
 
@@ -287,17 +352,17 @@
                         <button type="button" class="ptz-btn-dir" onclick="moveCamera('Up-Right', 5, 5)"
                             title="Lên - Phải"><i class="bi bi-arrow-up-right"></i></button>
 
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Left', -5, 0)" title="Xoay Trái"><i
-                                class="bi bi-arrow-left"></i></button>
+                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Left', -5, 0)"
+                            title="Xoay Trái"><i class="bi bi-arrow-left"></i></button>
                         <button type="button" class="ptz-btn-dir ptz-btn-center" onclick="takeSnapshot()"
                             title="Chụp ảnh tức thì"><i class="bi bi-camera-fill"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Right', 5, 0)" title="Xoay Phải"><i
-                                class="bi bi-arrow-right"></i></button>
+                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Right', 5, 0)"
+                            title="Xoay Phải"><i class="bi bi-arrow-right"></i></button>
 
                         <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down-Left', -5, -5)"
                             title="Xuống - Trái"><i class="bi bi-arrow-down-left"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down', 0, -5)" title="Xoay Xuống"><i
-                                class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down', 0, -5)"
+                            title="Xoay Xuống"><i class="bi bi-arrow-down"></i></button>
                         <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down-Right', 5, -5)"
                             title="Xuống - Phải"><i class="bi bi-arrow-down-right"></i></button>
                     </div>
@@ -463,17 +528,227 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
+        const stationCode = "{{ $station['code'] ?? 'ST-PHUCHOA-01' }}";
+        let activeCamId = 'cam_1';
+        let isStreamActive = false;
+        let hlsInstance = null;
+        let countdownTimer = null;
+        let remainingSeconds = 0;
+
         let currentPan = 45;
         let currentTilt = -15;
-        let currentZoom = 2.5; // Giới hạn từ 1.0 đến 4.0
+        let currentZoom = 2.5;
         let isRecording = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             startClock();
+            checkInitialStreamStatus();
         });
 
-        // 1. Đồng hồ thời gian thực Live Feed
+        // 1. Chuyển đổi giữa Camera 01 và Camera 02
+        function switchCamera(camId) {
+            if (activeCamId === camId) return;
+            activeCamId = camId;
+
+            document.getElementById('btn-cam-1').className = camId === 'cam_1' ? 'btn btn-primary active' :
+                'btn btn-outline-secondary';
+            document.getElementById('btn-cam-2').className = camId === 'cam_2' ? 'btn btn-primary active' :
+                'btn btn-outline-secondary';
+            document.getElementById('active-cam-label').textContent = camId === 'cam_1' ? 'Camera 01 (Toàn cảnh)' :
+                'Camera 02 (Cận cảnh)';
+
+            if (isStreamActive) {
+                stopStream(false);
+                setTimeout(() => startStream(), 500);
+            } else {
+                checkInitialStreamStatus();
+            }
+        }
+
+        // 2. Kích hoạt xem trực tiếp On-Demand
+        async function startStream(duration = 180) {
+            const startBtn = document.getElementById('btn-start-stream');
+            if (startBtn) startBtn.disabled = true;
+            showToast('📡 Đang gửi lệnh bật luồng camera qua 4G...', 'info');
+
+            try {
+                const res = await fetch(`/api/iot/stations/${stationCode}/camera/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        camera_id: activeCamId,
+                        duration_seconds: duration,
+                        quality: 'sub'
+                    })
+                });
+                const result = await res.json();
+
+                if (result.success && result.stream) {
+                    initHlsPlayer(result.stream.hls_url);
+                    startCountdown(duration);
+                    showToast('✓ Luồng trực tiếp đã kết nối thành công!', 'success');
+                } else {
+                    showToast('✗ Không thể bật luồng camera: ' + (result.message || 'Lỗi server'), 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('✗ Lỗi kết nối API trạm camera', 'error');
+            } finally {
+                if (startBtn) startBtn.disabled = false;
+            }
+        }
+
+        // 3. Khởi tạo trình phát video Hls.js
+        function initHlsPlayer(hlsUrl) {
+            const video = document.getElementById('camera-live-video');
+            const standbyCover = document.getElementById('camera-standby-cover');
+            const startBtn = document.getElementById('btn-start-stream');
+            const stopBtn = document.getElementById('btn-stop-stream');
+            const renewBtn = document.getElementById('btn-renew-stream');
+
+            standbyCover.style.display = 'none';
+            video.style.display = 'block';
+            startBtn.classList.add('d-none');
+            stopBtn.classList.remove('d-none');
+            renewBtn.classList.remove('d-none');
+            isStreamActive = true;
+
+            if (hlsInstance) {
+                hlsInstance.destroy();
+            }
+
+            if (Hls.isSupported()) {
+                hlsInstance = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 30
+                });
+                hlsInstance.loadSource(hlsUrl);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(e => console.log('Autoplay muted:', e));
+                });
+                hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.warn('HLS Fatal Error, đang thử kết nối lại luồng...', data);
+                        hlsInstance.recoverMediaError();
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Hỗ trợ Safari iOS/macOS
+                video.src = hlsUrl;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play().catch(e => console.log(e));
+                });
+            }
+        }
+
+        // 4. Dừng luồng để tiết kiệm dung lượng SIM 4G
+        async function stopStream(callApi = true) {
+            clearInterval(countdownTimer);
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+
+            const video = document.getElementById('camera-live-video');
+            const standbyCover = document.getElementById('camera-standby-cover');
+            const startBtn = document.getElementById('btn-start-stream');
+            const stopBtn = document.getElementById('btn-stop-stream');
+            const renewBtn = document.getElementById('btn-renew-stream');
+            const statusBadge = document.getElementById('stream-status-badge');
+            const statusText = document.getElementById('stream-status-text');
+            const statusDot = document.getElementById('stream-status-dot');
+
+            video.pause();
+            video.src = '';
+            video.style.display = 'none';
+            standbyCover.style.display = 'flex';
+
+            startBtn.classList.remove('d-none');
+            stopBtn.classList.add('d-none');
+            renewBtn.classList.add('d-none');
+
+            statusBadge.className =
+                'badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
+            statusDot.style.backgroundColor = '#94a3b8';
+            statusText.textContent = 'CHẾ ĐỘ CHỜ';
+            isStreamActive = false;
+
+            if (callApi) {
+                showToast('🛑 Đã ngắt luồng video, bảo tồn dung lượng 4G.', 'info');
+                try {
+                    await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            camera_id: activeCamId
+                        })
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function renewStream() {
+            startStream(180);
+        }
+
+        // 5. Đồng hồ đếm ngược thời gian xem On-Demand
+        function startCountdown(seconds) {
+            clearInterval(countdownTimer);
+            remainingSeconds = seconds;
+
+            const statusBadge = document.getElementById('stream-status-badge');
+            const statusText = document.getElementById('stream-status-text');
+            const statusDot = document.getElementById('stream-status-dot');
+
+            statusBadge.className = 'badge bg-danger text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
+            statusDot.style.backgroundColor = '#ef4444';
+
+            updateCountdownDisplay();
+
+            countdownTimer = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdownTimer);
+                    stopStream(false);
+                    showToast('⏰ Đã hết thời gian xem On-Demand (Tự ngắt tiết kiệm 4G).', 'warning');
+                } else {
+                    updateCountdownDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (remainingSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('stream-status-text').textContent = `LIVE 4G (${m}:${s})`;
+        }
+
+        // 6. Kiểm tra nếu luồng đang mở sẵn từ trước
+        async function checkInitialStreamStatus() {
+            try {
+                const res = await fetch(`/api/iot/stations/${stationCode}/camera/status?camera_id=${activeCamId}`);
+                const data = await res.json();
+                if (data.active && data.remaining_seconds > 0 && data.stream) {
+                    initHlsPlayer(data.stream.hls_url);
+                    startCountdown(data.remaining_seconds);
+                }
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        // 7. Đồng hồ hệ thống góc phải
         function startClock() {
             const clockEl = document.getElementById('live-clock');
             setInterval(() => {
@@ -482,16 +757,32 @@
             }, 1000);
         }
 
-        // 2. Di chuyển Camera theo các góc Pan & Tilt
-        function moveCamera(directionName, deltaPan, deltaTilt) {
+        // 8. Di chuyển Camera qua API PTZ
+        async function moveCamera(directionName, deltaPan, deltaTilt) {
             currentPan = Math.max(-180, Math.min(180, currentPan + deltaPan));
             currentTilt = Math.max(-45, Math.min(45, currentTilt + deltaTilt));
 
             document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
             document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
+
+            try {
+                await fetch(`/api/iot/stations/${stationCode}/camera/ptz`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        camera_id: activeCamId,
+                        direction: directionName,
+                        speed: 5
+                    })
+                });
+            } catch (e) {
+                console.error('PTZ Error:', e);
+            }
         }
 
-        // 3. Thay đổi Zoom (Giới hạn từ 1.0 đến 4.0)
+        // 9. Thay đổi Zoom
         function updateZoom(val) {
             currentZoom = Math.max(1.0, Math.min(4.0, Math.round(parseFloat(val) * 10) / 10));
             document.getElementById('val-zoom').textContent = currentZoom.toFixed(1) + 'x';
@@ -502,7 +793,6 @@
             updateZoom(currentZoom + delta);
         }
 
-        // 4. Áp dụng Tọa độ Preset đặt sẵn
         function applyPreset(name, pan, tilt, zoom) {
             currentPan = pan;
             currentTilt = tilt;
@@ -511,26 +801,30 @@
             updateZoom(zoom);
         }
 
-        // 5. Chụp Ảnh Tức Thời & Thêm vào Thư Viện
-        function takeSnapshot() {
-            const gallery = document.getElementById('snapshot-gallery');
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            const itemHtml = `
-                <div class="col-4">
-                    <div class="border rounded-3 p-1 position-relative bg-light">
-                        <img src="https://images.unsplash.com/photo-1592417817098-8f3d6ef23a85?auto=format&fit=crop&w=400&q=80" class="snapshot-thumb" alt="Snap New">
-                        <div class="text-muted font-monospace text-center mt-1" style="font-size: 10px;">${timeStr} - Vừa xong</div>
-                    </div>
-                </div>
-            `;
-
-            gallery.insertAdjacentHTML('afterbegin', itemHtml);
-            showToast('📸 Đã lưu ảnh chụp thành công!', 'success');
+        // 10. Chụp Ảnh Tức Thời & Gửi Lệnh Chụp Xuống Trạm
+        async function takeSnapshot() {
+            showToast('📸 Đang gửi lệnh chụp ảnh tới camera hiện trường...', 'info');
+            try {
+                const res = await fetch(`/api/iot/stations/${stationCode}/camera/snapshot`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        camera_id: activeCamId
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('✓ Lệnh chụp ảnh đã được gửi xuống trạm!', 'success');
+                } else {
+                    showToast('✗ Không thể gửi lệnh chụp ảnh', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        // 6. Ghi Hình 10 Giây
         function toggleRecording() {
             const btn = document.getElementById('btn-record');
             if (!isRecording) {
@@ -547,14 +841,12 @@
             }
         }
 
-        // 7. Chạy Quét AI Sâu Bệnh
         function runAiCropScan() {
             const overlay = document.getElementById('ai-detection-overlay');
             overlay.style.display = 'flex';
-            showToast('🤖 Đã bật quét AI sâu bệnh!', 'info');
+            showToast('🤖 Đã kích hoạt quét AI sâu bệnh trên luồng camera!', 'info');
         }
 
-        // 8. Mở Modal Xác Định Tọa Độ Camera Hiện Tại
         function openSaveCurrentPresetModal() {
             document.getElementById('save-preset-pan').value = currentPan.toFixed(1);
             document.getElementById('save-preset-tilt').value = currentTilt.toFixed(1);
@@ -570,15 +862,5 @@
                 document.exitFullscreen();
             }
         }
-
-        // Tự động làm mới dữ liệu trạm mỗi 300 giây (5 phút)
-        setInterval(function() {
-            // Không làm mới nếu đang mở modal lưu preset hoặc đang ghi hình
-            const isModalOpen = document.getElementById('modal-save-preset')?.classList.contains('show');
-            if (!isModalOpen && !isRecording) {
-                console.log('[IoT Station Auto-Refresh] Đang làm mới dữ liệu quan trắc (chu kỳ 300s)...');
-                window.location.reload();
-            }
-        }, 300000);
     </script>
 @endpush

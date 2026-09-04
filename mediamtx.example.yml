@@ -1,0 +1,43 @@
+###############################################
+# CẤU HÌNH MẪU MEDIAMTX STREAMING SERVER
+# Copy file này thành mediamtx.yml và điều chỉnh cổng theo nhu cầu:
+#   cp mediamtx.example.yml mediamtx.yml
+###############################################
+
+logLevel: info
+logDestinations: [stdout]
+
+# Tắt các cổng không sử dụng
+api: no
+metrics: no
+pprof: no
+rtsp: no
+srt: no
+
+# 1. RTMP SERVER (Trạm 4G đẩy luồng lên)
+rtmp: yes
+rtmpAddress: :1935
+rtmpEncryption: "no"
+
+# 2. HLS SERVER (Web xem trực tiếp)
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: no
+hlsVariant: lowLatency
+hlsSegmentCount: 5
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsSegmentMaxSize: 50M
+hlsDirectory: ""
+
+# 3. WEBRTC (Tùy chọn độ trễ thấp)
+webrtc: yes
+webrtcAddress: :8889
+webrtcEncryption: no
+webrtcLocalUDPAddress: :8890
+
+# 4. PATHS
+paths:
+  all:
+    source: publisher
+    fallback: ""

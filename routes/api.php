@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\IotIngestionController;
+use App\Http\Controllers\Api\IotCameraController;
 use App\Http\Controllers\User\UserCareController;
 use App\Http\Controllers\User\UserGardenController;
 use App\Http\Controllers\User\DiseaseDiagnosisController;
@@ -20,6 +21,13 @@ Route::prefix('iot')->group(function () {
     Route::post('/telemetry', [IotIngestionController::class, 'ingestSensorData']);
     Route::post('/camera/upload', [IotIngestionController::class, 'ingestCameraImage']);
     Route::post('/stations/{stationCode}/command', [IotIngestionController::class, 'sendCommand']);
+
+    // Camera On-Demand Streaming & PTZ APIs
+    Route::post('/stations/{stationCode}/camera/stream', [IotCameraController::class, 'startStream']);
+    Route::post('/stations/{stationCode}/camera/stop', [IotCameraController::class, 'stopStream']);
+    Route::post('/stations/{stationCode}/camera/ptz', [IotCameraController::class, 'ptzControl']);
+    Route::post('/stations/{stationCode}/camera/snapshot', [IotCameraController::class, 'captureSnapshot']);
+    Route::get('/stations/{stationCode}/camera/status', [IotCameraController::class, 'getStreamStatus']);
 });
 
 

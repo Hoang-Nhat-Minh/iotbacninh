@@ -8,6 +8,7 @@ use App\Models\Iot\MonitoringStation;
 use App\Models\Iot\Device;
 use App\Models\Iot\SensorReading;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Carbon;
 
 class MqttListenerCommand extends Command
@@ -59,6 +60,20 @@ class MqttListenerCommand extends Command
             $this->info("-> Subscribed topic Command ACK: {$ackTopic}");
             $mqtt->subscribe($ackTopic, function (string $topic, string $message) {
                 $this->handleAckMessage($topic, $message);
+            }, 1);
+
+            // 4. Subscribe Topic Phản hồi Camera On-Demand (Camera ACK)
+            $camAckTopic = 'khcn/stations/+/camera/ack';
+            $this->info("-> Subscribed topic Camera ACK: {$camAckTopic}");
+            $mqtt->subscribe($camAckTopic, function (string $topic, string $message) {
+                $this->handleCameraAckMessage($topic, $message);
+            }, 1);
+
+            // 5. Subscribe Topic Trạng thái Camera (Camera Status)
+            $camStatusTopic = 'khcn/stations/+/camera/status';
+            $this->info("-> Subscribed topic Camera Status: {$camStatusTopic}");
+            $mqtt->subscribe($camStatusTopic, function (string $topic, string $message) {
+                $this->handleCameraStatusMessage($topic, $message);
             }, 1);
 
             $this->info("Đang lắng nghe dữ liệu từ các trạm hiện trường... (Bấm Ctrl+C để dừng)");
@@ -171,6 +186,72 @@ class MqttListenerCommand extends Command
             Log::info("MQTT Command ACK: {$commandId} | {$stationCode} | {$action} | Success: " . ($success ? '1' : '0') . " | Msg: {$msg}");
         } catch (\Throwable $e) {
             Log::error("MQTT ACK Handler Error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Xử lý xác nhận thực thi lệnh Camera On-Demand (START/STOP STREAM, SNAPSHOT, PTZ).
+     */
+    protected function handleCameraAckMessage(string $topic, string $message): void
+    {
+        try {
+            $payload = json_decode($message, true);
+            if (!$payload) return;
+
+            $stationCode = $payload['station_code'] ?? $this->extractStationCodeFromTopic($topic);
+            $action = strtoupper($payload['action'] ?? '');
+            $camId = $payload['camera_id'] ?? 'cam_1';
+            $success = $payload['success'] ?? false;
+            $data = $payload['data'] ?? [];
+
+            $cacheKey = "camera_stream_{$stationCode}_{$camId}";
+
+            if ($action === 'START_STREAM' && $success) {
+                // Lưu trạng thái và URL phát vào Cache (mặc định giữ 5 phút)
+                Cache::put($cacheKey, [
+                    'active' => true,
+                    'station_code' => $stationCode,
+                    'camera_id' => $camId,
+                    'stream_key' => $data['stream_key'] ?? "{$stationCode}_{$camId}",
+                    'hls_url' => $data['hls_url'] ?? null,
+                    'webrtc_url' => $data['webrtc_url'] ?? null,
+                    'started_at' => now()->toIso8601String(),
+                    'expire_at' => $data['expire_at'] ?? (time() + 180),
+                ], 300);
+
+                $this->info("[CAMERA STREAM ON] " . now()->format('H:i:s') . " | Trạm {$stationCode} - {$camId} đang phát luồng!");
+            } elseif ($action === 'STOP_STREAM' || !$success) {
+                Cache::forget($cacheKey);
+                $this->info("[CAMERA STREAM OFF] " . now()->format('H:i:s') . " | Trạm {$stationCode} - {$camId} đã dừng luồng.");
+            }
+
+            Log::info("MQTT Camera ACK: {$stationCode} | {$camId} | {$action} | Success: " . ($success ? '1' : '0'));
+        } catch (\Throwable $e) {
+            Log::error("MQTT Camera ACK Handler Error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Xử lý trạng thái Camera (online/offline hoặc stream timeout ngắt tự động).
+     */
+    protected function handleCameraStatusMessage(string $topic, string $message): void
+    {
+        try {
+            $payload = json_decode($message, true);
+            if (!$payload) return;
+
+            $stationCode = $payload['station_code'] ?? $this->extractStationCodeFromTopic($topic);
+            $event = $payload['event'] ?? '';
+            $camId = $payload['camera_id'] ?? 'cam_1';
+
+            if ($event === 'stream_stopped') {
+                Cache::forget("camera_stream_{$stationCode}_{$camId}");
+                $this->warn("[CAMERA AUTO-KILL] " . now()->format('H:i:s') . " | Trạm {$stationCode} - {$camId} hết thời gian On-Demand, tự ngắt tiết kiệm 4G.");
+            }
+
+            Log::info("MQTT Camera Status: {$stationCode} | Event: {$event} | Cam: {$camId}");
+        } catch (\Throwable $e) {
+            Log::error("MQTT Camera Status Handler Error: " . $e->getMessage());
         }
     }
 

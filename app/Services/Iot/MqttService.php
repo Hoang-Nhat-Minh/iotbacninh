@@ -90,6 +90,77 @@ class MqttService
     }
 
     /**
+     * Gửi lệnh điều khiển Camera xuống trạm quan trắc IoT.
+     * Topic: khcn/stations/{stationCode}/camera/command
+     *
+     * @param string $stationCode Mã trạm (vd: ST-PHUCHOA-01)
+     * @param string $action Hành động (START_STREAM, STOP_STREAM, CAPTURE_SNAPSHOT, PTZ_CONTROL, GET_STATUS)
+     * @param array $params Các tham số kèm theo
+     * @param string|null $commandId Mã lệnh tuỳ chọn
+     * @return array
+     */
+    public function publishCameraCommand(string $stationCode, string $action, array $params = [], ?string $commandId = null): array
+    {
+        $stationCode = trim($stationCode);
+        $commandId = $commandId ?: 'CAM-CMD-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+        $topic = "khcn/stations/{$stationCode}/camera/command";
+
+        $payload = [
+            'command_id' => $commandId,
+            'station_code' => $stationCode,
+            'action' => strtoupper($action),
+            'params' => $params,
+            'created_at' => now()->toIso8601String(),
+        ];
+
+        $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+        try {
+            $host = config('mqtt-client.connections.default.host') ?: env('MQTT_HOST', '127.0.0.1');
+            $port = (int) (config('mqtt-client.connections.default.port') ?: env('MQTT_PORT', 1883));
+            $username = config('mqtt-client.connections.default.connection_settings.auth.username') ?: env('MQTT_USERNAME');
+            $password = config('mqtt-client.connections.default.connection_settings.auth.password') ?: env('MQTT_PASSWORD');
+
+            $clientId = 'laravel_cam_cmd_' . Str::random(8);
+
+            Log::info("MQTT [CAMERA_COMMAND] Gửi lệnh camera tới trạm", [
+                'station' => $stationCode,
+                'topic' => $topic,
+                'action' => $action,
+                'params' => $params,
+            ]);
+
+            $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId, \PhpMqtt\Client\MqttClient::MQTT_3_1_1, null, new \Psr\Log\NullLogger());
+
+            $settings = (new \PhpMqtt\Client\ConnectionSettings)
+                ->setKeepAliveInterval(10)
+                ->setConnectTimeout(5)
+                ->setSocketTimeout(5)
+                ->setUsername((string) $username)
+                ->setPassword((string) $password);
+
+            $mqtt->connect($settings, true);
+            $mqtt->publish($topic, $jsonPayload, 1, false);
+            $mqtt->disconnect();
+
+            return [
+                'success' => true,
+                'command_id' => $commandId,
+                'topic' => $topic,
+                'payload' => $payload,
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Failed to publish MQTT Camera Command to [{$topic}]: " . $e->getMessage());
+
+            return [
+                'success' => false,
+                'command_id' => $commandId,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Publish một message bất kỳ lên MQTT Broker.
      *
      * @param string $topic Topic MQTT
@@ -104,7 +175,7 @@ class MqttService
             $payload = is_array($message) ? json_encode($message, JSON_UNESCAPED_UNICODE) : (string) $message;
 
             $host = config('mqtt-client.connections.default.host', env('MQTT_HOST', '127.0.0.1'));
-            $port = (int) config('mqtt-client.connections.default.port', env('MQTT_PORT', 9070));
+            $port = (int) config('mqtt-client.connections.default.port', env('MQTT_PORT', 1883));
             $username = config('mqtt-client.connections.default.connection_settings.auth.username', env('MQTT_USERNAME'));
             $password = config('mqtt-client.connections.default.connection_settings.auth.password', env('MQTT_PASSWORD'));
 

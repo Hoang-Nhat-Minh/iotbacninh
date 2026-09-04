@@ -29,7 +29,30 @@ import logging
 import paho.mqtt.client as mqtt
 
 # =============================================================================
-# 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Đọc từ biến môi trường hoặc thay đổi theo thực tế)
+# 0. TỰ ĐỘNG NẠP BIẾN MÔI TRƯỜNG TỪ FILE .env (NẾU CÓ)
+# =============================================================================
+def load_dotenv(path=None):
+    """Nạp biến môi trường từ file .env cùng thư mục để bảo mật thông tin nhạy cảm."""
+    if path is None:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        key = key.strip()
+                        val = val.strip().strip("'\"")
+                        if key not in os.environ:
+                            os.environ[key] = val
+        except Exception as e:
+            print(f"[WARN] Không thể đọc file .env: {e}")
+
+load_dotenv()
+
+# =============================================================================
+# 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Đọc từ file .env hoặc biến môi trường)
 # =============================================================================
 STATION_CODE = os.getenv("STATION_CODE", "ST-PHUCHOA-01")        # Mã định danh trạm
 MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")   # IP Public hoặc Domain của máy chủ Mosquitto Broker
