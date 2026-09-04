@@ -70,9 +70,9 @@ MQTT_PASSWORD    = os.getenv("MQTT_PASSWORD", "")
 
 # Cấu hình Media Server (MediaMTX / RTMP Server trên VPS)
 MEDIA_SERVER_HOST = os.getenv("MEDIA_SERVER_HOST", "127.0.0.1")
-RTMP_PORT         = int(os.getenv("RTMP_PORT", 1935))
-HLS_PORT          = int(os.getenv("HLS_PORT", 8888))
-WEBRTC_PORT       = int(os.getenv("WEBRTC_PORT", 8889))
+RTMP_PORT         = int(os.getenv("RTMP_PORT", 9071))
+HLS_PORT          = int(os.getenv("HLS_PORT", 9072))
+WEBRTC_PORT       = int(os.getenv("WEBRTC_PORT", 9073))
 MEDIA_API_URL     = os.getenv("MEDIA_API_URL", "http://127.0.0.1:8000/api/iot/camera/image")
 
 # Cấu hình Topics MQTT cho Camera

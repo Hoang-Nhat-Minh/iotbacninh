@@ -61,16 +61,14 @@ class IotCameraController extends Controller
         }
 
         $streamKey = "{$station->code}_{$camId}";
-        $mediaHost = env('MEDIA_SERVER_HOST', $request->getHost());
-        $hlsPort = env('MEDIA_SERVER_HLS_PORT', 8888);
-        $webrtcPort = env('MEDIA_SERVER_WEBRTC_PORT', 8889);
+        $urls = $this->buildStreamUrls($request, $streamKey);
 
         $streamInfo = [
             'station_code' => $station->code,
             'camera_id' => $camId,
             'stream_key' => $streamKey,
-            'hls_url' => "http://{$mediaHost}:{$hlsPort}/live/{$streamKey}/index.m3u8",
-            'webrtc_url' => "http://{$mediaHost}:{$webrtcPort}/live/{$streamKey}",
+            'hls_url' => $urls['hls_url'],
+            'webrtc_url' => $urls['webrtc_url'],
             'duration_seconds' => $duration,
             'expire_at' => time() + $duration,
         ];
@@ -246,6 +244,11 @@ class IotCameraController extends Controller
 
         if ($streamData && !empty($streamData['active'])) {
             $remaining = max(0, ($streamData['expire_at'] ?? time()) - time());
+            $streamKey = $streamData['stream_key'] ?? "{$station->code}_{$camId}";
+            $urls = $this->buildStreamUrls($request, $streamKey);
+            $streamData['hls_url'] = $urls['hls_url'];
+            $streamData['webrtc_url'] = $urls['webrtc_url'];
+
             return response()->json([
                 'active' => true,
                 'camera_id' => $camId,
@@ -259,6 +262,97 @@ class IotCameraController extends Controller
             'camera_id' => $camId,
             'message' => 'Camera hiện đang ở chế độ chờ.',
         ]);
+    }
+
+    /**
+     * Proxy HLS stream từ MediaMTX nội bộ (127.0.0.1:9072) ra ngoài HTTPS.
+     * Hoạt động an toàn dự phòng ngay lập tức nếu Nginx chưa cấu hình block `location /live/`.
+     */
+    public function proxyHls(string $path)
+    {
+        $internalHost = env('MEDIA_SERVER_INTERNAL_HOST', '127.0.0.1');
+        $internalPort = env('MEDIA_SERVER_INTERNAL_HLS_PORT', 9072);
+        $targetUrl = "http://{$internalHost}:{$internalPort}/live/{$path}";
+
+        try {
+            $ch = curl_init($targetUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            $content = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+
+            if ($httpCode >= 200 && $httpCode < 300) {
+                if (str_ends_with($path, '.m3u8')) {
+                    $contentType = 'application/vnd.apple.mpegurl';
+                } elseif (str_ends_with($path, '.ts')) {
+                    $contentType = 'video/MP2T';
+                }
+
+                return response($content, $httpCode)
+                    ->header('Content-Type', $contentType ?: 'application/octet-stream')
+                    ->header('Access-Control-Allow-Origin', '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                    ->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+            }
+
+            return response()->json([
+                'error' => 'Luồng camera hiện chưa sẵn sàng hoặc đã tắt.',
+                'upstream_code' => $httpCode,
+            ], $httpCode ?: 502);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Không thể kết nối MediaMTX server nội bộ: ' . $e->getMessage()
+            ], 502);
+        }
+    }
+
+    /**
+     * Tạo đường dẫn URL phát video HLS và WebRTC phù hợp với môi trường HTTP/HTTPS
+     * và hỗ trợ chạy trực tiếp qua Nginx Reverse Proxy để tránh lỗi Mixed Content.
+     */
+    private function buildStreamUrls(Request $request, string $streamKey): array
+    {
+        $isHttps = $request->isSecure() || $request->header('X-Forwarded-Proto') === 'https';
+        $scheme = env('MEDIA_SERVER_SCHEME', $isHttps ? 'https' : 'http');
+        $mediaHost = env('MEDIA_SERVER_HOST', $request->getHost());
+
+        // 1. URL HLS: Nếu có biến MEDIA_SERVER_HLS_BASE_URL thì ưu tiên
+        if ($customHlsBase = env('MEDIA_SERVER_HLS_BASE_URL')) {
+            $hlsUrl = rtrim($customHlsBase, '/') . "/{$streamKey}/index.m3u8";
+        } else {
+            $configuredHlsPort = env('MEDIA_SERVER_HLS_PORT');
+            // Nếu có cấu hình port cụ thể (khác 80, 443)
+            if ($configuredHlsPort && !in_array((string) $configuredHlsPort, ['80', '443', 'none', 'false'], true)) {
+                $hlsHost = "{$mediaHost}:{$configuredHlsPort}";
+            } else {
+                // Mặc định: HTTPS chạy qua Nginx Reverse Proxy (không cần port)
+                // HTTP Local chạy qua port 9072 của MediaMTX
+                $hlsHost = $isHttps ? $mediaHost : "{$mediaHost}:9072";
+            }
+            $hlsUrl = "{$scheme}://{$hlsHost}/live/{$streamKey}/index.m3u8";
+        }
+
+        // 2. URL WebRTC
+        if ($customWebrtcBase = env('MEDIA_SERVER_WEBRTC_BASE_URL')) {
+            $webrtcUrl = rtrim($customWebrtcBase, '/') . "/{$streamKey}";
+        } else {
+            $configuredWebrtcPort = env('MEDIA_SERVER_WEBRTC_PORT');
+            if ($configuredWebrtcPort && !in_array((string) $configuredWebrtcPort, ['80', '443', 'none', 'false'], true)) {
+                $webrtcHost = "{$mediaHost}:{$configuredWebrtcPort}";
+            } else {
+                $webrtcHost = $isHttps ? $mediaHost : "{$mediaHost}:9073";
+            }
+            $webrtcUrl = "{$scheme}://{$webrtcHost}/live/{$streamKey}";
+        }
+
+        return [
+            'hls_url' => $hlsUrl,
+            'webrtc_url' => $webrtcUrl,
+        ];
     }
 
     /**

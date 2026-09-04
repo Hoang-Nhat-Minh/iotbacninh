@@ -20,6 +20,7 @@ use App\Http\Controllers\Manager\NewsController as ManagerNewsController;
 use App\Http\Controllers\Manager\AgricultureKnowledgeController as ManagerKnowledgeController;
 use App\Http\Controllers\Manager\ErrorLogController as ManagerErrorLogController;
 use App\Http\Controllers\Manager\AccessLogController as ManagerAccessLogController;
+use App\Http\Controllers\Api\IotCameraController;
 
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\UserGardenController;
@@ -344,3 +345,7 @@ Route::prefix('labeler')->group(function () {
         Route::get('/knowledge/document/{id}/chunks', [KnowledgeBaseController::class, 'getChunks'])->name('labeler.knowledge.document.chunks');
     });
 });
+
+// Route proxy HLS cho MediaMTX qua HTTPS (hoạt động song song hoặc dự phòng cho Nginx reverse proxy /live/)
+Route::get('/live/{path}', [IotCameraController::class, 'proxyHls'])->where('path', '.*');
+

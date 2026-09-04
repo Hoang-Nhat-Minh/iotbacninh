@@ -216,44 +216,7 @@
     <div class="row g-4 mb-4">
         <!-- 1. CỘT BÊN TRÁI (8 COLS): KHUNG CAMERA LIVE STREAM -->
         <div class="col-lg-8">
-            <!-- Thanh Điều Khiển Camera On-Demand -->
-            <div class="card border-0 shadow-sm mb-3 bg-light">
-                <div class="card-body py-2.5 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold">
-                            <i class="bi bi-camera-video-fill text-primary me-1"></i> Chọn Camera:
-                        </span>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-primary active" id="btn-cam-1"
-                                onclick="switchCamera('cam_1')">
-                                <i class="bi bi-eye me-1"></i> Cam 01 (Toàn cảnh)
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" id="btn-cam-2"
-                                onclick="switchCamera('cam_2')">
-                                <i class="bi bi-zoom-in me-1"></i> Cam 02 (Cận cảnh)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2" id="stream-action-group">
-                        <button type="button"
-                            class="btn btn-sm btn-primary fw-medium shadow-sm d-flex align-items-center gap-1.5"
-                            id="btn-start-stream" onclick="startStream()">
-                            <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
-                            onclick="stopStream()">
-                            <i class="bi bi-stop-fill fs-6"></i> Dừng phát
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-stream"
-                            onclick="renewStream()" title="Gia hạn thêm thời gian xem">
-                            <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="camera-viewport position-relative">
+            <div class="camera-viewport position-relative mb-3">
                 <!-- Video Player phát trực tiếp (Hls.js) -->
                 <video id="camera-live-video" class="camera-feed-img w-100 h-100" playsinline controls autoplay muted
                     style="display: none; background: #000;"></video>
@@ -267,8 +230,6 @@
                         style="width: 84px; height: 84px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.25);">
                         <i class="bi bi-play-fill text-white" style="font-size: 46px; margin-left: 5px;"></i>
                     </div>
-                    <h5 class="fw-bold mb-1 tracking-wide">Xem Trực Tiếp Camera Hiện Trường</h5>
-                    <p class="text-secondary small mb-3">Nhấn để kết nối và xem hình ảnh thời gian thực</p>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill small fw-medium">
                         <i class="bi bi-camera-video me-1"></i> Bấm để phát video
                     </span>
@@ -325,6 +286,43 @@
                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1">
                             <i class="bi bi-shield-check me-1"></i> Hồng ngoại ban đêm: Auto
                         </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thanh Điều Khiển Camera On-Demand -->
+            <div class="card border-0 shadow-sm mb-3 bg-light">
+                <div class="card-body py-2.5 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold">
+                            <i class="bi bi-camera-video-fill text-primary me-1"></i> Chọn Camera:
+                        </span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-primary active" id="btn-cam-1"
+                                onclick="switchCamera('cam_1')">
+                                <i class="bi bi-eye me-1"></i> Cam 01 (Toàn cảnh)
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btn-cam-2"
+                                onclick="switchCamera('cam_2')">
+                                <i class="bi bi-zoom-in me-1"></i> Cam 02 (Cận cảnh)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2" id="stream-action-group">
+                        <button type="button"
+                            class="btn btn-sm btn-primary fw-medium shadow-sm d-flex align-items-center gap-1.5"
+                            id="btn-start-stream" onclick="startStream()">
+                            <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
+                            onclick="stopStream()">
+                            <i class="bi bi-stop-fill fs-6"></i> Dừng phát
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-stream"
+                            onclick="renewStream()" title="Gia hạn thêm thời gian xem">
+                            <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
+                        </button>
                     </div>
                 </div>
             </div>
