@@ -30,8 +30,8 @@ Do máy trạm hiện trường sử dụng SIM 4G (IP động, không mở port
 Mở file cấu hình Mosquitto (`/etc/mosquitto/mosquitto.conf`):
 
 ```conf
-# Lắng nghe ở mọi card mạng trên cổng 9070 (được cấp phép mở trên Router)
-listener 9070 0.0.0.0
+# Lắng nghe ở mọi card mạng trên cổng 1883
+listener 1883 0.0.0.0
 
 # Bắt buộc xác thực tài khoản
 allow_anonymous false
@@ -60,7 +60,7 @@ pip install paho-mqtt
 Mở file `iot_station_client.py` và cập nhật các dòng đầu:
 ```python
 STATION_CODE = "ST-PHUCHOA-01"       # Mã trạm (phải trùng với bảng monitoring_stations trên Web)
-MQTT_BROKER_HOST = "103.xxx.xxx.xxx" # IP Public hoặc Domain của VPS
+MQTT_BROKER_HOST = "[IP_ADDRESS]" # IP Public hoặc Domain của VPS
 MQTT_BROKER_PORT = 1883              # Cổng MQTT Broker
 MQTT_USERNAME = ""                   # Nếu có
 MQTT_PASSWORD = ""                   # Nếu có

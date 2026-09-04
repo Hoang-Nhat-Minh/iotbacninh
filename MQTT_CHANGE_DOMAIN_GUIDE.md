@@ -121,7 +121,7 @@ Trong file script chạy tại các trạm ngoài hiện trường (`iot_station
   - Mở file code trạm và sửa thành domain mới:
     ```python
     MQTT_BROKER_HOST = "iot.bacninh.gov.vn"
-    MQTT_BROKER_PORT = 9070  # Port MQTT đã cấu hình
+    MQTT_BROKER_PORT = 1883  # Port MQTT đã cấu hình
     ```
   - Khởi động lại dịch vụ trạm:
     ```bash

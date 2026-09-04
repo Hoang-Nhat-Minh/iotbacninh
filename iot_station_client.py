@@ -31,9 +31,9 @@ import paho.mqtt.client as mqtt
 # =============================================================================
 # 1. CẤU HÌNH TRẠM VÀ KẾT NỐI MQTT (Đọc từ biến môi trường hoặc thay đổi theo thực tế)
 # =============================================================================
-STATION_CODE = os.getenv("STATION_CODE", "ST-PHUCHOA-01")        # Mã định danh trạm (khớp với mã trạm trên web Laravel)
+STATION_CODE = os.getenv("STATION_CODE", "ST-PHUCHOA-01")        # Mã định danh trạm
 MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")   # IP Public hoặc Domain của máy chủ Mosquitto Broker
-MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", 9070))      # Cổng MQTT Broker
+MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", 1883))      # Cổng MQTT Broker
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "")                  # Tên tài khoản MQTT
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")                  # Mật khẩu MQTT
 
