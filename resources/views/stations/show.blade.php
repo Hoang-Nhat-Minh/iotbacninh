@@ -622,7 +622,7 @@
                 if (result.success && result.stream) {
                     initHlsPlayer(result.stream.hls_url);
                     startCountdown(duration);
-                    showToast('Đã kết nối camera trực tiếp!', 'success');
+                    showToast('Đã gửi lệnh, đang kết nối luồng video...', 'info');
                 } else {
                     showToast('Không thể kết nối camera: ' + (result.message || 'Lỗi server'), 'error');
                 }
@@ -657,23 +657,51 @@
                 hlsInstance = new Hls({
                     enableWorker: true,
                     lowLatencyMode: true,
-                    backBufferLength: 30
+                    backBufferLength: 30,
+                    manifestLoadingMaxRetry: 5,
+                    manifestLoadingRetryDelay: 1000
                 });
                 hlsInstance.loadSource(hlsUrl);
                 hlsInstance.attachMedia(video);
+
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    showToast('Đã kết nối camera trực tiếp!', 'success');
                     video.play().catch(e => console.log('Autoplay muted:', e));
                 });
+
+                let fatalRetryCount = 0;
                 hlsInstance.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        console.warn('HLS Fatal Error, đang thử kết nối lại luồng...', data);
-                        hlsInstance.recoverMediaError();
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                fatalRetryCount++;
+                                if (fatalRetryCount <= 4) {
+                                    console.warn(`[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/4)...`);
+                                    setTimeout(() => {
+                                        if (hlsInstance) hlsInstance.startLoad();
+                                    }, 1500);
+                                } else {
+                                    console.error('[HLS] Trạm chưa đẩy luồng video lên Media Server:', data);
+                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera.', 'error');
+                                    stopStream(false);
+                                }
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.warn('[HLS] Đang khắc phục lỗi giải mã media...');
+                                hlsInstance.recoverMediaError();
+                                break;
+                            default:
+                                showToast('Lỗi phát luồng video từ trạm.', 'error');
+                                stopStream(false);
+                                break;
+                        }
                     }
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // Hỗ trợ Safari iOS/macOS
                 video.src = hlsUrl;
                 video.addEventListener('loadedmetadata', () => {
+                    showToast('Đã kết nối camera trực tiếp!', 'success');
                     video.play().catch(e => console.log(e));
                 });
             }

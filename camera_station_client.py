@@ -60,7 +60,10 @@ load_dotenv()
 # =============================================================================
 # 1. CẤU HÌNH TRẠM, MQTT BROKER & STREAMING SERVER (TẤT CẢ LẤY TỪ .ENV HOẶC OS ENV)
 # =============================================================================
-STATION_CODE = os.getenv("STATION_CODE", "ST-PHUCHOA-01")
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    STATION_CODE = sys.argv[1].strip()
+else:
+    STATION_CODE = os.getenv("STATION_CODE", "TPH-01")
 
 # Cấu hình MQTT Broker trên VPS (Mặc định để localhost và cổng chuẩn mẫu)
 MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
