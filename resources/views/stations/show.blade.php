@@ -645,6 +645,8 @@
             const stopBtn = document.getElementById('btn-stop-stream');
             const renewBtn = document.getElementById('btn-renew-stream');
 
+            standbyCover.classList.add('d-none');
+            standbyCover.classList.remove('d-flex');
             standbyCover.style.display = 'none';
             video.style.display = 'block';
             startBtn.classList.add('d-none');
@@ -742,6 +744,8 @@
             video.pause();
             video.src = '';
             video.style.display = 'none';
+            standbyCover.classList.remove('d-none');
+            standbyCover.classList.add('d-flex');
             standbyCover.style.display = 'flex';
 
             startBtn.classList.remove('d-none');
