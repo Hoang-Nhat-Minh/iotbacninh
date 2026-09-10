@@ -299,13 +299,21 @@
                             <i class="bi bi-camera-video-fill text-primary me-1"></i> Chọn Camera:
                         </span>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-primary active" id="btn-cam-1"
-                                onclick="switchCamera('cam_1')">
-                                <i class="bi bi-eye me-1"></i> Cam 01 (Toàn cảnh)
+                            <button type="button" class="btn btn-primary active btn-cam-select" id="btn-cam-1"
+                                data-cam-id="cam_1" onclick="switchCamera('cam_1')">
+                                <i class="bi bi-eye me-1"></i> Cam 01
                             </button>
-                            <button type="button" class="btn btn-outline-secondary" id="btn-cam-2"
-                                onclick="switchCamera('cam_2')">
-                                <i class="bi bi-zoom-in me-1"></i> Cam 02 (Cận cảnh)
+                            <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-2"
+                                data-cam-id="cam_2" onclick="switchCamera('cam_2')">
+                                <i class="bi bi-zoom-in me-1"></i> Cam 02
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-3"
+                                data-cam-id="cam_3" onclick="switchCamera('cam_3')">
+                                <i class="bi bi-camera me-1"></i> Cam 03
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-4"
+                                data-cam-id="cam_4" onclick="switchCamera('cam_4')">
+                                <i class="bi bi-camera-video me-1"></i> Cam 04
                             </button>
                         </div>
                     </div>
@@ -316,8 +324,8 @@
                             id="btn-start-stream" onclick="startStream()">
                             <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
-                            onclick="stopStream()">
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none"
+                            id="btn-stop-stream" onclick="stopStream()">
                             <i class="bi bi-stop-fill fs-6"></i> Dừng phát
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none"
@@ -560,17 +568,26 @@
             console.groupEnd();
         }
 
-        // 1. Chuyển đổi giữa Camera 01 và Camera 02
+        // 1. Chuyển đổi giữa 4 Camera của trạm
+        const cameraLabels = {
+            'cam_1': 'Camera 01 (Toàn cảnh)',
+            'cam_2': 'Camera 02 (Cận cảnh)',
+            'cam_3': 'Camera 03 (Khu vực đất)',
+            'cam_4': 'Camera 04 (Lối vào vườn)'
+        };
+
         function switchCamera(camId) {
             if (activeCamId === camId) return;
             activeCamId = camId;
 
-            document.getElementById('btn-cam-1').className = camId === 'cam_1' ? 'btn btn-primary active' :
-                'btn btn-outline-secondary';
-            document.getElementById('btn-cam-2').className = camId === 'cam_2' ? 'btn btn-primary active' :
-                'btn btn-outline-secondary';
-            document.getElementById('active-cam-label').textContent = camId === 'cam_1' ? 'Camera 01 (Toàn cảnh)' :
-                'Camera 02 (Cận cảnh)';
+            // Cập nhật trạng thái active cho cả 4 nút
+            document.querySelectorAll('.btn-cam-select').forEach(btn => {
+                const isSelected = btn.getAttribute('data-cam-id') === camId;
+                btn.className = isSelected ? 'btn btn-primary active btn-cam-select' :
+                    'btn btn-outline-secondary btn-cam-select';
+            });
+
+            document.getElementById('active-cam-label').textContent = cameraLabels[camId] || `Camera ${camId}`;
 
             if (isStreamActive) {
                 stopStream(false);
@@ -685,7 +702,7 @@
                                 if (fatalRetryCount <= maxFatalRetries) {
                                     console.warn(
                                         `[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/${maxFatalRetries})...`
-                                        );
+                                    );
                                     setTimeout(() => {
                                         if (hlsInstance) {
                                             if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
