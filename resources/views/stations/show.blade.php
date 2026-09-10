@@ -230,7 +230,8 @@
                         style="width: 84px; height: 84px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.25);">
                         <i class="bi bi-play-fill text-white" style="font-size: 46px; margin-left: 5px;"></i>
                     </div>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill small fw-medium">
+                    <span
+                        class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill small fw-medium">
                         <i class="bi bi-camera-video me-1"></i> Bấm để phát video
                     </span>
                 </div>
@@ -319,8 +320,8 @@
                             onclick="stopStream()">
                             <i class="bi bi-stop-fill fs-6"></i> Dừng phát
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-stream"
-                            onclick="renewStream()" title="Gia hạn thêm thời gian xem">
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none"
+                            id="btn-renew-stream" onclick="renewStream()" title="Gia hạn thêm thời gian xem">
                             <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
                         </button>
                     </div>
@@ -550,7 +551,8 @@
 
         // 0. Ghi log tương tác MQTT chi tiết
         function logMqttAction(actionName, reqInfo, resInfo) {
-            console.groupCollapsed(`%c[MQTT CAMERA] ${actionName} - ${new Date().toLocaleTimeString('vi-VN')}`, 'background: #0f172a; color: #38bdf8; font-weight: bold; padding: 3px 8px; border-radius: 4px;');
+            console.groupCollapsed(`%c[MQTT CAMERA] ${actionName} - ${new Date().toLocaleTimeString('vi-VN')}`,
+                'background: #0f172a; color: #38bdf8; font-weight: bold; padding: 3px 8px; border-radius: 4px;');
             console.log('%c[GỬI LỆNH ĐẾN MQTT]', 'color: #3b82f6; font-weight: bold;', reqInfo);
             if (resInfo) {
                 console.log('%c[MQTT / TRẠM TRẢ LẠI KẾT QUẢ]', 'color: #10b981; font-weight: bold;', resInfo);
@@ -590,11 +592,12 @@
                 quality: 'sub'
             };
 
-            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Bắt đầu xem stream trạm ${stationCode}:`, 'color: #2563eb; font-weight: bold;', {
-                topic: `khcn/stations/${stationCode}/camera/command`,
-                action: 'START_STREAM',
-                params: reqPayload
-            });
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Bắt đầu xem stream trạm ${stationCode}:`,
+                'color: #2563eb; font-weight: bold;', {
+                    topic: `khcn/stations/${stationCode}/camera/command`,
+                    action: 'START_STREAM',
+                    params: reqPayload
+                });
 
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/stream`, {
@@ -658,13 +661,14 @@
                     enableWorker: true,
                     lowLatencyMode: true,
                     backBufferLength: 30,
-                    manifestLoadingMaxRetry: 5,
-                    manifestLoadingRetryDelay: 1000
+                    manifestLoadingMaxRetry: 10,
+                    manifestLoadingRetryDelay: 1500
                 });
                 hlsInstance.loadSource(hlsUrl);
                 hlsInstance.attachMedia(video);
 
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    fatalRetryCount = 0;
                     showToast('Đã kết nối camera trực tiếp!', 'success');
                     video.play().catch(e => console.log('Autoplay muted:', e));
                 });
@@ -677,13 +681,23 @@
                             case Hls.ErrorTypes.NETWORK_ERROR:
                                 fatalRetryCount++;
                                 if (fatalRetryCount <= maxFatalRetries) {
-                                    console.warn(`[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/${maxFatalRetries})...`);
+                                    console.warn(
+                                        `[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/${maxFatalRetries})...`
+                                        );
                                     setTimeout(() => {
-                                        if (hlsInstance) hlsInstance.startLoad();
+                                        if (hlsInstance) {
+                                            if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
+                                                data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                                                hlsInstance.loadSource(hlsUrl);
+                                            } else {
+                                                hlsInstance.startLoad();
+                                            }
+                                        }
                                     }, 1500);
                                 } else {
                                     console.error('[HLS] Trạm chưa đẩy luồng video lên Media Server:', data);
-                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera. Vui lòng thử lại.', 'error');
+                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera. Vui lòng thử lại.',
+                                        'error');
                                     stopStream(false);
                                 }
                                 break;
@@ -742,12 +756,15 @@
 
             if (callApi) {
                 showToast('Đã dừng phát video.', 'info');
-                const reqPayload = { camera_id: activeCamId };
-                console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Dừng stream trạm ${stationCode}:`, 'color: #dc2626; font-weight: bold;', {
-                    topic: `khcn/stations/${stationCode}/camera/command`,
-                    action: 'STOP_STREAM',
-                    params: reqPayload
-                });
+                const reqPayload = {
+                    camera_id: activeCamId
+                };
+                console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Dừng stream trạm ${stationCode}:`,
+                    'color: #dc2626; font-weight: bold;', {
+                        topic: `khcn/stations/${stationCode}/camera/command`,
+                        action: 'STOP_STREAM',
+                        params: reqPayload
+                    });
 
                 try {
                     const res = await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
@@ -847,11 +864,12 @@
                 speed: 5
             };
 
-            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Điều khiển PTZ [${directionName}]:`, 'color: #059669; font-weight: bold;', {
-                topic: `khcn/stations/${stationCode}/camera/command`,
-                action: 'PTZ_CONTROL',
-                params: reqPayload
-            });
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Điều khiển PTZ [${directionName}]:`,
+                'color: #059669; font-weight: bold;', {
+                    topic: `khcn/stations/${stationCode}/camera/command`,
+                    action: 'PTZ_CONTROL',
+                    params: reqPayload
+                });
 
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/ptz`, {
@@ -899,7 +917,9 @@
         // 10. Chụp ảnh từ camera
         async function takeSnapshot() {
             showToast('Đang chụp ảnh...', 'info');
-            const reqPayload = { camera_id: activeCamId };
+            const reqPayload = {
+                camera_id: activeCamId
+            };
 
             console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Chụp ảnh snapshot camera:`, 'color: #7c3aed; font-weight: bold;', {
                 topic: `khcn/stations/${stationCode}/camera/command`,
