@@ -19,7 +19,7 @@ class IotCameraController extends Controller
         $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
 
         $validated = $request->validate([
-            'camera_id' => 'nullable|string|in:cam_1,cam_2',
+            'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
             'duration_seconds' => 'nullable|integer|min:30|max:600',
             'quality' => 'nullable|string|in:sub,main',
         ]);
@@ -95,7 +95,7 @@ class IotCameraController extends Controller
         $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
 
         $validated = $request->validate([
-            'camera_id' => 'nullable|string|in:cam_1,cam_2',
+            'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
         ]);
 
         $camId = $validated['camera_id'] ?? 'cam_1';
@@ -142,7 +142,7 @@ class IotCameraController extends Controller
         $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
 
         $validated = $request->validate([
-            'camera_id' => 'nullable|string|in:cam_1,cam_2',
+            'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
             'direction' => 'required|string',
             'speed' => 'nullable|integer|min:1|max:10',
         ]);
@@ -195,7 +195,7 @@ class IotCameraController extends Controller
         $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
 
         $validated = $request->validate([
-            'camera_id' => 'nullable|string|in:cam_1,cam_2',
+            'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
         ]);
 
         $camId = $validated['camera_id'] ?? 'cam_1';
