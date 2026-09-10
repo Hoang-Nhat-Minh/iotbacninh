@@ -22,4 +22,5 @@ mediamtx.yml
 camera_snapshots/
 iot_station_client_*
 mock_camera_stream*
+camera_station_client*
 main.py
