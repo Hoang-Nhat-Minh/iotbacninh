@@ -114,9 +114,14 @@ class MqttListenerCommand extends Command
                 return;
             }
 
-            $recordedAt = isset($payload['timestamp'])
-                ? Carbon::parse($payload['timestamp'])->setTimezone(config('app.timezone', 'Asia/Ho_Chi_Minh'))
-                : now();
+            // Tự động kiểm tra timestamp từ máy trạm: nếu máy trạm bị lệch giờ (lệch quá 60s so với server)
+            // thì tự động dùng now() của Server để dữ liệu luôn hiển thị Real-time "vừa xong"
+            $rawTimestamp = isset($payload['timestamp']) ? Carbon::parse($payload['timestamp']) : null;
+            if (!$rawTimestamp || abs(now()->diffInSeconds($rawTimestamp)) > 60) {
+                $recordedAt = now();
+            } else {
+                $recordedAt = $rawTimestamp->setTimezone(config('app.timezone', 'Asia/Ho_Chi_Minh'));
+            }
 
 
             // Lưu toàn bộ gói tin JSON telemetry liên kết trực tiếp với trạm quan trắc

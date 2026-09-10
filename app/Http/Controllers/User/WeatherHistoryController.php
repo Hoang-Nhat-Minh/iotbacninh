@@ -64,6 +64,7 @@ class WeatherHistoryController extends Controller
         $totalHumidity = 0;
         $totalRain = 0;
         $totalSoilMoist = 0;
+        $totalSoilTemp = 0;
         $rainyDays = 0;
 
         for ($i = 0; $i < 30; $i++) {
@@ -103,6 +104,7 @@ class WeatherHistoryController extends Controller
                 $humidityAvg = count($humList) > 0 ? (int)round(collect($humList)->avg()) : null;
                 $rain = count($rainList) > 0 ? round(collect($rainList)->max(), 1) : 0.0;
                 $soilMoist = count($soilMoistList) > 0 ? (int)round(collect($soilMoistList)->avg()) : null;
+                $soilTemp = count($soilTempList) > 0 ? round(collect($soilTempList)->avg(), 1) : null;
                 $soilPh = count($soilPhList) > 0 ? round(collect($soilPhList)->avg(), 1) : null;
                 $wind = count($windList) > 0 ? round(collect($windList)->avg(), 1) : null;
                 $light = count($lightList) > 0 ? (int)round(collect($lightList)->avg()) : null;
@@ -135,6 +137,7 @@ class WeatherHistoryController extends Controller
                 if ($tempAvg !== null) $totalTemp += $tempAvg;
                 if ($humidityAvg !== null) $totalHumidity += $humidityAvg;
                 if ($soilMoist !== null) $totalSoilMoist += $soilMoist;
+                if ($soilTemp !== null) $totalSoilTemp += $soilTemp;
                 $totalRain += $rain;
             } else {
                 // Ngày chưa có gói tin nào ghi nhận vào Database
@@ -144,6 +147,7 @@ class WeatherHistoryController extends Controller
                 $humidityAvg = null;
                 $rain = null;
                 $soilMoist = null;
+                $soilTemp = null;
                 $soilPh = null;
                 $wind = null;
                 $light = null;
@@ -164,6 +168,7 @@ class WeatherHistoryController extends Controller
                 'humidity_avg' => $humidityAvg,
                 'rain' => $rain,
                 'soil_moist' => $soilMoist,
+                'soil_temp' => $soilTemp,
                 'soil_ph' => $soilPh,
                 'wind' => $wind,
                 'light' => $light ? number_format($light) : null,
@@ -182,6 +187,7 @@ class WeatherHistoryController extends Controller
             'avg_temp' => $daysCount > 0 ? round($totalTemp / $daysCount, 1) : null,
             'avg_humidity' => $daysCount > 0 ? round($totalHumidity / $daysCount, 1) : null,
             'avg_soil_moist' => $daysCount > 0 ? round($totalSoilMoist / $daysCount, 1) : null,
+            'avg_soil_temp' => $daysCount > 0 ? round($totalSoilTemp / $daysCount, 1) : null,
             'total_rain' => round($totalRain, 1),
             'rainy_days' => $rainyDays,
             'total_real_days' => $daysCount,
@@ -215,11 +221,15 @@ class WeatherHistoryController extends Controller
         $tempAvg = null;
         $humAvg = null;
         $totalRain = null;
+        $soilTempAvg = null;
+        $soilMoistAvg = null;
 
         if ($dayReadings->count() > 0) {
             $tempList = [];
             $humList = [];
             $rainList = [];
+            $soilTempList = [];
+            $soilMoistList = [];
 
             foreach ($dayReadings as $r) {
                 $vals = $this->extractReadingValues($r->data ?? []);
@@ -227,10 +237,14 @@ class WeatherHistoryController extends Controller
                 $h = $vals['humidity'] ?? null;
                 $rn = $vals['rain'] ?? 0;
                 $sm = $vals['soil_moist'] ?? null;
+                $stVal = $vals['soil_temp'] ?? null;
+                $sph = $vals['soil_ph'] ?? null;
                 $w = $vals['wind'] ?? null;
 
                 if ($t !== null) $tempList[] = $t;
                 if ($h !== null) $humList[] = $h;
+                if ($stVal !== null) $soilTempList[] = $stVal;
+                if ($sm !== null) $soilMoistList[] = $sm;
                 $rainList[] = $rn;
 
                 $hourly[] = [
@@ -238,7 +252,9 @@ class WeatherHistoryController extends Controller
                     'temp' => $t !== null ? round($t, 1) : '--',
                     'humidity' => $h !== null ? (int) round($h) : '--',
                     'rain' => round($rn, 1),
+                    'soil_temp' => $stVal !== null ? round($stVal, 1) : '--',
                     'soil_moist' => $sm !== null ? (int) round($sm) : '--',
+                    'soil_ph' => $sph !== null ? round($sph, 1) : '--',
                     'wind' => $w !== null ? round($w, 1) : '--',
                     'is_real' => true,
                 ];
@@ -247,6 +263,8 @@ class WeatherHistoryController extends Controller
             $tempAvg = count($tempList) > 0 ? round(collect($tempList)->avg(), 1) : null;
             $humAvg = count($humList) > 0 ? (int) round(collect($humList)->avg()) : null;
             $totalRain = count($rainList) > 0 ? round(collect($rainList)->max(), 1) : 0;
+            $soilTempAvg = count($soilTempList) > 0 ? round(collect($soilTempList)->avg(), 1) : null;
+            $soilMoistAvg = count($soilMoistList) > 0 ? (int) round(collect($soilMoistList)->avg()) : null;
         }
 
         return response()->json([
@@ -258,6 +276,8 @@ class WeatherHistoryController extends Controller
             'date_display' => $carbonDate->format('d/m/Y'),
             'temp_avg' => $tempAvg !== null ? ($tempAvg . ' °C') : 'Chưa có',
             'humidity_avg' => $humAvg !== null ? ($humAvg . ' %') : 'Chưa có',
+            'soil_temp_avg' => $soilTempAvg !== null ? ($soilTempAvg . ' °C') : 'Chưa có',
+            'soil_moist_avg' => $soilMoistAvg !== null ? ($soilMoistAvg . ' %') : 'Chưa có',
             'total_rain' => $totalRain !== null ? ($totalRain . ' mm') : '0.0 mm',
             'records_count' => $dayReadings->count(),
             'hourly' => $hourly,

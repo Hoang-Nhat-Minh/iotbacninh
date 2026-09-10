@@ -172,9 +172,10 @@
                     <i class="bi bi-moisture"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Độ Ẩm Đất Trung Bình</div>
+                    <div class="text-muted small fw-medium">Thổ Nhưỡng TB (Ẩm / Nhiệt)</div>
                     <div class="fs-4 fw-bold text-dark">
-                        {{ $summaryStats['avg_soil_moist'] !== null ? $summaryStats['avg_soil_moist'] . ' %' : '--' }}
+                        {{ $summaryStats['avg_soil_moist'] !== null ? $summaryStats['avg_soil_moist'] . '%' : '--' }}
+                        <span class="text-danger fs-5 ms-1">| {{ $summaryStats['avg_soil_temp'] !== null ? $summaryStats['avg_soil_temp'] . '°C' : '--' }}</span>
                     </div>
                     <small class="text-success fw-medium" style="font-size: 11px;">Đo từ cảm biến tầng rễ</small>
                 </div>
@@ -225,7 +226,7 @@
                             <th>Nhiệt Độ (°C)</th>
                             <th>Độ Ẩm (%)</th>
                             <th>Lượng Mưa</th>
-                            <th>Độ Ẩm Đất / pH</th>
+                            <th>Thổ Nhưỡng (Ẩm / Nhiệt / pH)</th>
                             <th style="width: 140px; text-align: center;">Thao Tác</th>
                         </tr>
                     </thead>
@@ -285,10 +286,13 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($w['soil_moist'] !== null)
-                                        <span class="fw-medium text-success">{{ $w['soil_moist'] }}%</span>
+                                    @if ($w['soil_moist'] !== null || $w['soil_temp'] !== null)
+                                        <span class="fw-medium text-success">{{ $w['soil_moist'] !== null ? $w['soil_moist'] . '%' : '--' }}</span>
+                                        @if ($w['soil_temp'] !== null)
+                                            <span class="fw-bold text-danger ms-1">| {{ $w['soil_temp'] }}°C</span>
+                                        @endif
                                         @if ($w['soil_ph'] !== null)
-                                            <small class="text-muted">({{ $w['soil_ph'] }} pH)</small>
+                                            <small class="text-muted ms-1">({{ $w['soil_ph'] }} pH)</small>
                                         @endif
                                     @else
                                         <span class="text-muted">--</span>
@@ -327,16 +331,20 @@
                         <div class="text-secondary small"><i class="bi bi-geo-alt me-1 text-danger"></i> Vùng trồng: <span
                                 id="w-modal-zone"></span></div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <div class="text-center px-3 py-1.5 bg-white rounded-3 border">
-                            <div class="text-muted small">Nhiệt độ TB</div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="text-center px-2.5 py-1.5 bg-white rounded-3 border">
+                            <div class="text-muted small">Nhiệt độ khí TB</div>
                             <div class="fw-bold text-danger fs-6" id="w-modal-temp"></div>
                         </div>
-                        <div class="text-center px-3 py-1.5 bg-white rounded-3 border">
-                            <div class="text-muted small">Độ ẩm TB</div>
+                        <div class="text-center px-2.5 py-1.5 bg-white rounded-3 border">
+                            <div class="text-muted small">Độ ẩm khí TB</div>
                             <div class="fw-bold text-info fs-6" id="w-modal-humidity"></div>
                         </div>
-                        <div class="text-center px-3 py-1.5 bg-white rounded-3 border">
+                        <div class="text-center px-2.5 py-1.5 bg-white rounded-3 border">
+                            <div class="text-muted small">Nhiệt độ đất TB</div>
+                            <div class="fw-bold text-danger fs-6" id="w-modal-soil-temp"></div>
+                        </div>
+                        <div class="text-center px-2.5 py-1.5 bg-white rounded-3 border">
                             <div class="text-muted small">Lượng mưa</div>
                             <div class="fw-bold text-primary fs-6" id="w-modal-rain"></div>
                         </div>
@@ -353,10 +361,12 @@
                         <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
                             <tr>
                                 <th>Thời gian</th>
-                                <th>Nhiệt độ (°C)</th>
-                                <th>Độ ẩm (%)</th>
+                                <th>Nhiệt độ khí (°C)</th>
+                                <th>Độ ẩm khí (%)</th>
                                 <th>Lượng mưa (mm)</th>
+                                <th>Nhiệt độ đất (°C)</th>
                                 <th>Độ ẩm đất (%)</th>
+                                <th>pH đất</th>
                                 <th>Gió (m/s)</th>
                             </tr>
                         </thead>
@@ -476,9 +486,10 @@
                         document.getElementById('w-modal-station').textContent = data.station_name + ' (' + data
                             .station_code + ')';
                         document.getElementById('w-modal-zone').textContent = data.zone_name;
-                        document.getElementById('w-modal-temp').textContent = data.temp_avg + ' °C';
-                        document.getElementById('w-modal-humidity').textContent = data.humidity_avg + ' %';
-                        document.getElementById('w-modal-rain').textContent = data.total_rain + ' mm';
+                        document.getElementById('w-modal-temp').textContent = data.temp_avg;
+                        document.getElementById('w-modal-humidity').textContent = data.humidity_avg;
+                        document.getElementById('w-modal-soil-temp').textContent = data.soil_temp_avg || '--';
+                        document.getElementById('w-modal-rain').textContent = data.total_rain;
                         document.getElementById('w-modal-records-count').textContent = data.records_count > 0 ? (data
                             .records_count + ' bản ghi cảm biến') : 'Ước lượng theo chu kỳ ngày/đêm';
 
@@ -492,7 +503,9 @@
                                 <td><span class="fw-bold text-danger">${row.temp} °C</span></td>
                                 <td><span class="fw-medium text-info">${row.humidity}%</span></td>
                                 <td>${row.rain > 0 ? `<span class="fw-bold text-primary">${row.rain} mm</span>` : `<span class="text-muted">0.0 mm</span>`}</td>
-                                <td><span class="text-success fw-medium">${row.soil_moist}%</span></td>
+                                <td><span class="fw-bold text-danger">${row.soil_temp !== '--' ? row.soil_temp + ' °C' : '--'}</span></td>
+                                <td><span class="text-success fw-medium">${row.soil_moist !== '--' ? row.soil_moist + '%' : '--'}</span></td>
+                                <td><span class="badge bg-light text-dark border">${row.soil_ph !== '--' ? row.soil_ph + ' pH' : '--'}</span></td>
                                 <td class="text-muted small">${row.wind} m/s</td>
                             `;
                             body.appendChild(tr);
