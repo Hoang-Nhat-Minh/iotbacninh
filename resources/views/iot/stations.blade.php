@@ -229,7 +229,7 @@
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold d-flex align-items-center gap-2" style="font-size: 12.5px;">
                     <span class="live-dot-pulse"></span>
-                    <span>Live 60s: <span id="live-timer-text">60s</span> (Cập nhật: <span id="live-last-updated">{{ now()->format('H:i:s') }}</span>)</span>
+                    <span>Live 30s: <span id="live-timer-text">30s</span> (Cập nhật: <span id="live-last-updated">{{ now()->format('H:i:s') }}</span>)</span>
                 </span>
                 <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm IoT
@@ -612,7 +612,7 @@
                                                             <i class="bi bi-moisture"></i>
                                                         </div>
                                                         <div>
-                                                            <div class="fw-bold text-dark mb-0">Độ ẩm đất &amp; pH</div>
+                                                            <div class="fw-bold text-dark mb-0">Thổ nhưỡng: Ẩm / Nhiệt / pH</div>
                                                             <small class="text-muted" style="font-size: 11px;">Cảm biến ES-PH-SOIL-01 &amp; ES-SM-TH-01</small>
                                                         </div>
                                                     </div>
@@ -620,9 +620,12 @@
 
                                                 <td class="text-center">
                                                     <span
-                                                        class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-2.5 py-1.5 font-monospace">
-                                                        {{ $st['soil_moist'] }}% <small
-                                                            class="text-muted">({{ $st['soil_ph'] }} pH)</small>
+                                                        class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-2.5 py-1.5 font-monospace" id="tbl-soil-val-{{ $st['id'] }}">
+                                                        @if ($st['has_real_data'])
+                                                            {{ $st['soil_moist'] }}% | {{ $st['soil_temp'] }}°C <small class="text-muted">({{ $st['soil_ph'] }} pH)</small>
+                                                        @else
+                                                            --
+                                                        @endif
                                                     </span>
                                                 </td>
                                                 <td class="text-center font-monospace fw-medium text-secondary">
@@ -717,10 +720,10 @@
                                         <i class="bi bi-moisture"></i>
                                     </div>
                                     <div>
-                                        <div class="text-muted" style="font-size: 11px;">Độ ẩm đất / pH</div>
+                                        <div class="text-muted" style="font-size: 11px;">Đất: Ẩm / Nhiệt / pH</div>
                                         <strong class="fs-6 text-dark" id="kpi-soil-{{ $st['id'] }}">
                                             @if ($st['has_real_data'])
-                                                {{ $st['soil_moist'] }}% <small class="text-muted">({{ $st['soil_ph'] }}pH)</small>
+                                                {{ $st['soil_moist'] }}% | {{ $st['soil_temp'] }}°C <small class="text-muted">({{ $st['soil_ph'] }}pH)</small>
                                             @else
                                                 --
                                             @endif
@@ -1158,9 +1161,9 @@
         }
 
         // =========================================================================
-        // ĐỒNG BỘ DỮ LIỆU TELEMETRY LIVE REAL-TIME QUA AJAX MỖI 60 GIÂY (KHÔNG RELOAD TRANG)
+        // ĐỒNG BỘ DỮ LIỆU TELEMETRY LIVE REAL-TIME QUA AJAX MỖI 30 GIÂY (KHÔNG RELOAD TRANG)
         // =========================================================================
-        let liveCountdown = 60;
+        let liveCountdown = 30;
 
         // Đồng hồ đếm ngược từng giây trên thanh Header Live
         setInterval(() => {
@@ -1169,7 +1172,7 @@
             if (timerEl) timerEl.textContent = liveCountdown + 's';
 
             if (liveCountdown <= 0) {
-                liveCountdown = 60;
+                liveCountdown = 30;
                 fetchLiveTelemetry();
             }
         }, 1000);
@@ -1235,7 +1238,14 @@
                         const soilEl = document.getElementById('kpi-soil-' + st.id);
                         if (soilEl) {
                             soilEl.innerHTML = st.has_real_data 
-                                ? st.soil_moist + '% <small class="text-muted">(' + st.soil_ph + 'pH)</small>'
+                                ? st.soil_moist + '% | ' + st.soil_temp + '°C <small class="text-muted">(' + st.soil_ph + 'pH)</small>'
+                                : '--';
+                        }
+
+                        const tblSoilVal = document.getElementById('tbl-soil-val-' + st.id);
+                        if (tblSoilVal) {
+                            tblSoilVal.innerHTML = st.has_real_data 
+                                ? st.soil_moist + '% | ' + st.soil_temp + '°C <small class="text-muted">(' + st.soil_ph + ' pH)</small>'
                                 : '--';
                         }
 

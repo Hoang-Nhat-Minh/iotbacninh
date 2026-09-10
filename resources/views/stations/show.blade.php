@@ -670,19 +670,20 @@
                 });
 
                 let fatalRetryCount = 0;
+                const maxFatalRetries = 10;
                 hlsInstance.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
                                 fatalRetryCount++;
-                                if (fatalRetryCount <= 4) {
-                                    console.warn(`[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/4)...`);
+                                if (fatalRetryCount <= maxFatalRetries) {
+                                    console.warn(`[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/${maxFatalRetries})...`);
                                     setTimeout(() => {
                                         if (hlsInstance) hlsInstance.startLoad();
                                     }, 1500);
                                 } else {
                                     console.error('[HLS] Trạm chưa đẩy luồng video lên Media Server:', data);
-                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera.', 'error');
+                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera. Vui lòng thử lại.', 'error');
                                     stopStream(false);
                                 }
                                 break;
