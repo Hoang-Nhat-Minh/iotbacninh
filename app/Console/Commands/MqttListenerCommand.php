@@ -228,64 +228,69 @@ class MqttListenerCommand extends Command
 
             $stationCode = $payload['station_code'] ?? $this->extractStationCodeFromTopic($topic);
             $action = strtoupper($payload['action'] ?? '');
-            $camId = $payload['camera_id'] ?? 'cam_1';
+            $data = $payload['data'] ?? [];
+            $camId = $payload['camera_id'] ?? $data['camera_id'] ?? 'cam_1';
             $success = $payload['success'] ?? false;
             $commandId = $payload['command_id'] ?? null;
             $messageText = $payload['message'] ?? '';
-            $data = $payload['data'] ?? [];
 
-            // Xử lý lưu ảnh trực tiếp từ MQTT nếu trạm gửi ảnh base64 qua gói tin ACK
+            // Xử lý lưu ảnh trực tiếp từ MQTT nếu trạm gửi ảnh base64 qua gói tin ACK (dự phòng khi chưa upload qua HTTP)
             if ($action === 'CAPTURE_SNAPSHOT' && $success) {
-                $imgBase64 = $data['image_base64'] ?? null;
-                $filename = $data['filename'] ?? ("{$stationCode}_{$camId}_" . time() . ".jpg");
+                // Nếu ảnh đã được upload thành công qua HTTP API Ingestion thì không tạo bản ghi trùng lặp
+                if (!empty($data['file_path'])) {
+                    $this->info("[CAMERA SNAPSHOT] Ảnh đã được trạm lưu qua HTTP Ingestion ({$stationCode} - {$camId}): " . $data['file_path']);
+                } else {
+                    $imgBase64 = $data['image_base64'] ?? null;
+                    $filename = $data['filename'] ?? ("{$stationCode}_{$camId}_" . time() . ".jpg");
 
-                if ($imgBase64) {
-                    try {
-                        $binary = base64_decode($imgBase64);
-                        if ($binary !== false && strlen($binary) > 0) {
-                            $dir = "uploads/camera_images/{$stationCode}/{$camId}";
-                            Storage::disk('public')->makeDirectory($dir);
-                            $relPath = "{$dir}/{$filename}";
-                            Storage::disk('public')->put($relPath, $binary);
+                    if ($imgBase64) {
+                        try {
+                            $binary = base64_decode($imgBase64);
+                            if ($binary !== false && strlen($binary) > 0) {
+                                $dir = "uploads/camera_images/{$stationCode}/{$camId}";
+                                Storage::disk('public')->makeDirectory($dir);
+                                $relPath = "{$dir}/{$filename}";
+                                Storage::disk('public')->put($relPath, $binary);
 
-                            $station = MonitoringStation::where('code', $stationCode)->first();
-                            if ($station) {
-                                $camLabels = [
-                                    'cam_1' => 'Camera 01 (Toàn cảnh)',
-                                    'cam_2' => 'Camera 02 (Cận cảnh)',
-                                    'cam_3' => 'Camera 03 (Khu vực đất)',
-                                    'cam_4' => 'Camera 04 (Lối vào vườn)',
-                                ];
-                                $camLabel = $camLabels[$camId] ?? strtoupper($camId);
+                                $station = MonitoringStation::where('code', $stationCode)->first();
+                                if ($station) {
+                                    $camLabels = [
+                                        'cam_1' => 'Camera 01 (Toàn cảnh)',
+                                        'cam_2' => 'Camera 02 (Cận cảnh)',
+                                        'cam_3' => 'Camera 03 (Khu vực đất)',
+                                        'cam_4' => 'Camera 04 (Lối vào vườn)',
+                                    ];
+                                    $camLabel = $camLabels[$camId] ?? strtoupper($camId);
 
-                                $cameraDevice = Device::firstOrCreate([
-                                    'monitoring_station_id' => $station->id,
-                                    'code' => "CAM-{$station->code}-{$camId}",
-                                ], [
-                                    'name' => "{$camLabel} - {$station->name}",
-                                    'type' => 'camera',
-                                    'sensor_type' => 'camera',
-                                    'status' => 'active',
-                                ]);
+                                    $cameraDevice = Device::firstOrCreate([
+                                        'monitoring_station_id' => $station->id,
+                                        'code' => "CAM-{$station->code}-{$camId}",
+                                    ], [
+                                        'name' => "{$camLabel} - {$station->name}",
+                                        'type' => 'camera',
+                                        'sensor_type' => 'camera',
+                                        'status' => 'active',
+                                    ]);
 
-                                $media = CameraMedia::create([
-                                    'device_id' => $cameraDevice->id,
-                                    'type' => 'image',
-                                    'name' => "{$camLabel} - " . now()->format('d/m/Y H:i:s'),
-                                    'file_path' => $relPath,
-                                    'created_at' => !empty($data['captured_at']) ? Carbon::parse($data['captured_at']) : now(),
-                                ]);
+                                    $media = CameraMedia::create([
+                                        'device_id' => $cameraDevice->id,
+                                        'type' => 'image',
+                                        'name' => "{$camLabel} - " . now()->format('d/m/Y H:i:s'),
+                                        'file_path' => $relPath,
+                                        'created_at' => !empty($data['captured_at']) ? Carbon::parse($data['captured_at']) : now(),
+                                    ]);
 
-                                $imageUrl = asset('storage/' . $relPath);
-                                $payload['data']['image_url'] = $imageUrl;
-                                $payload['data']['file_path'] = $relPath;
-                                $payload['data']['media_id'] = $media->id;
+                                    $imageUrl = asset('storage/' . $relPath);
+                                    $payload['data']['image_url'] = $imageUrl;
+                                    $payload['data']['file_path'] = $relPath;
+                                    $payload['data']['media_id'] = $media->id;
 
-                                $this->info("[CAMERA SNAPSHOT SAVED VIA MQTT] Đã lưu ảnh từ MQTT: {$relPath} (" . round(strlen($binary) / 1024, 1) . " KB)");
+                                    $this->info("[CAMERA SNAPSHOT SAVED VIA MQTT] Đã lưu ảnh dự phòng từ MQTT ({$camId}): {$relPath} (" . round(strlen($binary) / 1024, 1) . " KB)");
+                                }
                             }
+                        } catch (\Throwable $ex) {
+                            Log::error("[CAMERA SNAPSHOT MQTT ERROR] Lỗi lưu ảnh từ MQTT: " . $ex->getMessage());
                         }
-                    } catch (\Throwable $ex) {
-                        Log::error("[CAMERA SNAPSHOT MQTT ERROR] Lỗi lưu ảnh từ MQTT: " . $ex->getMessage());
                     }
                 }
             }
