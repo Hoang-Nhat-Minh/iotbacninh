@@ -453,8 +453,8 @@
                         onclick="openSaveCurrentPresetModal()">
                         <i class="bi bi-bookmark-plus-fill me-1"></i> Lưu góc chụp tự động
                     </button>
-                    <button type="button" class="btn btn-outline-danger py-2 fw-medium" id="btn-record"
-                        onclick="toggleRecording()">
+                    <button type="button" class="btn btn-outline-secondary py-2 fw-medium opacity-50" id="btn-record"
+                        onclick="toggleRecording()" disabled title="Vui lòng bấm xem trực tiếp trước khi ghi hình">
                         <i class="bi bi-record-circle me-1"></i> Ghi hình 10s
                     </button>
                     <button type="button" class="btn btn-outline-success py-2 fw-medium" onclick="runAiCropScan()">
@@ -600,6 +600,27 @@
         let currentTilt = 0.0;
         let currentZoom = 1.0;
         let isRecording = false;
+        let activeMediaRecorder = null;
+        let recordCountdownInterval = null;
+        let recordedChunks = [];
+
+        function updateRecordButtonState(enabled, message) {
+            const btn = document.getElementById('btn-record');
+            if (!btn) return;
+            if (isRecording) return;
+
+            if (enabled) {
+                btn.disabled = false;
+                btn.className = 'btn btn-outline-danger py-2 fw-medium';
+                btn.title = message || 'Ghi hình 10 giây từ luồng trực tiếp';
+                btn.removeAttribute('disabled');
+            } else {
+                btn.disabled = true;
+                btn.className = 'btn btn-outline-secondary py-2 fw-medium opacity-50';
+                btn.title = message || 'Vui lòng bấm xem trực tiếp trước khi ghi hình';
+                btn.setAttribute('disabled', 'disabled');
+            }
+        }
 
         function updatePtzDisplay(pan, tilt, zoom) {
             if (pan !== undefined && pan !== null) {
@@ -637,6 +658,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             startClock();
+            updateRecordButtonState(false);
             checkInitialStreamStatus();
             fetchPtzStatus(activeCamId);
         });
@@ -778,6 +800,7 @@
 
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
                     fatalRetryCount = 0;
+                    updateRecordButtonState(true);
                     showToast('Đã kết nối camera trực tiếp!', 'success');
                     video.play().catch(e => console.log('Autoplay muted:', e));
                 });
@@ -825,6 +848,7 @@
                 // Hỗ trợ Safari iOS/macOS
                 video.src = hlsUrl;
                 video.addEventListener('loadedmetadata', () => {
+                    updateRecordButtonState(true);
                     showToast('Đã kết nối camera trực tiếp!', 'success');
                     video.play().catch(e => console.log(e));
                 });
@@ -864,6 +888,10 @@
             statusDot.style.backgroundColor = '#94a3b8';
             statusText.textContent = 'SẴN SÀNG';
             isStreamActive = false;
+            if (isRecording) {
+                stopRecording(false);
+            }
+            updateRecordButtonState(false);
 
             if (callApi) {
                 showToast('Đã dừng phát video.', 'info');
@@ -1173,18 +1201,168 @@
         }
 
         function toggleRecording() {
-            const btn = document.getElementById('btn-record');
-            if (!isRecording) {
-                isRecording = true;
-                btn.className = 'btn btn-danger py-2 fw-medium animate-pulse';
-                btn.innerHTML = '<i class="bi bi-stop-circle-fill me-1"></i> Đang ghi hình (10s)...';
+            const video = document.getElementById('camera-live-video');
 
-                setTimeout(() => {
-                    isRecording = false;
-                    btn.className = 'btn btn-outline-danger py-2 fw-medium';
-                    btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
-                    showToast('Đã lưu video clip ghi hình!', 'success');
-                }, 10000);
+            if (!isStreamActive || !video || video.paused || video.ended) {
+                showToast('Vui lòng bật xem trực tiếp trước khi ghi hình!', 'warning');
+                updateRecordButtonState(false);
+                return;
+            }
+
+            if (isRecording) {
+                stopRecording(true);
+                return;
+            }
+
+            startRecording();
+        }
+
+        function startRecording() {
+            const btn = document.getElementById('btn-record');
+            const video = document.getElementById('camera-live-video');
+
+            let stream = null;
+            try {
+                if (typeof video.captureStream === 'function') {
+                    stream = video.captureStream();
+                } else if (typeof video.mozCaptureStream === 'function') {
+                    stream = video.mozCaptureStream();
+                }
+            } catch (err) {
+                console.error('[RECORD] Lỗi captureStream:', err);
+            }
+
+            if (!stream) {
+                showToast('Trình duyệt không hỗ trợ quay video trực tiếp từ thẻ phát!', 'error');
+                return;
+            }
+
+            let mimeType = '';
+            let fileExt = 'webm';
+            const candidateTypes = [
+                'video/mp4;codecs=avc1',
+                'video/mp4',
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+
+            for (const type of candidateTypes) {
+                if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(type)) {
+                    mimeType = type;
+                    if (type.includes('mp4')) fileExt = 'mp4';
+                    break;
+                }
+            }
+
+            try {
+                recordedChunks = [];
+                activeMediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+            } catch (e) {
+                console.error('[RECORD] Khởi tạo MediaRecorder thất bại:', e);
+                showToast('Không thể khởi tạo bộ ghi hình trên trình duyệt: ' + e.message, 'error');
+                return;
+            }
+
+            activeMediaRecorder.ondataavailable = function (e) {
+                if (e.data && e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+            };
+
+            activeMediaRecorder.onstop = function () {
+                clearInterval(recordCountdownInterval);
+                isRecording = false;
+                updateRecordButtonState(isStreamActive);
+                btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
+
+                if (recordedChunks.length === 0) {
+                    showToast('Không có dữ liệu video để lưu!', 'warning');
+                    return;
+                }
+
+                const blobType = mimeType || 'video/webm';
+                const blob = new Blob(recordedChunks, { type: blobType });
+                const blobUrl = window.URL.createObjectURL(blob);
+
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const timeStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const filename = `Record_${stationCode}_${activeCamId}_${timeStr}.${fileExt}`;
+
+                // 1. Tự động tải file video về máy tính / điện thoại
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 4000);
+
+                showToast(`Đã lưu video clip ghi hình (${filename})!`, 'success');
+
+                // 2. Đồng bộ upload file video lên Laravel để lưu vào mục Media
+                uploadRecordedVideo(blob, filename);
+            };
+
+            isRecording = true;
+            let countdown = 10;
+            btn.className = 'btn btn-danger py-2 fw-medium animate-pulse';
+            btn.innerHTML = `<i class="bi bi-stop-circle-fill me-1"></i> Đang ghi hình (${countdown}s)...`;
+
+            activeMediaRecorder.start(500);
+            showToast('Bắt đầu ghi hình 10s từ camera trực tiếp...', 'info');
+
+            recordCountdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    btn.innerHTML = `<i class="bi bi-stop-circle-fill me-1"></i> Đang ghi hình (${countdown}s)...`;
+                } else {
+                    clearInterval(recordCountdownInterval);
+                    stopRecording(true);
+                }
+            }, 1000);
+        }
+
+        function stopRecording(processData = true) {
+            clearInterval(recordCountdownInterval);
+            if (activeMediaRecorder && activeMediaRecorder.state !== 'inactive') {
+                if (!processData) {
+                    activeMediaRecorder.onstop = null;
+                }
+                activeMediaRecorder.stop();
+            }
+            activeMediaRecorder = null;
+            isRecording = false;
+
+            const btn = document.getElementById('btn-record');
+            if (btn) {
+                updateRecordButtonState(isStreamActive);
+                btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
+            }
+        }
+
+        async function uploadRecordedVideo(blob, filename) {
+            try {
+                const formData = new FormData();
+                formData.append('video', blob, filename);
+                formData.append('station_code', stationCode);
+                formData.append('camera_id', activeCamId);
+                formData.append('captured_at', new Date().toISOString());
+
+                const res = await fetch('/api/iot/camera/upload-video', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    console.log('[RECORD] Video đã được đồng bộ lên máy chủ:', data);
+                }
+            } catch (e) {
+                console.warn('[RECORD] Không thể đồng bộ video lên máy chủ (đã lưu cục bộ):', e);
             }
         }
 

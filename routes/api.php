@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('iot')->group(function () {
     Route::post('/telemetry', [IotIngestionController::class, 'ingestSensorData']);
     Route::post('/camera/upload', [IotIngestionController::class, 'ingestCameraImage']);
+    Route::post('/camera/upload-video', [IotIngestionController::class, 'ingestCameraVideo']);
     Route::post('/stations/{stationCode}/command', [IotIngestionController::class, 'sendCommand']);
 
     // Camera On-Demand Streaming & PTZ APIs

@@ -100,6 +100,58 @@ class IotIngestionController extends Controller
         ]);
     }
 
+    public function ingestCameraVideo(Request $request)
+    {
+        $request->validate([
+            'station_code' => 'required|exists:monitoring_stations,code',
+            'video' => 'required|file|max:51200',
+            'captured_at' => 'nullable',
+            'camera_id' => 'nullable|string',
+        ]);
+
+        $station = MonitoringStation::where('code', $request->station_code)->firstOrFail();
+        $camId = $request->input('camera_id', 'cam_1');
+
+        $cameraNames = [
+            'cam_1' => 'Camera 01 (Toàn cảnh)',
+            'cam_2' => 'Camera 02 (Cận cảnh)',
+            'cam_3' => 'Camera 03 (Khu vực đất)',
+            'cam_4' => 'Camera 04 (Lối vào vườn)',
+        ];
+        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper($camId));
+
+        $path = $request->file('video')->store('uploads/camera_videos/' . $station->code . '/' . $camId, 'public');
+
+        $cameraDevice = Device::firstOrCreate([
+            'monitoring_station_id' => $station->id,
+            'code' => 'CAM-' . $station->code . '-' . $camId,
+        ], [
+            'name' => $camLabel . ' - ' . $station->name,
+            'type' => 'camera',
+            'sensor_type' => 'camera',
+            'status' => 'active',
+        ]);
+
+        $media = CameraMedia::create([
+            'device_id' => $cameraDevice->id,
+            'type' => 'video',
+            'name' => $camLabel . ' (Clip 10s) - ' . now()->format('d/m/Y H:i:s'),
+            'file_path' => $path,
+            'created_at' => $request->captured_at ? \Carbon\Carbon::parse($request->captured_at) : now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => array_merge($media->toArray(), [
+                'camera_id' => $camId,
+                'camera_label' => $camLabel,
+                'video_url' => asset('storage/' . $path),
+            ]),
+            'message' => 'Lưu video ghi hình thành công.',
+        ]);
+    }
+
+
     public function sendCommand(string $stationCode, Request $request, \App\Services\Iot\MqttService $mqttService)
     {
         $validated = $request->validate([
