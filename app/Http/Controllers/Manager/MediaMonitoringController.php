@@ -12,9 +12,10 @@ class MediaMonitoringController extends Controller
     public function index(Request $request)
     {
         $stationId = $request->input('station_id');
+        $deviceId = $request->input('device_id');
 
-        $imagesQuery = CameraMedia::where('type', 'image')->with('device.monitoringStation');
-        $videosQuery = CameraMedia::where('type', 'video')->with('device.monitoringStation');
+        $imagesQuery = CameraMedia::where('type', 'image')->with(['device.monitoringStation']);
+        $videosQuery = CameraMedia::where('type', 'video')->with(['device.monitoringStation']);
 
         if ($stationId) {
             $imagesQuery->whereHas('device', function ($q) use ($stationId) {
@@ -25,9 +26,16 @@ class MediaMonitoringController extends Controller
             });
         }
 
-        $images = $imagesQuery->latest()->paginate(12, ['*'], 'images_page');
-        $videos = $videosQuery->latest()->paginate(8, ['*'], 'videos_page');
-        $stations = MonitoringStation::all();
+        if ($deviceId) {
+            $imagesQuery->where('device_id', $deviceId);
+            $videosQuery->where('device_id', $deviceId);
+        }
+
+        $images = $imagesQuery->latest()->paginate(12, ['*'], 'images_page')->withQueryString();
+        $videos = $videosQuery->latest()->paginate(8, ['*'], 'videos_page')->withQueryString();
+        $stations = MonitoringStation::with(['devices' => function ($q) {
+            $q->where('type', 'camera');
+        }])->get();
 
         return view('iot.media', compact('images', 'videos', 'stations'));
     }

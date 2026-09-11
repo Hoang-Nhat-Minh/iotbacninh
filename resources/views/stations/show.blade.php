@@ -276,17 +276,9 @@
                 <div
                     class="cam-overlay-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 text-white small">
                     <div class="d-flex align-items-center gap-3">
-                        <span><i class="bi bi-wifi text-success me-1"></i> Tín hiệu: <strong>Strong (1080p -
-                                30fps)</strong></span>
                         <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">45.0°</strong> |
                             Tilt: <strong id="val-tilt">-15.0°</strong></span>
                         <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">2.5x</strong></span>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1">
-                            <i class="bi bi-shield-check me-1"></i> Hồng ngoại ban đêm: Auto
-                        </span>
                     </div>
                 </div>
             </div>
@@ -355,26 +347,74 @@
 
                     <!-- Grid D-Pad Control Wheel (Nút giữa là nút chụp ảnh) -->
                     <div class="ptz-grid">
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Up-Left', -5, 5)"
-                            title="Lên - Trái"><i class="bi bi-arrow-up-left"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Up', 0, 5)" title="Xoay Lên"><i
-                                class="bi bi-arrow-up"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Up-Right', 5, 5)"
-                            title="Lên - Phải"><i class="bi bi-arrow-up-right"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Up-Left', -5, 5)"
+                            onmouseup="stopContinuousPtz('Up-Left', -5, 5)"
+                            onmouseleave="stopContinuousPtz('Up-Left', -5, 5)"
+                            ontouchstart="startContinuousPtz('Up-Left', -5, 5)"
+                            ontouchend="stopContinuousPtz('Up-Left', -5, 5)"
+                            onclick="moveCamera('Up-Left', -5, 5)"
+                            title="Lên - Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up-left"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Up', 0, 5)"
+                            onmouseup="stopContinuousPtz('Up', 0, 5)"
+                            onmouseleave="stopContinuousPtz('Up', 0, 5)"
+                            ontouchstart="startContinuousPtz('Up', 0, 5)"
+                            ontouchend="stopContinuousPtz('Up', 0, 5)"
+                            onclick="moveCamera('Up', 0, 5)"
+                            title="Xoay Lên (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Up-Right', 5, 5)"
+                            onmouseup="stopContinuousPtz('Up-Right', 5, 5)"
+                            onmouseleave="stopContinuousPtz('Up-Right', 5, 5)"
+                            ontouchstart="startContinuousPtz('Up-Right', 5, 5)"
+                            ontouchend="stopContinuousPtz('Up-Right', 5, 5)"
+                            onclick="moveCamera('Up-Right', 5, 5)"
+                            title="Lên - Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up-right"></i></button>
 
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Left', -5, 0)"
-                            title="Xoay Trái"><i class="bi bi-arrow-left"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Left', -5, 0)"
+                            onmouseup="stopContinuousPtz('Left', -5, 0)"
+                            onmouseleave="stopContinuousPtz('Left', -5, 0)"
+                            ontouchstart="startContinuousPtz('Left', -5, 0)"
+                            ontouchend="stopContinuousPtz('Left', -5, 0)"
+                            onclick="moveCamera('Left', -5, 0)"
+                            title="Xoay Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-left"></i></button>
                         <button type="button" class="ptz-btn-dir ptz-btn-center" onclick="takeSnapshot()"
                             title="Chụp ảnh tức thì"><i class="bi bi-camera-fill"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Right', 5, 0)"
-                            title="Xoay Phải"><i class="bi bi-arrow-right"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Right', 5, 0)"
+                            onmouseup="stopContinuousPtz('Right', 5, 0)"
+                            onmouseleave="stopContinuousPtz('Right', 5, 0)"
+                            ontouchstart="startContinuousPtz('Right', 5, 0)"
+                            ontouchend="stopContinuousPtz('Right', 5, 0)"
+                            onclick="moveCamera('Right', 5, 0)"
+                            title="Xoay Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-right"></i></button>
 
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down-Left', -5, -5)"
-                            title="Xuống - Trái"><i class="bi bi-arrow-down-left"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down', 0, -5)"
-                            title="Xoay Xuống"><i class="bi bi-arrow-down"></i></button>
-                        <button type="button" class="ptz-btn-dir" onclick="moveCamera('Down-Right', 5, -5)"
-                            title="Xuống - Phải"><i class="bi bi-arrow-down-right"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Down-Left', -5, -5)"
+                            onmouseup="stopContinuousPtz('Down-Left', -5, -5)"
+                            onmouseleave="stopContinuousPtz('Down-Left', -5, -5)"
+                            ontouchstart="startContinuousPtz('Down-Left', -5, -5)"
+                            ontouchend="stopContinuousPtz('Down-Left', -5, -5)"
+                            onclick="moveCamera('Down-Left', -5, -5)"
+                            title="Xuống - Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down-left"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Down', 0, -5)"
+                            onmouseup="stopContinuousPtz('Down', 0, -5)"
+                            onmouseleave="stopContinuousPtz('Down', 0, -5)"
+                            ontouchstart="startContinuousPtz('Down', 0, -5)"
+                            ontouchend="stopContinuousPtz('Down', 0, -5)"
+                            onclick="moveCamera('Down', 0, -5)"
+                            title="Xoay Xuống (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="ptz-btn-dir"
+                            onmousedown="startContinuousPtz('Down-Right', 5, -5)"
+                            onmouseup="stopContinuousPtz('Down-Right', 5, -5)"
+                            onmouseleave="stopContinuousPtz('Down-Right', 5, -5)"
+                            ontouchstart="startContinuousPtz('Down-Right', 5, -5)"
+                            ontouchend="stopContinuousPtz('Down-Right', 5, -5)"
+                            onclick="moveCamera('Down-Right', 5, -5)"
+                            title="Xuống - Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down-right"></i></button>
                     </div>
 
                     <!-- Điều chỉnh Mức Zoom -->
@@ -386,13 +426,23 @@
 
                             <div class="d-flex align-items-center gap-2">
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5"
-                                    onclick="changeZoom(-0.5)" title="Thu nhỏ (Zoom out)">
+                                    onmousedown="startContinuousPtz('ZOOM_OUT', 0, 0)"
+                                    onmouseup="stopContinuousPtz('ZOOM_OUT', 0, 0)"
+                                    onmouseleave="stopContinuousPtz('ZOOM_OUT', 0, 0)"
+                                    ontouchstart="startContinuousPtz('ZOOM_OUT', 0, 0)"
+                                    ontouchend="stopContinuousPtz('ZOOM_OUT', 0, 0)"
+                                    onclick="changeZoom(-0.5)" title="Thu nhỏ (Zoom out) - Nhấp để nhích, giữ để zoom liên tục">
                                     <i class="bi bi-dash-lg"></i>
                                 </button>
                                 <span class="badge bg-primary fs-6 font-monospace px-3 py-1.5"
                                     id="zoom-val-badge">2.5x</span>
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5"
-                                    onclick="changeZoom(0.5)" title="Phóng to (Zoom in)">
+                                    onmousedown="startContinuousPtz('ZOOM_IN', 0, 0)"
+                                    onmouseup="stopContinuousPtz('ZOOM_IN', 0, 0)"
+                                    onmouseleave="stopContinuousPtz('ZOOM_IN', 0, 0)"
+                                    ontouchstart="startContinuousPtz('ZOOM_IN', 0, 0)"
+                                    ontouchend="stopContinuousPtz('ZOOM_IN', 0, 0)"
+                                    onclick="changeZoom(0.5)" title="Phóng to (Zoom in) - Nhấp để nhích, giữ để zoom liên tục">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
@@ -458,36 +508,35 @@
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem;">
                         <i class="bi bi-images text-primary"></i> Nhật Ký Ảnh Chụp Tức Thời
                     </h5>
-                    <span class="badge bg-light text-muted border font-monospace" id="snapshot-count">3 Hình ảnh</span>
+                    <span class="badge bg-light text-muted border font-monospace" id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
                 </div>
 
                 <div class="row g-2" id="snapshot-gallery">
-                    <div class="col-4">
-                        <div class="border rounded-3 p-1 position-relative bg-light">
-                            <img src="https://images.unsplash.com/photo-1592417817098-8f3d6ef23a85?auto=format&fit=crop&w=400&q=80"
-                                class="snapshot-thumb" alt="Snap 1">
-                            <div class="text-muted font-monospace text-center mt-1" style="font-size: 10px;">16:45 - 19/08
+                    @forelse($recentSnapshots ?? [] as $media)
+                        @php
+                            $devCode = $media->device->code ?? '';
+                            $camTag = str_contains($devCode, 'cam_1') ? 'Cam 01' : (str_contains($devCode, 'cam_2') ? 'Cam 02' : (str_contains($devCode, 'cam_3') ? 'Cam 03' : (str_contains($devCode, 'cam_4') ? 'Cam 04' : 'Camera')));
+                        @endphp
+                        <div class="col-4">
+                            <div class="border rounded-3 p-1 position-relative bg-light shadow-sm">
+                                <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace" style="font-size: 9px; z-index: 2;">
+                                    {{ $camTag }}
+                                </span>
+                                <a href="{{ asset('storage/' . $media->file_path) }}" target="_blank" title="Bấm để phóng to ảnh gốc">
+                                    <img src="{{ asset('storage/' . $media->file_path) }}"
+                                        class="snapshot-thumb" alt="{{ $media->name ?? 'Snapshot' }}"
+                                        style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;">
+                                </a>
+                                <div class="text-muted font-monospace text-center mt-1 text-truncate" style="font-size: 10px;">
+                                    {{ $media->created_at ? $media->created_at->format('H:i - d/m') : '' }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-4">
-                        <div class="border rounded-3 p-1 position-relative bg-light">
-                            <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=400&q=80"
-                                class="snapshot-thumb" alt="Snap 2">
-                            <div class="text-muted font-monospace text-center mt-1" style="font-size: 10px;">14:30 - 19/08
-                            </div>
+                    @empty
+                        <div class="col-12 text-center text-muted py-3 empty-snap-msg">
+                            <i class="bi bi-camera me-1"></i> Chưa có ảnh chụp nào từ trạm.<br>Bấm nút máy ảnh ở bảng điều khiển để chụp tức thì.
                         </div>
-                    </div>
-
-                    <div class="col-4">
-                        <div class="border rounded-3 p-1 position-relative bg-light">
-                            <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=400&q=80"
-                                class="snapshot-thumb" alt="Snap 3">
-                            <div class="text-muted font-monospace text-center mt-1" style="font-size: 10px;">10:15 - 19/08
-                            </div>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -825,6 +874,15 @@
             const statusText = document.getElementById('stream-status-text');
             const statusDot = document.getElementById('stream-status-dot');
 
+        // 5. Đồng hồ đếm ngược phiên xem (đã chuẩn hóa số nguyên, chống lỗi số thực thập phân)
+        function startCountdown(seconds) {
+            clearInterval(countdownTimer);
+            remainingSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+
+            const statusBadge = document.getElementById('stream-status-badge');
+            const statusText = document.getElementById('stream-status-text');
+            const statusDot = document.getElementById('stream-status-dot');
+
             statusBadge.className = 'badge bg-danger text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
             statusDot.style.backgroundColor = '#ef4444';
 
@@ -843,8 +901,9 @@
         }
 
         function updateCountdownDisplay() {
-            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-            const s = (remainingSeconds % 60).toString().padStart(2, '0');
+            const totalSec = Math.max(0, Math.floor(remainingSeconds));
+            const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+            const s = (totalSec % 60).toString().padStart(2, '0');
             document.getElementById('stream-status-text').textContent = `LIVE (${m}:${s})`;
         }
 
@@ -871,21 +930,40 @@
             }, 1000);
         }
 
-        // 8. Di chuyển Camera qua API PTZ
-        async function moveCamera(directionName, deltaPan, deltaTilt) {
-            currentPan = Math.max(-180, Math.min(180, currentPan + deltaPan));
-            currentTilt = Math.max(-45, Math.min(45, currentTilt + deltaTilt));
+        // 8. Di chuyển Camera qua API PTZ (Hỗ trợ cả nhấp bước & nhấn giữ liên tục)
+        let ptzHoldTimer = null;
+        let isPtzHolding = false;
 
-            document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
-            document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
+        function startContinuousPtz(directionName, deltaPan, deltaTilt) {
+            isPtzHolding = false;
+            if (ptzHoldTimer) clearTimeout(ptzHoldTimer);
+            ptzHoldTimer = setTimeout(() => {
+                isPtzHolding = true;
+                sendPtzRequest(directionName, true);
+            }, 250);
+        }
 
+        function stopContinuousPtz(directionName, deltaPan, deltaTilt) {
+            if (ptzHoldTimer) {
+                clearTimeout(ptzHoldTimer);
+                ptzHoldTimer = null;
+            }
+            if (isPtzHolding) {
+                isPtzHolding = false;
+                sendPtzRequest('STOP', false);
+            }
+        }
+
+        async function sendPtzRequest(directionName, continuous = false, stepDuration = 0.5) {
             const reqPayload = {
                 camera_id: activeCamId,
                 direction: directionName,
-                speed: 5
+                speed: 5,
+                continuous: continuous,
+                step_duration: stepDuration
             };
 
-            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Điều khiển PTZ [${directionName}]:`,
+            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Điều khiển PTZ [${directionName}] (continuous: ${continuous}):`,
                 'color: #059669; font-weight: bold;', {
                     topic: `khcn/stations/${stationCode}/camera/command`,
                     action: 'PTZ_CONTROL',
@@ -916,15 +994,31 @@
             }
         }
 
-        // 9. Thay đổi Zoom
+        async function moveCamera(directionName, deltaPan, deltaTilt) {
+            // Nếu vừa hoàn thành một phiên nhấn giữ liên tục thì bỏ qua sự kiện click
+            if (isPtzHolding) return;
+
+            currentPan = Math.max(-180, Math.min(180, currentPan + deltaPan));
+            currentTilt = Math.max(-45, Math.min(45, currentTilt + deltaTilt));
+
+            document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
+            document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
+
+            await sendPtzRequest(directionName, false, 0.5);
+        }
+
+        // 9. Thay đổi Zoom (gửi lệnh ZOOM_IN / ZOOM_OUT sang camera thật)
         function updateZoom(val) {
             currentZoom = Math.max(1.0, Math.min(4.0, Math.round(parseFloat(val) * 10) / 10));
             document.getElementById('val-zoom').textContent = currentZoom.toFixed(1) + 'x';
             document.getElementById('zoom-val-badge').textContent = currentZoom.toFixed(1) + 'x';
         }
 
-        function changeZoom(delta) {
+        async function changeZoom(delta) {
+            if (isPtzHolding) return;
             updateZoom(currentZoom + delta);
+            const dir = delta > 0 ? 'ZOOM_IN' : 'ZOOM_OUT';
+            await sendPtzRequest(dir, false, 0.6);
         }
 
         function applyPreset(name, pan, tilt, zoom) {
@@ -935,12 +1029,39 @@
             updateZoom(zoom);
         }
 
-        // 10. Chụp ảnh từ camera
+        // 10. Tự động tải ảnh về PC / Mobile của người dùng qua Browser
+        async function triggerBrowserDownload(imageUrl, defaultName) {
+            try {
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = defaultName || `Snapshot_${activeCamId}_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+            } catch (e) {
+                const a = document.createElement('a');
+                a.href = imageUrl;
+                a.download = defaultName || `Snapshot_${activeCamId}.jpg`;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+        }
+
+        // 11. Chụp ảnh từ camera tức thời, tự tải về máy & hiển thị ngay lên Gallery
         async function takeSnapshot() {
-            showToast('Đang chụp ảnh...', 'info');
+            showToast('Đang chụp ảnh từ camera...', 'info');
             const reqPayload = {
                 camera_id: activeCamId
             };
+
+            const snapBtn = document.querySelector('.ptz-btn-center');
+            if (snapBtn) snapBtn.classList.add('animate-pulse');
 
             console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Chụp ảnh snapshot camera:`, 'color: #7c3aed; font-weight: bold;', {
                 topic: `khcn/stations/${stationCode}/camera/command`,
@@ -969,13 +1090,51 @@
                 });
 
                 if (result.success) {
-                    showToast('Đã chụp ảnh thành công!', 'success');
+                    if (result.image_url) {
+                        const filename = result.filename || `Snapshot_${stationCode}_${activeCamId}_${Date.now()}.jpg`;
+                        triggerBrowserDownload(result.image_url, filename);
+                        showToast('Đã chụp ảnh & tải về máy thành công!', 'success');
+
+                        const gallery = document.getElementById('snapshot-gallery');
+                        if (gallery) {
+                            const emptyMsg = gallery.querySelector('.empty-snap-msg');
+                            if (emptyMsg) emptyMsg.remove();
+
+                            const now = new Date();
+                            const nowStr = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) + ' - ' + now.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'});
+                            const camLabel = cameraLabels[activeCamId] || activeCamId;
+                            const col = document.createElement('div');
+                            col.className = 'col-4 animate-fade-in';
+                            col.innerHTML = `
+                                <div class="border rounded-3 p-1 position-relative bg-light shadow-sm">
+                                    <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace" style="font-size: 9px; z-index: 2;">
+                                        ${camLabel.split(' ')[0]} ${camLabel.split(' ')[1] || ''}
+                                    </span>
+                                    <a href="${result.image_url}" target="_blank" title="Bấm để phóng to ảnh gốc">
+                                        <img src="${result.image_url}" class="snapshot-thumb" alt="Ảnh mới chụp"
+                                            style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;">
+                                    </a>
+                                    <div class="text-muted font-monospace text-center mt-1 text-truncate" style="font-size: 10px;">${nowStr} (Mới)</div>
+                                </div>
+                            `;
+                            gallery.prepend(col);
+
+                            const countBadge = document.getElementById('snapshot-count');
+                            if (countBadge) {
+                                countBadge.textContent = `${gallery.querySelectorAll('.col-4').length} Hình ảnh`;
+                            }
+                        }
+                    } else {
+                        showToast('Đã chụp ảnh thành công!', 'success');
+                    }
                 } else {
-                    showToast('Không thể chụp ảnh lúc này', 'error');
+                    showToast(result.message || 'Không thể chụp ảnh lúc này', 'error');
                 }
             } catch (err) {
                 console.error('[MQTT CAMERA ERROR] Lỗi chụp ảnh:', err);
                 showToast('Không thể chụp ảnh lúc này', 'error');
+            } finally {
+                if (snapBtn) snapBtn.classList.remove('animate-pulse');
             }
         }
 

@@ -56,30 +56,46 @@ class IotIngestionController extends Controller
             'station_code' => 'required|exists:monitoring_stations,code',
             'image' => 'required|image|max:10240',
             'captured_at' => 'nullable|date',
+            'camera_id' => 'nullable|string',
         ]);
 
         $station = MonitoringStation::where('code', $request->station_code)->firstOrFail();
-        $path = $request->file('image')->store('uploads/camera_images/' . $station->code, 'public');
+        $camId = $request->input('camera_id', 'cam_1');
+
+        $cameraNames = [
+            'cam_1' => 'Camera 01 (Toàn cảnh)',
+            'cam_2' => 'Camera 02 (Cận cảnh)',
+            'cam_3' => 'Camera 03 (Khu vực đất)',
+            'cam_4' => 'Camera 04 (Lối vào vườn)',
+        ];
+        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper($camId));
+
+        $path = $request->file('image')->store('uploads/camera_images/' . $station->code . '/' . $camId, 'public');
 
         $cameraDevice = Device::firstOrCreate([
             'monitoring_station_id' => $station->id,
-            'type' => 'camera',
+            'code' => 'CAM-' . $station->code . '-' . $camId,
         ], [
-            'name' => 'Camera ' . $station->code,
-            'code' => 'CAM-' . $station->code,
+            'name' => $camLabel . ' - ' . $station->name,
+            'type' => 'camera',
+            'sensor_type' => 'camera',
             'status' => 'active',
         ]);
 
         $media = CameraMedia::create([
             'device_id' => $cameraDevice->id,
             'type' => 'image',
-            'name' => $request->file('image')->getClientOriginalName(),
+            'name' => $camLabel . ' - ' . now()->format('d/m/Y H:i:s'),
             'file_path' => $path,
+            'created_at' => $request->captured_at ? \Carbon\Carbon::parse($request->captured_at) : now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'data' => $media,
+            'data' => array_merge($media->toArray(), [
+                'camera_id' => $camId,
+                'camera_label' => $camLabel,
+            ]),
             'message' => 'Lưu ảnh camera trạm quan trắc thành công.',
         ]);
     }

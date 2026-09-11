@@ -145,16 +145,22 @@ class IotCameraController extends Controller
             'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
             'direction' => 'required|string',
             'speed' => 'nullable|integer|min:1|max:10',
+            'continuous' => 'nullable|boolean',
+            'step_duration' => 'nullable|numeric|min:0.1|max:5',
         ]);
 
         $camId = $validated['camera_id'] ?? 'cam_1';
         $direction = strtoupper($validated['direction']);
         $speed = (int) ($validated['speed'] ?? 5);
+        $continuous = (bool) ($validated['continuous'] ?? false);
+        $stepDuration = (float) ($validated['step_duration'] ?? 0.5);
 
         $result = $mqttService->publishCameraCommand($station->code, 'PTZ_CONTROL', [
             'camera_id' => $camId,
             'direction' => $direction,
             'speed' => $speed,
+            'continuous' => $continuous,
+            'step_duration' => $stepDuration,
         ]);
 
         // Ghi log chi tiết lệnh điều khiển PTZ gửi tới MQTT
@@ -164,6 +170,7 @@ class IotCameraController extends Controller
             'action' => 'PTZ_CONTROL',
             'direction' => $direction,
             'speed' => $speed,
+            'continuous' => $continuous,
             'topic' => $result['topic'] ?? "khcn/stations/{$station->code}/camera/command",
             'command_id' => $result['command_id'] ?? null,
             'payload' => $result['payload'] ?? null,
@@ -215,20 +222,30 @@ class IotCameraController extends Controller
             'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
         ]);
 
-        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        // Chờ trạm chụp và upload ảnh về VPS (tối đa 4 giây)
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null, 4.0);
+        $imageUrl = null;
         if ($ack) {
             Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh CAPTURE_SNAPSHOT qua MQTT", [
                 'station' => $station->code,
                 'command_id' => $result['command_id'] ?? null,
                 'ack' => $ack,
             ]);
+
+            if (!empty($ack['data']['image_url'])) {
+                $imageUrl = asset(ltrim($ack['data']['image_url'], '/'));
+            } elseif (!empty($ack['data']['file_path'])) {
+                $imageUrl = asset('storage/' . $ack['data']['file_path']);
+            }
         }
 
         return response()->json([
-            'success' => $result['success'],
-            'message' => "Đã gửi yêu cầu chụp ảnh snapshot tới camera {$camId}.",
+            'success' => $result['success'] && ($ack['success'] ?? true),
+            'message' => $ack['message'] ?? "Đã gửi yêu cầu chụp ảnh snapshot tới camera {$camId}.",
             'command' => $result,
             'ack' => $ack,
+            'image_url' => $imageUrl,
+            'filename' => $ack['data']['filename'] ?? null,
         ]);
     }
 

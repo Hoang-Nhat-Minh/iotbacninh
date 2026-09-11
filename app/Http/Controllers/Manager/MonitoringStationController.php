@@ -242,7 +242,9 @@ class MonitoringStationController extends Controller
             'last_contact' => $lastContact ? Carbon::parse($lastContact)->diffForHumans() : 'Chưa có',
         ];
 
-        return view('stations.show', compact('station', 'latestTelemetry', 'presets'));
+        $recentSnapshots = $st->cameraMedia()->with('device')->latest()->take(6)->get();
+
+        return view('stations.show', compact('station', 'latestTelemetry', 'presets', 'recentSnapshots'));
     }
 
     public function create()
