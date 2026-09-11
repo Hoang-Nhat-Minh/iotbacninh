@@ -38,8 +38,9 @@ class CaptureLocationController extends Controller
         return redirect()->back()->with('success', 'Đã lưu tọa độ góc chụp camera thành công.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id = null)
     {
+        $id = $id ?: $request->input('id');
         $location = ImageCaptureLocation::findOrFail($id);
 
         $validated = $request->validate([
@@ -47,20 +48,26 @@ class CaptureLocationController extends Controller
             'pan_angle' => 'nullable|numeric',
             'tilt_angle' => 'nullable|numeric',
             'zoom_level' => 'nullable|numeric',
-            'status' => 'required|string|in:active,inactive',
+            'status' => 'nullable|string|in:active,inactive',
         ]);
 
         $validated['pan_angle'] = $request->input('pan_angle', $request->input('pan', $location->pan_angle));
         $validated['tilt_angle'] = $request->input('tilt_angle', $request->input('tilt', $location->tilt_angle));
         $validated['zoom_level'] = $request->input('zoom_level', $request->input('zoom', $location->zoom_level));
+        if ($request->filled('status')) {
+            $validated['status'] = $request->input('status');
+        } else {
+            unset($validated['status']);
+        }
 
         $location->update($validated);
 
         return redirect()->back()->with('success', 'Cập nhật tọa độ góc chụp thành công.');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id = null)
     {
+        $id = $id ?: $request->input('id');
         $location = ImageCaptureLocation::findOrFail($id);
         $location->delete();
 

@@ -145,7 +145,7 @@
                 <h5 class="modal-title"><i class="bi bi-pencil text-primary"></i> Sửa Tọa Độ Góc Chụp</h5>
                 <button type="button" class="modal-close-btn">&times;</button>
             </div>
-            <form action="{{ url('/iot/locations/update') }}" method="POST">
+            <form id="form-edit-location" action="{{ url('/iot/locations/update') }}" method="POST">
                 @csrf
                 <input type="hidden" name="id" id="edit-location-id">
                 <div class="modal-body">
@@ -185,8 +185,9 @@
                 <h5 class="modal-title"><i class="bi bi-trash text-danger"></i> Xóa Điểm Chụp</h5>
                 <button type="button" class="modal-close-btn">&times;</button>
             </div>
-            <form action="{{ url('/iot/locations/delete') }}" method="POST">
+            <form id="form-delete-location" action="{{ url('/iot/locations/delete') }}" method="POST">
                 @csrf
+                <input type="hidden" name="id" id="delete-location-id">
                 <div class="modal-body text-center py-4">
                     <p>Bạn có chắc muốn xóa điểm góc chụp: <br><strong id="delete-location-name"
                             class="text-danger"></strong>?</p>
@@ -203,6 +204,8 @@
 @push('scripts')
     <script>
         function openEditLocationModal(id, name, pan, tilt, zoom) {
+            const form = document.getElementById('form-edit-location');
+            if (form) form.action = '{{ url("/iot/locations/update") }}/' + id;
             document.getElementById('edit-location-id').value = id;
             document.getElementById('edit-location-name').value = name;
             document.getElementById('edit-location-pan').value = pan;
@@ -212,6 +215,9 @@
         }
 
         function openDeleteLocationModal(id, name) {
+            const form = document.getElementById('form-delete-location');
+            if (form) form.action = '{{ url("/iot/locations/delete") }}/' + id;
+            document.getElementById('delete-location-id').value = id;
             document.getElementById('delete-location-name').textContent = name;
             openModal('modal-delete-location');
         }
