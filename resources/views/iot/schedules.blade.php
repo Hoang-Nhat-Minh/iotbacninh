@@ -56,6 +56,12 @@
                             </td>
                             <td style="text-align: center;">
                                 <div class="d-inline-flex gap-1">
+                                    <form action="{{ url('/iot/schedules/trigger/' . $s->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Kích hoạt chụp ảnh ngay lập tức theo lịch trình [{{ addslashes($s->name) }}]?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-secondary btn-icon btn-sm text-success" title="Chụp thử ngay theo lịch này">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </button>
+                                    </form>
                                     <button class="btn btn-secondary btn-icon btn-sm" title="Sửa khung giờ"
                                             onclick="openEditScheduleModal({{ $s->id }}, '{{ $s->monitoring_station_id ?? '' }}', '{{ addslashes($s->name) }}', '{{ $s->start_time }}', '{{ $s->end_time }}', {{ $s->interval_minutes }}, '{{ $s->status }}')">
                                         <i class="bi bi-pencil-square text-primary"></i>

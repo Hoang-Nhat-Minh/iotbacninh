@@ -80,8 +80,29 @@ class MqttListenerCommand extends Command
 
             $this->info("Đang lắng nghe dữ liệu từ các trạm hiện trường... (Bấm Ctrl+C để dừng)");
 
-            // Bắt đầu vòng lặp nhận message
-            $mqtt->loop(true);
+            $cameraScheduleService = app(\App\Services\Iot\CameraScheduleService::class);
+            $lastScheduleCheck = 0;
+
+            // Vòng lặp nhận message và tự động kiểm tra khung giờ chụp ảnh định kỳ
+            while (true) {
+                // Xử lý các message MQTT đến (non-blocking với sleep 100ms)
+                $mqtt->loopOnce(microtime(true), true, 100000);
+
+                // Mỗi 30 giây kiểm tra khung giờ lịch chụp tự động 1 lần
+                if ((time() - $lastScheduleCheck) >= 30) {
+                    $lastScheduleCheck = time();
+                    try {
+                        $triggered = $cameraScheduleService->checkAndTriggerSchedules();
+                        if (!empty($triggered)) {
+                            foreach ($triggered as $item) {
+                                $this->info("[AUTO-SCHEDULE CAPTURE] " . now()->format('H:i:s') . " | Gửi lệnh chụp tự động theo lịch '{$item['schedule_name']}' tới trạm {$item['station_code']}");
+                            }
+                        }
+                    } catch (\Throwable $ex) {
+                        Log::error("[AUTO-SCHEDULE WORKER ERROR] " . $ex->getMessage());
+                    }
+                }
+            }
 
         } catch (\Throwable $e) {
             $this->error("Lỗi khi kết nối hoặc chạy MQTT Listener: " . $e->getMessage());

@@ -66,4 +66,14 @@ class CaptureScheduleController extends Controller
 
         return redirect()->back()->with('success', 'Xóa khung giờ thành công.');
     }
+
+    public function triggerNow($id, \App\Services\Iot\CameraScheduleService $scheduleService)
+    {
+        $triggered = $scheduleService->triggerScheduleNow((int) $id);
+        if (empty($triggered)) {
+            return redirect()->back()->with('error', 'Không tìm thấy trạm hợp lệ để kích hoạt chụp ảnh.');
+        }
+
+        return redirect()->back()->with('success', 'Đã gửi lệnh chụp ảnh tự động theo lịch tới ' . count($triggered) . ' trạm quan trắc.');
+    }
 }

@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Tự động kiểm tra và kích hoạt chụp ảnh theo khung giờ định kỳ mỗi phút
+        $schedule->command('camera:process-schedules')->everyMinute();
     }
 
     /**

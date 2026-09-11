@@ -180,6 +180,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::post('/schedules/store', [AdminCaptureScheduleController::class, 'store']);
         Route::post('/schedules/update/{id}', [AdminCaptureScheduleController::class, 'update']);
         Route::post('/schedules/delete/{id}', [AdminCaptureScheduleController::class, 'destroy']);
+        Route::post('/schedules/trigger/{id}', [AdminCaptureScheduleController::class, 'triggerNow']);
     });
 
     // Auto AI Alerts (UC 35, 36)
