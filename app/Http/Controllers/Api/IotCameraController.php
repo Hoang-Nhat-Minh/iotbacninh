@@ -77,6 +77,12 @@ class IotCameraController extends Controller
             'expire_at' => time() + $duration,
         ];
 
+        $ptz = null;
+        if ($ack && !empty($ack['data']['ptz'])) {
+            $ptz = $ack['data']['ptz'];
+            Cache::put("camera_ptz_{$station->code}_{$camId}", $ptz, 3600);
+        }
+
         // Đặt trước Cache trạng thái stream để UI có thể phản hồi tức thì
         Cache::put("camera_stream_{$station->code}_{$camId}", array_merge(['active' => true], $streamInfo), $duration + 60);
 
@@ -88,6 +94,7 @@ class IotCameraController extends Controller
             'command' => $result,
             'ack' => $ack,
             'stream' => $streamInfo,
+            'ptz' => $ptz,
         ], $result['success'] ? 200 : 500);
     }
 
@@ -181,13 +188,19 @@ class IotCameraController extends Controller
             'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
         ]);
 
-        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null);
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null, $continuous ? 1.0 : 1.8);
+        $ptz = null;
         if ($ack) {
             Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh PTZ_CONTROL qua MQTT", [
                 'station' => $station->code,
                 'command_id' => $result['command_id'] ?? null,
                 'ack' => $ack,
             ]);
+
+            if (!empty($ack['data']['ptz'])) {
+                $ptz = $ack['data']['ptz'];
+                Cache::put("camera_ptz_{$station->code}_{$camId}", $ptz, 3600);
+            }
         }
 
         return response()->json([
@@ -195,6 +208,7 @@ class IotCameraController extends Controller
             'message' => "Đã gửi lệnh PTZ [{$direction}] tới camera {$camId}.",
             'command' => $result,
             'ack' => $ack,
+            'ptz' => $ptz,
         ]);
     }
 
@@ -292,6 +306,8 @@ class IotCameraController extends Controller
             }
         }
 
+        $ptz = $ack['data']['ptz'] ?? Cache::get("camera_ptz_{$station->code}_{$camId}");
+
         return response()->json([
             'success' => $result['success'] && ($ack['success'] ?? true),
             'message' => $ack['message'] ?? "Đã gửi yêu cầu chụp ảnh snapshot tới camera {$camId}.",
@@ -299,6 +315,40 @@ class IotCameraController extends Controller
             'ack' => $ack,
             'image_url' => $imageUrl,
             'filename' => $ack['data']['filename'] ?? null,
+            'ptz' => $ptz,
+        ]);
+    }
+
+    /**
+     * Lấy tọa độ PTZ thực tế của Camera từ máy trạm (truy vấn ISAPI Hikvision thực).
+     */
+    public function getPtzStatus(string $stationCode, Request $request, MqttService $mqttService)
+    {
+        $station = MonitoringStation::where('code', $stationCode)->firstOrFail();
+        $camId = $request->query('camera_id', 'cam_1');
+
+        $result = $mqttService->publishCameraCommand($station->code, 'GET_PTZ', [
+            'camera_id' => $camId,
+        ]);
+
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null, 1.8);
+        if ($ack && !empty($ack['data']['ptz'])) {
+            $ptz = $ack['data']['ptz'];
+            Cache::put("camera_ptz_{$station->code}_{$camId}", $ptz, 3600);
+            return response()->json([
+                'success' => true,
+                'camera_id' => $camId,
+                'ptz' => $ptz,
+                'source' => 'isapi_real',
+            ]);
+        }
+
+        $cached = Cache::get("camera_ptz_{$station->code}_{$camId}");
+        return response()->json([
+            'success' => true,
+            'camera_id' => $camId,
+            'ptz' => $cached ?? ['pan' => 0.0, 'tilt' => 0.0, 'zoom' => 1.0, 'is_real' => false],
+            'source' => $cached ? 'cache' : 'default',
         ]);
     }
 
@@ -311,6 +361,7 @@ class IotCameraController extends Controller
         $camId = $request->query('camera_id', 'cam_1');
 
         $streamData = Cache::get("camera_stream_{$station->code}_{$camId}");
+        $ptz = Cache::get("camera_ptz_{$station->code}_{$camId}");
 
         if ($streamData && !empty($streamData['active'])) {
             $remaining = max(0, ($streamData['expire_at'] ?? time()) - time());
@@ -324,6 +375,7 @@ class IotCameraController extends Controller
                 'camera_id' => $camId,
                 'remaining_seconds' => $remaining,
                 'stream' => $streamData,
+                'ptz' => $ptz,
             ]);
         }
 
@@ -331,6 +383,7 @@ class IotCameraController extends Controller
             'active' => false,
             'camera_id' => $camId,
             'message' => 'Camera hiện đang ở chế độ chờ.',
+            'ptz' => $ptz,
         ]);
     }
 

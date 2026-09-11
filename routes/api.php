@@ -26,6 +26,7 @@ Route::prefix('iot')->group(function () {
     Route::post('/stations/{stationCode}/camera/stream', [IotCameraController::class, 'startStream']);
     Route::post('/stations/{stationCode}/camera/stop', [IotCameraController::class, 'stopStream']);
     Route::post('/stations/{stationCode}/camera/ptz', [IotCameraController::class, 'ptzControl']);
+    Route::get('/stations/{stationCode}/camera/ptz', [IotCameraController::class, 'getPtzStatus']);
     Route::post('/stations/{stationCode}/camera/snapshot', [IotCameraController::class, 'captureSnapshot']);
     Route::get('/stations/{stationCode}/camera/status', [IotCameraController::class, 'getStreamStatus']);
 });

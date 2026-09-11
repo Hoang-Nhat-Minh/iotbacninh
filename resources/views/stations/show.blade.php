@@ -273,9 +273,9 @@
                 <div
                     class="cam-overlay-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 text-white small">
                     <div class="d-flex align-items-center gap-3">
-                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">45.0°</strong> |
-                            Tilt: <strong id="val-tilt">-15.0°</strong></span>
-                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">2.5x</strong></span>
+                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> |
+                            Tilt: <strong id="val-tilt">--°</strong></span>
+                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">--x</strong></span>
                     </div>
                 </div>
             </div>
@@ -596,14 +596,49 @@
         let countdownTimer = null;
         let remainingSeconds = 0;
 
-        let currentPan = 45;
-        let currentTilt = -15;
-        let currentZoom = 2.5;
+        let currentPan = 0.0;
+        let currentTilt = 0.0;
+        let currentZoom = 1.0;
         let isRecording = false;
+
+        function updatePtzDisplay(pan, tilt, zoom) {
+            if (pan !== undefined && pan !== null) {
+                currentPan = parseFloat(pan);
+                const el = document.getElementById('val-pan');
+                if (el) el.textContent = (currentPan >= 0 ? '+' : '') + currentPan.toFixed(1) + '°';
+            }
+            if (tilt !== undefined && tilt !== null) {
+                currentTilt = parseFloat(tilt);
+                const el = document.getElementById('val-tilt');
+                if (el) el.textContent = (currentTilt >= 0 ? '+' : '') + currentTilt.toFixed(1) + '°';
+            }
+            if (zoom !== undefined && zoom !== null) {
+                currentZoom = Math.max(1.0, parseFloat(zoom));
+                const el = document.getElementById('val-zoom');
+                if (el) el.textContent = currentZoom.toFixed(1) + 'x';
+                const badge = document.getElementById('zoom-val-badge');
+                if (badge) badge.textContent = currentZoom.toFixed(1) + 'x';
+            }
+        }
+
+        async function fetchPtzStatus(camId) {
+            try {
+                const targetCam = camId || activeCamId;
+                const res = await fetch(`/api/iot/stations/${stationCode}/camera/ptz?camera_id=${targetCam}`);
+                const data = await res.json();
+                if (data.success && data.ptz) {
+                    updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
+                    console.log(`%c[PTZ THỰC TẾ] ${targetCam}: Pan=${data.ptz.pan}°, Tilt=${data.ptz.tilt}°, Zoom=${data.ptz.zoom}x`, 'color: #10b981; font-weight: bold;');
+                }
+            } catch (e) {
+                console.warn('[PTZ] Không thể lấy tọa độ PTZ từ camera:', e);
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             startClock();
             checkInitialStreamStatus();
+            fetchPtzStatus(activeCamId);
         });
 
         // 0. Ghi log tương tác MQTT chi tiết
@@ -637,6 +672,9 @@
             });
 
             document.getElementById('active-cam-label').textContent = cameraLabels[camId] || `Camera ${camId}`;
+
+            // Hỏi tọa độ PTZ thực tế của camera vừa chọn
+            fetchPtzStatus(camId);
 
             if (isStreamActive) {
                 stopStream(false);
@@ -689,6 +727,9 @@
                 });
 
                 if (result.success && result.stream) {
+                    if (result.ptz) {
+                        updatePtzDisplay(result.ptz.pan, result.ptz.tilt, result.ptz.zoom);
+                    }
                     initHlsPlayer(result.stream.hls_url);
                     startCountdown(duration);
                     showToast('Đã gửi lệnh, đang kết nối luồng video...', 'info');
@@ -903,6 +944,9 @@
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/status?camera_id=${activeCamId}`);
                 const data = await res.json();
+                if (data.ptz) {
+                    updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
+                }
                 if (data.active && data.remaining_seconds > 0 && data.stream) {
                     initHlsPlayer(data.stream.hls_url);
                     startCountdown(data.remaining_seconds);
@@ -980,6 +1024,12 @@
                     mqtt_published: result.command?.success ?? result.success,
                     mqtt_response_ack: result.ack || result
                 });
+
+                if (result.ptz) {
+                    updatePtzDisplay(result.ptz.pan, result.ptz.tilt, result.ptz.zoom);
+                } else if (result.ack?.data?.ptz) {
+                    updatePtzDisplay(result.ack.data.ptz.pan, result.ack.data.ptz.tilt, result.ack.data.ptz.zoom);
+                }
             } catch (e) {
                 console.error('[MQTT CAMERA ERROR] Lỗi điều khiển PTZ:', e);
             }
@@ -988,36 +1038,25 @@
         async function moveCamera(directionName, deltaPan, deltaTilt) {
             // Nếu vừa hoàn thành một phiên nhấn giữ liên tục thì bỏ qua sự kiện click
             if (isPtzHolding) return;
-
-            currentPan = Math.max(-180, Math.min(180, currentPan + deltaPan));
-            currentTilt = Math.max(-45, Math.min(45, currentTilt + deltaTilt));
-
-            document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
-            document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
-
-            await sendPtzRequest(directionName, false, 0.5);
+            await sendPtzRequest(directionName, false, 0.4);
         }
 
         // 9. Thay đổi Zoom (gửi lệnh ZOOM_IN / ZOOM_OUT sang camera thật)
         function updateZoom(val) {
-            currentZoom = Math.max(1.0, Math.min(4.0, Math.round(parseFloat(val) * 10) / 10));
+            currentZoom = Math.max(1.0, Math.min(10.0, Math.round(parseFloat(val) * 10) / 10));
             document.getElementById('val-zoom').textContent = currentZoom.toFixed(1) + 'x';
             document.getElementById('zoom-val-badge').textContent = currentZoom.toFixed(1) + 'x';
         }
 
         async function changeZoom(delta) {
             if (isPtzHolding) return;
-            updateZoom(currentZoom + delta);
             const dir = delta > 0 ? 'ZOOM_IN' : 'ZOOM_OUT';
-            await sendPtzRequest(dir, false, 0.6);
+            await sendPtzRequest(dir, false, 0.5);
         }
 
         function applyPreset(name, pan, tilt, zoom) {
-            currentPan = pan;
-            currentTilt = tilt;
-            document.getElementById('val-pan').textContent = currentPan.toFixed(1) + '°';
-            document.getElementById('val-tilt').textContent = currentTilt.toFixed(1) + '°';
-            updateZoom(zoom);
+            updatePtzDisplay(pan, tilt, zoom);
+            showToast(`Đang chuyển camera tới góc chụp [${name}]...`, 'info');
         }
 
         // 10. Tự động tải ảnh về PC / Mobile của người dùng qua Browser
@@ -1082,6 +1121,9 @@
                 });
 
                 if (result.success) {
+                    if (result.ptz) {
+                        updatePtzDisplay(result.ptz.pan, result.ptz.tilt, result.ptz.zoom);
+                    }
                     if (result.image_url) {
                         const filename = result.filename || `Snapshot_${stationCode}_${activeCamId}_${Date.now()}.jpg`;
                         triggerBrowserDownload(result.image_url, filename);
