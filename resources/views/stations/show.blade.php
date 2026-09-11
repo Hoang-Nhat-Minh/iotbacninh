@@ -313,8 +313,8 @@
                             id="btn-start-stream" onclick="startStream()">
                             <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none"
-                            id="btn-stop-stream" onclick="stopStream()">
+                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
+                            onclick="stopStream()">
                             <i class="bi bi-stop-fill fs-6"></i> Dừng phát
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none"
@@ -344,74 +344,59 @@
 
                     <!-- Grid D-Pad Control Wheel (Nút giữa là nút chụp ảnh) -->
                     <div class="ptz-grid">
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Up-Left', -5, 5)"
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Up-Left', -5, 5)"
                             onmouseup="stopContinuousPtz('Up-Left', -5, 5)"
                             onmouseleave="stopContinuousPtz('Up-Left', -5, 5)"
                             ontouchstart="startContinuousPtz('Up-Left', -5, 5)"
-                            ontouchend="stopContinuousPtz('Up-Left', -5, 5)"
-                            onclick="moveCamera('Up-Left', -5, 5)"
-                            title="Lên - Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up-left"></i></button>
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Up', 0, 5)"
-                            onmouseup="stopContinuousPtz('Up', 0, 5)"
-                            onmouseleave="stopContinuousPtz('Up', 0, 5)"
-                            ontouchstart="startContinuousPtz('Up', 0, 5)"
-                            ontouchend="stopContinuousPtz('Up', 0, 5)"
-                            onclick="moveCamera('Up', 0, 5)"
-                            title="Xoay Lên (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up"></i></button>
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Up-Right', 5, 5)"
+                            ontouchend="stopContinuousPtz('Up-Left', -5, 5)" onclick="moveCamera('Up-Left', -5, 5)"
+                            title="Lên - Trái (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-up-left"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Up', 0, 5)"
+                            onmouseup="stopContinuousPtz('Up', 0, 5)" onmouseleave="stopContinuousPtz('Up', 0, 5)"
+                            ontouchstart="startContinuousPtz('Up', 0, 5)" ontouchend="stopContinuousPtz('Up', 0, 5)"
+                            onclick="moveCamera('Up', 0, 5)" title="Xoay Lên (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Up-Right', 5, 5)"
                             onmouseup="stopContinuousPtz('Up-Right', 5, 5)"
                             onmouseleave="stopContinuousPtz('Up-Right', 5, 5)"
                             ontouchstart="startContinuousPtz('Up-Right', 5, 5)"
-                            ontouchend="stopContinuousPtz('Up-Right', 5, 5)"
-                            onclick="moveCamera('Up-Right', 5, 5)"
-                            title="Lên - Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-up-right"></i></button>
+                            ontouchend="stopContinuousPtz('Up-Right', 5, 5)" onclick="moveCamera('Up-Right', 5, 5)"
+                            title="Lên - Phải (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-up-right"></i></button>
 
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Left', -5, 0)"
-                            onmouseup="stopContinuousPtz('Left', -5, 0)"
-                            onmouseleave="stopContinuousPtz('Left', -5, 0)"
-                            ontouchstart="startContinuousPtz('Left', -5, 0)"
-                            ontouchend="stopContinuousPtz('Left', -5, 0)"
-                            onclick="moveCamera('Left', -5, 0)"
-                            title="Xoay Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-left"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Left', -5, 0)"
+                            onmouseup="stopContinuousPtz('Left', -5, 0)" onmouseleave="stopContinuousPtz('Left', -5, 0)"
+                            ontouchstart="startContinuousPtz('Left', -5, 0)" ontouchend="stopContinuousPtz('Left', -5, 0)"
+                            onclick="moveCamera('Left', -5, 0)" title="Xoay Trái (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-left"></i></button>
                         <button type="button" class="ptz-btn-dir ptz-btn-center" onclick="takeSnapshot()"
                             title="Chụp ảnh tức thì"><i class="bi bi-camera-fill"></i></button>
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Right', 5, 0)"
-                            onmouseup="stopContinuousPtz('Right', 5, 0)"
-                            onmouseleave="stopContinuousPtz('Right', 5, 0)"
-                            ontouchstart="startContinuousPtz('Right', 5, 0)"
-                            ontouchend="stopContinuousPtz('Right', 5, 0)"
-                            onclick="moveCamera('Right', 5, 0)"
-                            title="Xoay Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-right"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Right', 5, 0)"
+                            onmouseup="stopContinuousPtz('Right', 5, 0)" onmouseleave="stopContinuousPtz('Right', 5, 0)"
+                            ontouchstart="startContinuousPtz('Right', 5, 0)" ontouchend="stopContinuousPtz('Right', 5, 0)"
+                            onclick="moveCamera('Right', 5, 0)" title="Xoay Phải (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-right"></i></button>
 
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Down-Left', -5, -5)"
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Down-Left', -5, -5)"
                             onmouseup="stopContinuousPtz('Down-Left', -5, -5)"
                             onmouseleave="stopContinuousPtz('Down-Left', -5, -5)"
                             ontouchstart="startContinuousPtz('Down-Left', -5, -5)"
-                            ontouchend="stopContinuousPtz('Down-Left', -5, -5)"
-                            onclick="moveCamera('Down-Left', -5, -5)"
-                            title="Xuống - Trái (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down-left"></i></button>
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Down', 0, -5)"
-                            onmouseup="stopContinuousPtz('Down', 0, -5)"
-                            onmouseleave="stopContinuousPtz('Down', 0, -5)"
-                            ontouchstart="startContinuousPtz('Down', 0, -5)"
-                            ontouchend="stopContinuousPtz('Down', 0, -5)"
+                            ontouchend="stopContinuousPtz('Down-Left', -5, -5)" onclick="moveCamera('Down-Left', -5, -5)"
+                            title="Xuống - Trái (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-down-left"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Down', 0, -5)"
+                            onmouseup="stopContinuousPtz('Down', 0, -5)" onmouseleave="stopContinuousPtz('Down', 0, -5)"
+                            ontouchstart="startContinuousPtz('Down', 0, -5)" ontouchend="stopContinuousPtz('Down', 0, -5)"
                             onclick="moveCamera('Down', 0, -5)"
-                            title="Xoay Xuống (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down"></i></button>
-                        <button type="button" class="ptz-btn-dir"
-                            onmousedown="startContinuousPtz('Down-Right', 5, -5)"
+                            title="Xoay Xuống (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="ptz-btn-dir" onmousedown="startContinuousPtz('Down-Right', 5, -5)"
                             onmouseup="stopContinuousPtz('Down-Right', 5, -5)"
                             onmouseleave="stopContinuousPtz('Down-Right', 5, -5)"
                             ontouchstart="startContinuousPtz('Down-Right', 5, -5)"
-                            ontouchend="stopContinuousPtz('Down-Right', 5, -5)"
-                            onclick="moveCamera('Down-Right', 5, -5)"
-                            title="Xuống - Phải (Nhấp để nhích, giữ để quay liên tục)"><i class="bi bi-arrow-down-right"></i></button>
+                            ontouchend="stopContinuousPtz('Down-Right', 5, -5)" onclick="moveCamera('Down-Right', 5, -5)"
+                            title="Xuống - Phải (Nhấp để nhích, giữ để quay liên tục)"><i
+                                class="bi bi-arrow-down-right"></i></button>
                     </div>
 
                     <!-- Điều chỉnh Mức Zoom -->
@@ -427,8 +412,8 @@
                                     onmouseup="stopContinuousPtz('ZOOM_OUT', 0, 0)"
                                     onmouseleave="stopContinuousPtz('ZOOM_OUT', 0, 0)"
                                     ontouchstart="startContinuousPtz('ZOOM_OUT', 0, 0)"
-                                    ontouchend="stopContinuousPtz('ZOOM_OUT', 0, 0)"
-                                    onclick="changeZoom(-0.5)" title="Thu nhỏ (Zoom out) - Nhấp để nhích, giữ để zoom liên tục">
+                                    ontouchend="stopContinuousPtz('ZOOM_OUT', 0, 0)" onclick="changeZoom(-0.5)"
+                                    title="Thu nhỏ (Zoom out) - Nhấp để nhích, giữ để zoom liên tục">
                                     <i class="bi bi-dash-lg"></i>
                                 </button>
                                 <span class="badge bg-primary fs-6 font-monospace px-3 py-1.5"
@@ -438,8 +423,8 @@
                                     onmouseup="stopContinuousPtz('ZOOM_IN', 0, 0)"
                                     onmouseleave="stopContinuousPtz('ZOOM_IN', 0, 0)"
                                     ontouchstart="startContinuousPtz('ZOOM_IN', 0, 0)"
-                                    ontouchend="stopContinuousPtz('ZOOM_IN', 0, 0)"
-                                    onclick="changeZoom(0.5)" title="Phóng to (Zoom in) - Nhấp để nhích, giữ để zoom liên tục">
+                                    ontouchend="stopContinuousPtz('ZOOM_IN', 0, 0)" onclick="changeZoom(0.5)"
+                                    title="Phóng to (Zoom in) - Nhấp để nhích, giữ để zoom liên tục">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
@@ -485,7 +470,9 @@
                                     <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">
                                         {{ $preset->name }}
                                     </div>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace" style="font-size: 10px;">
+                                    <span
+                                        class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace"
+                                        style="font-size: 10px;">
                                         {{ strtoupper($preset->camera_id ?? 'cam_1') }}
                                     </span>
                                 </div>
@@ -494,10 +481,15 @@
                                     {{ number_format($preset->tilt_angle, 1) }}° |
                                     {{ number_format($preset->zoom_level, 1) }}x
                                 </div>
-                                @if($preset->schedule)
+                                @if ($preset->schedule)
                                     <div class="mt-1">
-                                        <span class="badge bg-light text-secondary border font-monospace text-truncate d-inline-block" style="font-size: 10px; max-width: 100%;" title="{{ $preset->schedule->name }}">
-                                            <i class="bi bi-clock me-1 text-primary"></i>{{ substr($preset->schedule->start_time, 0, 5) }} - {{ substr($preset->schedule->end_time, 0, 5) }}
+                                        <span
+                                            class="badge bg-light text-secondary border font-monospace text-truncate d-inline-block"
+                                            style="font-size: 10px; max-width: 100%;"
+                                            title="{{ $preset->schedule->name }}">
+                                            <i
+                                                class="bi bi-clock me-1 text-primary"></i>{{ substr($preset->schedule->start_time, 0, 5) }}
+                                            - {{ substr($preset->schedule->end_time, 0, 5) }}
                                         </span>
                                     </div>
                                 @endif
@@ -518,8 +510,11 @@
                         <i class="bi bi-images text-primary"></i> Nhật Ký Ảnh Chụp Tức Thời
                     </h5>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-light text-muted border font-monospace" id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
-                        <a href="{{ route('iot.media', ['station_id' => $station['id']]) }}" class="btn btn-outline-primary btn-sm py-0.5 px-2" style="font-size: 11px;" title="Quản lý & Xóa ảnh trong kho media">
+                        <span class="badge bg-light text-muted border font-monospace"
+                            id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
+                        <a href="{{ route('iot.media', ['station_id' => $station['id']]) }}"
+                            class="btn btn-outline-primary btn-sm py-0.5 px-2" style="font-size: 11px;"
+                            title="Quản lý & Xóa ảnh trong kho media">
                             <i class="bi bi-folder2-open me-1"></i>Kho media
                         </a>
                     </div>
@@ -529,29 +524,41 @@
                     @forelse($recentSnapshots ?? [] as $media)
                         @php
                             $devCode = $media->device->code ?? '';
-                            $camTag = str_contains($devCode, 'cam_1') ? 'Cam 01' : (str_contains($devCode, 'cam_2') ? 'Cam 02' : (str_contains($devCode, 'cam_3') ? 'Cam 03' : (str_contains($devCode, 'cam_4') ? 'Cam 04' : 'Camera')));
+                            $camTag = str_contains($devCode, 'cam_1')
+                                ? 'Cam 01'
+                                : (str_contains($devCode, 'cam_2')
+                                    ? 'Cam 02'
+                                    : (str_contains($devCode, 'cam_3')
+                                        ? 'Cam 03'
+                                        : (str_contains($devCode, 'cam_4')
+                                            ? 'Cam 04'
+                                            : 'Camera')));
                             $filePath = $media->file_path;
                             $imgUrl = str_starts_with($filePath, 'http') ? $filePath : asset('storage/' . $filePath);
                         @endphp
                         <div class="col-4">
                             <div class="border rounded-3 p-1 position-relative bg-light shadow-sm">
-                                <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace" style="font-size: 9px; z-index: 2;">
+                                <span
+                                    class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace"
+                                    style="font-size: 9px; z-index: 2;">
                                     {{ $camTag }}
                                 </span>
                                 <a href="{{ $imgUrl }}" target="_blank" title="Bấm để phóng to ảnh gốc">
-                                    <img src="{{ $imgUrl }}"
-                                        class="snapshot-thumb" alt="{{ $media->name ?? 'Snapshot' }}"
+                                    <img src="{{ $imgUrl }}" class="snapshot-thumb"
+                                        alt="{{ $media->name ?? 'Snapshot' }}"
                                         style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;"
                                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center text-muted\' style=\'height:80px; font-size:10px;\'><i class=\'bi bi-image me-1\'></i> Lỗi ảnh</div>';">
                                 </a>
-                                <div class="text-muted font-monospace text-center mt-1 text-truncate" style="font-size: 10px;">
+                                <div class="text-muted font-monospace text-center mt-1 text-truncate"
+                                    style="font-size: 10px;">
                                     {{ $media->created_at ? $media->created_at->format('H:i - d/m') : '' }}
                                 </div>
                             </div>
                         </div>
                     @empty
                         <div class="col-12 text-center text-muted py-3 empty-snap-msg">
-                            <i class="bi bi-camera me-1"></i> Chưa có ảnh chụp nào từ trạm.<br>Bấm nút máy ảnh ở bảng điều khiển để chụp tức thì.
+                            <i class="bi bi-camera me-1"></i> Chưa có ảnh chụp nào từ trạm.<br>Bấm nút máy ảnh ở bảng điều
+                            khiển để chụp tức thì.
                         </div>
                     @endforelse
                 </div>
@@ -590,12 +597,11 @@
                             <label class="form-label">Khung giờ lịch trình</label>
                             <select name="schedule_id" class="form-select" id="save-preset-schedule-id">
                                 <option value="">-- Không gắn lịch trình --</option>
-                                @foreach($schedules ?? [] as $sch)
-                                    <option value="{{ $sch->id }}"
-                                        data-start="{{ $sch->start_time }}"
-                                        data-end="{{ $sch->end_time }}"
-                                        data-camera="{{ $sch->camera_id ?? 'all' }}">
-                                        {{ $sch->name }} ({{ substr($sch->start_time, 0, 5) }} - {{ substr($sch->end_time, 0, 5) }})
+                                @foreach ($schedules ?? [] as $sch)
+                                    <option value="{{ $sch->id }}" data-start="{{ $sch->start_time }}"
+                                        data-end="{{ $sch->end_time }}" data-camera="{{ $sch->camera_id ?? 'all' }}">
+                                        {{ $sch->name }} ({{ substr($sch->start_time, 0, 5) }} -
+                                        {{ substr($sch->end_time, 0, 5) }})
                                     </option>
                                 @endforeach
                             </select>
@@ -691,7 +697,9 @@
                 const data = await res.json();
                 if (data.success && data.ptz) {
                     updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
-                    console.log(`%c[PTZ THỰC TẾ] ${targetCam}: Pan=${data.ptz.pan}°, Tilt=${data.ptz.tilt}°, Zoom=${data.ptz.zoom}x`, 'color: #10b981; font-weight: bold;');
+                    console.log(
+                        `%c[PTZ THỰC TẾ] ${targetCam}: Pan=${data.ptz.pan}°, Tilt=${data.ptz.tilt}°, Zoom=${data.ptz.zoom}x`,
+                        'color: #10b981; font-weight: bold;');
                 }
             } catch (e) {
                 console.warn('[PTZ] Không thể lấy tọa độ PTZ từ camera:', e);
@@ -1205,7 +1213,13 @@
                             if (emptyMsg) emptyMsg.remove();
 
                             const now = new Date();
-                            const nowStr = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) + ' - ' + now.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit'});
+                            const nowStr = now.toLocaleTimeString('vi-VN', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) + ' - ' + now.toLocaleDateString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit'
+                            });
                             const camLabel = cameraLabels[activeCamId] || activeCamId;
                             const col = document.createElement('div');
                             col.className = 'col-4 animate-fade-in';
@@ -1290,7 +1304,8 @@
             ];
 
             for (const type of candidateTypes) {
-                if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(type)) {
+                if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function' &&
+                    MediaRecorder.isTypeSupported(type)) {
                     mimeType = type;
                     if (type.includes('mp4')) fileExt = 'mp4';
                     break;
@@ -1299,20 +1314,22 @@
 
             try {
                 recordedChunks = [];
-                activeMediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+                activeMediaRecorder = mimeType ? new MediaRecorder(stream, {
+                    mimeType
+                }) : new MediaRecorder(stream);
             } catch (e) {
                 console.error('[RECORD] Khởi tạo MediaRecorder thất bại:', e);
                 showToast('Không thể khởi tạo bộ ghi hình trên trình duyệt: ' + e.message, 'error');
                 return;
             }
 
-            activeMediaRecorder.ondataavailable = function (e) {
+            activeMediaRecorder.ondataavailable = function(e) {
                 if (e.data && e.data.size > 0) {
                     recordedChunks.push(e.data);
                 }
             };
 
-            activeMediaRecorder.onstop = function () {
+            activeMediaRecorder.onstop = function() {
                 clearInterval(recordCountdownInterval);
                 isRecording = false;
                 updateRecordButtonState(isStreamActive);
@@ -1324,12 +1341,15 @@
                 }
 
                 const blobType = mimeType || 'video/webm';
-                const blob = new Blob(recordedChunks, { type: blobType });
+                const blob = new Blob(recordedChunks, {
+                    type: blobType
+                });
                 const blobUrl = window.URL.createObjectURL(blob);
 
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
-                const timeStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const timeStr =
+                    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
                 const filename = `Record_${stationCode}_${activeCamId}_${timeStr}.${fileExt}`;
 
                 // 1. Tự động tải file video về máy tính / điện thoại
@@ -1418,7 +1438,7 @@
             document.getElementById('save-preset-pan').value = currentPan.toFixed(1);
             document.getElementById('save-preset-tilt').value = currentTilt.toFixed(1);
             document.getElementById('save-preset-zoom').value = currentZoom.toFixed(1);
-            
+
             const camSelect = document.getElementById('save-preset-cam-id');
             if (camSelect) camSelect.value = activeCamId || 'cam_1';
 
