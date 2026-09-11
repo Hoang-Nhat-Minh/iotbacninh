@@ -168,7 +168,10 @@ class MonitoringStationController extends Controller
             }
         ])->findOrFail($id);
 
-        $presets = ImageCaptureLocation::where('monitoring_station_id', $id)->get();
+        $presets = ImageCaptureLocation::with('schedule')->where('monitoring_station_id', $id)->get();
+        $schedules = \App\Models\Iot\ImageCollectionSchedule::where(function ($q) use ($id) {
+            $q->where('monitoring_station_id', $id)->orWhereNull('monitoring_station_id');
+        })->where('status', 'active')->get();
 
         // 1. Lấy dữ liệu cảm biến thực tế mới nhất từ Database
         $latestReadings = $this->getLatestStationReadings($st);
@@ -250,7 +253,7 @@ class MonitoringStationController extends Controller
             ->take(6)
             ->get();
 
-        return view('stations.show', compact('station', 'latestTelemetry', 'presets', 'recentSnapshots'));
+        return view('stations.show', compact('station', 'latestTelemetry', 'presets', 'recentSnapshots', 'schedules'));
     }
 
     public function create()

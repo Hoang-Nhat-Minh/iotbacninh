@@ -28,6 +28,7 @@
                         <th style="width: 60px;">STT</th>
                         <th>Tên khung giờ lịch trình</th>
                         <th>Trạm quan trắc</th>
+                        <th>Camera áp dụng</th>
                         <th>Thời gian bắt đầu</th>
                         <th>Thời gian kết thúc</th>
                         <th>Chu kỳ chụp</th>
@@ -43,6 +44,11 @@
                             <td>
                                 <span class="badge bg-light text-dark border px-2 py-1">
                                     <i class="bi bi-broadcast"></i> {{ $s->monitoringStation->name ?? 'Tất cả trạm' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">
+                                    {{ $s->camera_label }}
                                 </span>
                             </td>
                             <td><span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-clock"></i> {{ $s->start_time }}</span></td>
@@ -63,7 +69,7 @@
                                         </button>
                                     </form>
                                     <button class="btn btn-secondary btn-icon btn-sm" title="Sửa khung giờ"
-                                            onclick="openEditScheduleModal({{ $s->id }}, '{{ $s->monitoring_station_id ?? '' }}', '{{ addslashes($s->name) }}', '{{ $s->start_time }}', '{{ $s->end_time }}', {{ $s->interval_minutes }}, '{{ $s->status }}')">
+                                            onclick="openEditScheduleModal({{ $s->id }}, '{{ $s->monitoring_station_id ?? '' }}', '{{ addslashes($s->name) }}', '{{ $s->start_time }}', '{{ $s->end_time }}', {{ $s->interval_minutes }}, '{{ $s->status }}', '{{ $s->camera_id ?? 'all' }}')">
                                         <i class="bi bi-pencil-square text-primary"></i>
                                     </button>
                                     <button class="btn btn-secondary btn-icon btn-sm" title="Xóa khung giờ"
@@ -75,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="empty-state py-4">
                                     <div class="empty-state-icon"><i class="bi bi-clock"></i></div>
                                     <h6 class="fw-bold mb-1">Chưa có khung giờ chụp ảnh nào</h6>
@@ -110,6 +116,16 @@
                         @foreach($stations as $st)
                             <option value="{{ $st->id }}">{{ $st->name }} ({{ $st->code }})</option>
                         @endforeach
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
+                    <select name="camera_id" class="form-select" required>
+                        <option value="all" selected>Tất cả Camera (Chụp lần lượt 4 camera)</option>
+                        <option value="cam_1">Camera 01 (Toàn cảnh - 192.168.1.10)</option>
+                        <option value="cam_2">Camera 02 (Cận cảnh - 192.168.1.11)</option>
+                        <option value="cam_3">Camera 03 (Khu vực đất - 192.168.1.12)</option>
+                        <option value="cam_4">Camera 04 (Lối vào vườn - 192.168.1.13)</option>
                     </select>
                 </div>
                 <div class="row g-3 mb-3">
@@ -166,6 +182,16 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Camera áp dụng</label>
+                    <select name="camera_id" id="edit-schedule-camera-id" class="form-select">
+                        <option value="all">Tất cả Camera (Chụp lần lượt 4 camera)</option>
+                        <option value="cam_1">Camera 01 (Toàn cảnh - 192.168.1.10)</option>
+                        <option value="cam_2">Camera 02 (Cận cảnh - 192.168.1.11)</option>
+                        <option value="cam_3">Camera 03 (Khu vực đất - 192.168.1.12)</option>
+                        <option value="cam_4">Camera 04 (Lối vào vườn - 192.168.1.13)</option>
+                    </select>
+                </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Giờ bắt đầu</label>
@@ -220,7 +246,7 @@
 
 @push('scripts')
 <script>
-function openEditScheduleModal(id, stationId, name, start, end, interval, status) {
+function openEditScheduleModal(id, stationId, name, start, end, interval, status, cameraId) {
     document.getElementById('form-edit-schedule').action = window.location.origin + '/iot/schedules/update/' + id;
     document.getElementById('edit-schedule-station').value = stationId;
     document.getElementById('edit-schedule-name').value = name;
@@ -228,6 +254,8 @@ function openEditScheduleModal(id, stationId, name, start, end, interval, status
     document.getElementById('edit-schedule-end').value = end;
     document.getElementById('edit-schedule-interval').value = interval;
     document.getElementById('edit-schedule-status').value = status;
+    const camEl = document.getElementById('edit-schedule-camera-id');
+    if (camEl) camEl.value = cameraId || 'all';
     openModal('modal-edit-schedule');
 }
 function openDeleteScheduleModal(id, name) {

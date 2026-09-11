@@ -22,6 +22,7 @@ class CaptureScheduleController extends Controller
         $validated = $request->validate([
             'monitoring_station_id' => 'nullable|exists:monitoring_stations,id',
             'name' => 'required|string|max:255',
+            'camera_id' => 'nullable|string|in:all,cam_1,cam_2,cam_3,cam_4',
             'start_time' => 'required',
             'end_time' => 'required',
             'interval_minutes' => 'nullable|integer|min:1|max:1440',
@@ -29,6 +30,7 @@ class CaptureScheduleController extends Controller
             'status' => 'required|string|in:active,inactive',
         ]);
 
+        $validated['camera_id'] = $request->input('camera_id', 'all');
         $validated['interval'] = $request->input('interval', $request->input('interval_minutes', 60));
         unset($validated['interval_minutes']);
 
@@ -44,6 +46,7 @@ class CaptureScheduleController extends Controller
         $validated = $request->validate([
             'monitoring_station_id' => 'nullable|exists:monitoring_stations,id',
             'name' => 'required|string|max:255',
+            'camera_id' => 'nullable|string|in:all,cam_1,cam_2,cam_3,cam_4',
             'start_time' => 'required',
             'end_time' => 'required',
             'interval_minutes' => 'nullable|integer|min:1|max:1440',
@@ -51,6 +54,7 @@ class CaptureScheduleController extends Controller
             'status' => 'required|string|in:active,inactive',
         ]);
 
+        $validated['camera_id'] = $request->input('camera_id', $schedule->camera_id ?: 'all');
         $validated['interval'] = $request->input('interval', $request->input('interval_minutes', $schedule->interval));
         unset($validated['interval_minutes']);
 

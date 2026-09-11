@@ -480,15 +480,27 @@
                 <div class="row g-2">
                     @forelse($presets as $idx => $preset)
                         <div class="col-6">
-                            <div class="preset-card-item"
-                                onclick="applyPreset('{{ addslashes($preset->name) }}', {{ $preset->pan_angle }}, {{ $preset->tilt_angle }}, {{ $preset->zoom_level }})">
-                                <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">
-                                    {{ $preset->name }}</div>
+                            <div class="preset-card-item">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">
+                                        {{ $preset->name }}
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace" style="font-size: 10px;">
+                                        {{ strtoupper($preset->camera_id ?? 'cam_1') }}
+                                    </span>
+                                </div>
                                 <div class="text-muted small font-monospace" style="font-size: 11px;">
                                     Pan: {{ number_format($preset->pan_angle, 1) }}° | Tilt:
                                     {{ number_format($preset->tilt_angle, 1) }}° |
                                     {{ number_format($preset->zoom_level, 1) }}x
                                 </div>
+                                @if($preset->schedule)
+                                    <div class="mt-1">
+                                        <span class="badge bg-light text-secondary border font-monospace text-truncate d-inline-block" style="font-size: 10px; max-width: 100%;" title="{{ $preset->schedule->name }}">
+                                            <i class="bi bi-clock me-1 text-primary"></i>{{ substr($preset->schedule->start_time, 0, 5) }} - {{ substr($preset->schedule->end_time, 0, 5) }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -558,6 +570,31 @@
                         <label class="form-label">Tên góc chụp (Preset) <span class="text-danger">*</span></label>
                         <input type="text" name="name" class="form-control"
                             placeholder="Ví dụ: Góc luống dưa chuột tây #2" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
+                            <select name="camera_id" id="save-preset-cam-id" class="form-select" required>
+                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
+                                <option value="cam_2">Cam 02 (Phía Tây)</option>
+                                <option value="cam_3">Cam 03 (Phía Nam)</option>
+                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Khung giờ lịch trình</label>
+                            <select name="schedule_id" class="form-select" id="save-preset-schedule-id">
+                                <option value="">-- Không gắn lịch trình --</option>
+                                @foreach($schedules ?? [] as $sch)
+                                    <option value="{{ $sch->id }}"
+                                        data-start="{{ $sch->start_time }}"
+                                        data-end="{{ $sch->end_time }}"
+                                        data-camera="{{ $sch->camera_id ?? 'all' }}">
+                                        {{ $sch->name }} ({{ substr($sch->start_time, 0, 5) }} - {{ substr($sch->end_time, 0, 5) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="row g-3">
                         <div class="col-4">
@@ -1376,6 +1413,53 @@
             document.getElementById('save-preset-pan').value = currentPan.toFixed(1);
             document.getElementById('save-preset-tilt').value = currentTilt.toFixed(1);
             document.getElementById('save-preset-zoom').value = currentZoom.toFixed(1);
+            
+            const camSelect = document.getElementById('save-preset-cam-id');
+            if (camSelect) camSelect.value = activeCamId || 'cam_1';
+
+            // Tự động tìm và chọn lịch trình đang diễn ra (phù hợp thời gian hiện tại và camera)
+            const scheduleSelect = document.getElementById('save-preset-schedule-id');
+            if (scheduleSelect) {
+                const now = new Date();
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                let matchedValue = '';
+
+                for (let i = 0; i < scheduleSelect.options.length; i++) {
+                    const opt = scheduleSelect.options[i];
+                    const startStr = opt.dataset.start;
+                    const endStr = opt.dataset.end;
+                    const cam = opt.dataset.camera;
+                    if (startStr && endStr) {
+                        const [sh, sm] = startStr.split(':').map(Number);
+                        const [eh, em] = endStr.split(':').map(Number);
+                        const startMin = sh * 60 + sm;
+                        const endMin = eh * 60 + em;
+
+                        let isInRange = false;
+                        if (startMin <= endMin) {
+                            isInRange = currentMinutes >= startMin && currentMinutes <= endMin;
+                        } else {
+                            isInRange = currentMinutes >= startMin || currentMinutes <= endMin;
+                        }
+
+                        if (isInRange) {
+                            if (cam === 'all' || cam === activeCamId) {
+                                matchedValue = opt.value;
+                                break;
+                            } else if (!matchedValue) {
+                                matchedValue = opt.value;
+                            }
+                        }
+                    }
+                }
+
+                if (matchedValue) {
+                    scheduleSelect.value = matchedValue;
+                } else if (scheduleSelect.options.length === 2) {
+                    scheduleSelect.selectedIndex = 1;
+                }
+            }
+
             openModal('modal-save-preset');
         }
 

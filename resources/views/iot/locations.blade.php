@@ -25,11 +25,13 @@
                 <table class="custom-table mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 60px;">STT</th>
+                            <th style="width: 50px;">STT</th>
                             <th>Tên điểm góc chụp</th>
                             <th>Trạm quan trắc</th>
-                            <th>Góc Pan (Ngang)</th>
-                            <th>Góc Tilt (Dọc)</th>
+                            <th>Camera</th>
+                            <th>Lịch trình</th>
+                            <th>Góc Pan</th>
+                            <th>Góc Tilt</th>
                             <th>Mức Zoom</th>
                             <th>Trạng thái</th>
                             <th style="width: 120px; text-align: center;">Thao tác</th>
@@ -45,6 +47,20 @@
                                         <i class="bi bi-broadcast"></i>
                                         {{ $loc->monitoringStation->name ?? 'Trạm #' . $loc->monitoring_station_id }}
                                     </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">
+                                        {{ $loc->camera_label }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($loc->schedule)
+                                        <span class="badge bg-light text-secondary border font-monospace" title="{{ $loc->schedule->name }}">
+                                            <i class="bi bi-clock me-1 text-primary"></i>{{ substr($loc->schedule->start_time, 0, 5) }} - {{ substr($loc->schedule->end_time, 0, 5) }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">--</span>
+                                    @endif
                                 </td>
                                 <td><code
                                         class="font-monospace text-primary fw-bold">{{ number_format($loc->pan_angle, 1) }}°</code>
@@ -69,7 +85,7 @@
                                 <td style="text-align: center;">
                                     <div class="d-inline-flex gap-1">
                                         <button class="btn btn-secondary btn-icon btn-sm" title="Sửa góc chụp"
-                                            onclick="openEditLocationModal({{ $loc->id }}, '{{ addslashes($loc->name) }}', {{ $loc->pan_angle }}, {{ $loc->tilt_angle }}, {{ $loc->zoom_level }})">
+                                            onclick="openEditLocationModal({{ $loc->id }}, '{{ addslashes($loc->name) }}', {{ $loc->pan_angle }}, {{ $loc->tilt_angle }}, {{ $loc->zoom_level }}, '{{ $loc->camera_id ?? 'cam_1' }}', '{{ $loc->schedule_id ?? '' }}')">
                                             <i class="bi bi-pencil-square text-primary"></i>
                                         </button>
                                         <button class="btn btn-secondary btn-icon btn-sm" title="Xóa góc chụp"
@@ -81,7 +97,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Chưa có điểm góc chụp PTZ nào trong
+                                <td colspan="10" class="text-center text-muted py-4">Chưa có điểm góc chụp PTZ nào trong
                                     cơ sở dữ liệu.</td>
                             </tr>
                         @endforelse
@@ -112,6 +128,28 @@
                                 <option value="{{ $st->id }}">{{ $st->name }} ({{ $st->code }})</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
+                            <select name="camera_id" class="form-select" required>
+                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
+                                <option value="cam_2">Cam 02 (Phía Tây)</option>
+                                <option value="cam_3">Cam 03 (Phía Nam)</option>
+                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Lịch trình tự động</label>
+                            <select name="schedule_id" class="form-select">
+                                <option value="">-- Không gắn lịch trình --</option>
+                                @foreach($schedules ?? [] as $sch)
+                                    <option value="{{ $sch->id }}">
+                                        {{ $sch->name }} ({{ substr($sch->start_time, 0, 5) }} - {{ substr($sch->end_time, 0, 5) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="row g-3 mb-2">
                         <div class="col-md-4">
@@ -152,6 +190,28 @@
                     <div class="mb-3">
                         <label class="form-label">Tên điểm góc chụp</label>
                         <input type="text" name="name" id="edit-location-name" class="form-control" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
+                            <select name="camera_id" id="edit-location-cam" class="form-select" required>
+                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
+                                <option value="cam_2">Cam 02 (Phía Tây)</option>
+                                <option value="cam_3">Cam 03 (Phía Nam)</option>
+                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Lịch trình tự động</label>
+                            <select name="schedule_id" id="edit-location-schedule" class="form-select">
+                                <option value="">-- Không gắn lịch trình --</option>
+                                @foreach($schedules ?? [] as $sch)
+                                    <option value="{{ $sch->id }}">
+                                        {{ $sch->name }} ({{ substr($sch->start_time, 0, 5) }} - {{ substr($sch->end_time, 0, 5) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -203,7 +263,7 @@
 
 @push('scripts')
     <script>
-        function openEditLocationModal(id, name, pan, tilt, zoom) {
+        function openEditLocationModal(id, name, pan, tilt, zoom, cameraId = 'cam_1', scheduleId = '') {
             const form = document.getElementById('form-edit-location');
             if (form) form.action = '{{ url("/iot/locations/update") }}/' + id;
             document.getElementById('edit-location-id').value = id;
@@ -211,6 +271,10 @@
             document.getElementById('edit-location-pan').value = pan;
             document.getElementById('edit-location-tilt').value = tilt;
             document.getElementById('edit-location-zoom').value = zoom;
+            const camSelect = document.getElementById('edit-location-cam');
+            if (camSelect) camSelect.value = cameraId || 'cam_1';
+            const schSelect = document.getElementById('edit-location-schedule');
+            if (schSelect) schSelect.value = scheduleId || '';
             openModal('modal-edit-location');
         }
 

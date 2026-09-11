@@ -68,33 +68,47 @@ class CameraScheduleService
                 continue;
             }
 
-            // 4. Gửi lệnh MQTT CAPTURE_SNAPSHOT xuống từng trạm (như chụp manual)
+            // 4. Xác định danh sách Camera cần chụp theo cấu hình của lịch trình
+            $targetCams = [];
+            if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
+                $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
+            } else {
+                $targetCams = [$schedule->camera_id];
+            }
+
+            // Gửi lệnh MQTT CAPTURE_SNAPSHOT xuống từng trạm và từng camera
             foreach ($stations as $station) {
-                $camId = 'cam_1'; // Mặc định chụp Camera 01 (Toàn cảnh)
-                $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
-                    'camera_id' => $camId,
-                    'quality' => 'main',
-                    'trigger_source' => 'auto_schedule',
-                    'schedule_id' => $schedule->id,
-                    'schedule_name' => $schedule->name,
-                ]);
+                foreach ($targetCams as $camIdx => $camId) {
+                    $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
+                        'camera_id' => $camId,
+                        'quality' => 'main',
+                        'trigger_source' => 'auto_schedule',
+                        'schedule_id' => $schedule->id,
+                        'schedule_name' => $schedule->name,
+                    ]);
 
-                $logMsg = "[AUTO_SCHEDULE_CAPTURE] Kích hoạt chụp ảnh tự động theo lịch '{$schedule->name}' tới trạm {$station->code}";
-                Log::info($logMsg, [
-                    'schedule_id' => $schedule->id,
-                    'station' => $station->code,
-                    'camera_id' => $camId,
-                    'command_result' => $cmdResult,
-                ]);
+                    $logMsg = "[AUTO_SCHEDULE_CAPTURE] Kích hoạt chụp ảnh tự động theo lịch '{$schedule->name}' tới trạm {$station->code} ({$camId})";
+                    Log::info($logMsg, [
+                        'schedule_id' => $schedule->id,
+                        'station' => $station->code,
+                        'camera_id' => $camId,
+                        'command_result' => $cmdResult,
+                    ]);
 
-                $triggered[] = [
-                    'schedule_id' => $schedule->id,
-                    'schedule_name' => $schedule->name,
-                    'station_code' => $station->code,
-                    'camera_id' => $camId,
-                    'success' => $cmdResult['success'] ?? false,
-                    'command_id' => $cmdResult['command_id'] ?? null,
-                ];
+                    $triggered[] = [
+                        'schedule_id' => $schedule->id,
+                        'schedule_name' => $schedule->name,
+                        'station_code' => $station->code,
+                        'camera_id' => $camId,
+                        'success' => $cmdResult['success'] ?? false,
+                        'command_id' => $cmdResult['command_id'] ?? null,
+                    ];
+
+                    // Nếu chụp nhiều camera, giãn cách 1 giây để trạm xử lý tuần tự mượt mà
+                    if (count($targetCams) > 1 && $camIdx < count($targetCams) - 1) {
+                        sleep(1);
+                    }
+                }
             }
 
             // 5. Cập nhật thời điểm vừa kích hoạt vào Cache để tính chu kỳ tiếp theo
@@ -119,30 +133,43 @@ class CameraScheduleService
             $stations = MonitoringStation::where('status', '!=', 'inactive')->get();
         }
 
+        $targetCams = [];
+        if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
+            $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
+        } else {
+            $targetCams = [$schedule->camera_id];
+        }
+
         foreach ($stations as $station) {
-            $camId = 'cam_1';
-            $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
-                'camera_id' => $camId,
-                'quality' => 'main',
-                'trigger_source' => 'manual_schedule_trigger',
-                'schedule_id' => $schedule->id,
-                'schedule_name' => $schedule->name,
-            ]);
+            foreach ($targetCams as $camIdx => $camId) {
+                $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
+                    'camera_id' => $camId,
+                    'quality' => 'main',
+                    'trigger_source' => 'manual_schedule_trigger',
+                    'schedule_id' => $schedule->id,
+                    'schedule_name' => $schedule->name,
+                ]);
 
-            Log::info("[MANUAL_SCHEDULE_TRIGGER] Kích hoạt chụp thủ công theo lịch '{$schedule->name}' tới trạm {$station->code}", [
-                'schedule_id' => $schedule->id,
-                'station' => $station->code,
-                'command_result' => $cmdResult,
-            ]);
+                Log::info("[MANUAL_SCHEDULE_TRIGGER] Kích hoạt chụp thủ công theo lịch '{$schedule->name}' tới trạm {$station->code} ({$camId})", [
+                    'schedule_id' => $schedule->id,
+                    'station' => $station->code,
+                    'camera_id' => $camId,
+                    'command_result' => $cmdResult,
+                ]);
 
-            $triggered[] = [
-                'schedule_id' => $schedule->id,
-                'schedule_name' => $schedule->name,
-                'station_code' => $station->code,
-                'camera_id' => $camId,
-                'success' => $cmdResult['success'] ?? false,
-                'command_id' => $cmdResult['command_id'] ?? null,
-            ];
+                $triggered[] = [
+                    'schedule_id' => $schedule->id,
+                    'schedule_name' => $schedule->name,
+                    'station_code' => $station->code,
+                    'camera_id' => $camId,
+                    'success' => $cmdResult['success'] ?? false,
+                    'command_id' => $cmdResult['command_id'] ?? null,
+                ];
+
+                if (count($targetCams) > 1 && $camIdx < count($targetCams) - 1) {
+                    sleep(1);
+                }
+            }
         }
 
         Cache::put("camera_schedule_last_run_{$schedule->id}", $now->timestamp, now()->addDays(2));
