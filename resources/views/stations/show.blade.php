@@ -1048,7 +1048,8 @@
         async function takeSnapshot() {
             showToast('Đang chụp ảnh từ camera...', 'info');
             const reqPayload = {
-                camera_id: activeCamId
+                camera_id: activeCamId,
+                quality: 'main'
             };
 
             const snapBtn = document.querySelector('.ptz-btn-center');

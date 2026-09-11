@@ -207,12 +207,15 @@ class IotCameraController extends Controller
 
         $validated = $request->validate([
             'camera_id' => 'nullable|string|in:cam_1,cam_2,cam_3,cam_4',
+            'quality' => 'nullable|string|in:main,sub',
         ]);
 
         $camId = $validated['camera_id'] ?? 'cam_1';
+        $quality = $validated['quality'] ?? 'main';
 
         $result = $mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
             'camera_id' => $camId,
+            'quality' => $quality,
         ]);
 
         // Ghi log chi tiết lệnh chụp ảnh snapshot gửi tới MQTT
