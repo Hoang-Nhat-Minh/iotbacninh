@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Iot\MonitoringStation;
+use App\Models\Iot\Device;
+use App\Models\Iot\CameraMedia;
 use App\Services\Iot\MqttService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
 
 class IotCameraController extends Controller
 {
@@ -222,20 +226,66 @@ class IotCameraController extends Controller
             'mqtt_status' => $result['success'] ? 'PUBLISHED' : 'FAILED',
         ]);
 
-        // Chờ trạm chụp và upload ảnh về VPS (tối đa 4 giây)
-        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null, 4.0);
+        // Chờ trạm chụp và upload ảnh về VPS (tối đa 5.5 giây)
+        $ack = $this->waitForMqttAck($station->code, $result['command_id'] ?? null, 5.5);
         $imageUrl = null;
         if ($ack) {
             Log::info("[MQTT_CAMERA_ACK] Trạm phản hồi kết quả lệnh CAPTURE_SNAPSHOT qua MQTT", [
                 'station' => $station->code,
                 'command_id' => $result['command_id'] ?? null,
-                'ack' => $ack,
+                'ack' => [
+                    'action' => $ack['action'] ?? null,
+                    'success' => $ack['success'] ?? null,
+                    'message' => $ack['message'] ?? null,
+                ],
             ]);
 
             if (!empty($ack['data']['image_url'])) {
                 $imageUrl = asset(ltrim($ack['data']['image_url'], '/'));
             } elseif (!empty($ack['data']['file_path'])) {
                 $imageUrl = asset('storage/' . $ack['data']['file_path']);
+            } elseif (!empty($ack['data']['image_base64'])) {
+                // Fallback: nếu worker chưa kịp giải mã base64 thì giải mã ngay tại Controller
+                try {
+                    $binary = base64_decode($ack['data']['image_base64']);
+                    if ($binary !== false && strlen($binary) > 0) {
+                        $filename = $ack['data']['filename'] ?? ("{$station->code}_{$camId}_" . time() . ".jpg");
+                        $dir = "uploads/camera_images/{$station->code}/{$camId}";
+                        Storage::disk('public')->makeDirectory($dir);
+                        $relPath = "{$dir}/{$filename}";
+                        Storage::disk('public')->put($relPath, $binary);
+
+                        $camLabels = [
+                            'cam_1' => 'Camera 01 (Toàn cảnh)',
+                            'cam_2' => 'Camera 02 (Cận cảnh)',
+                            'cam_3' => 'Camera 03 (Khu vực đất)',
+                            'cam_4' => 'Camera 04 (Lối vào vườn)',
+                        ];
+                        $camLabel = $camLabels[$camId] ?? strtoupper($camId);
+
+                        $cameraDevice = Device::firstOrCreate([
+                            'monitoring_station_id' => $station->id,
+                            'code' => "CAM-{$station->code}-{$camId}",
+                        ], [
+                            'name' => "{$camLabel} - {$station->name}",
+                            'type' => 'camera',
+                            'sensor_type' => 'camera',
+                            'status' => 'active',
+                        ]);
+
+                        CameraMedia::create([
+                            'device_id' => $cameraDevice->id,
+                            'type' => 'image',
+                            'name' => "{$camLabel} - " . now()->format('d/m/Y H:i:s'),
+                            'file_path' => $relPath,
+                            'created_at' => now(),
+                        ]);
+
+                        $imageUrl = asset('storage/' . $relPath);
+                    }
+                } catch (\Throwable $ex) {
+                    Log::error("Lỗi fallback giải mã ảnh base64 tại Controller: " . $ex->getMessage());
+                }
             }
         }
 

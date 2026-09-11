@@ -6,9 +6,11 @@ use Illuminate\Console\Command;
 use PhpMqtt\Client\Facades\MQTT;
 use App\Models\Iot\MonitoringStation;
 use App\Models\Iot\Device;
+use App\Models\Iot\CameraMedia;
 use App\Models\Iot\SensorReading;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
 class MqttListenerCommand extends Command
@@ -211,7 +213,67 @@ class MqttListenerCommand extends Command
             $messageText = $payload['message'] ?? '';
             $data = $payload['data'] ?? [];
 
-            // Ghi log chi tiết phản hồi MQTT trả lại từ trạm
+            // Xử lý lưu ảnh trực tiếp từ MQTT nếu trạm gửi ảnh base64 qua gói tin ACK
+            if ($action === 'CAPTURE_SNAPSHOT' && $success) {
+                $imgBase64 = $data['image_base64'] ?? null;
+                $filename = $data['filename'] ?? ("{$stationCode}_{$camId}_" . time() . ".jpg");
+
+                if ($imgBase64) {
+                    try {
+                        $binary = base64_decode($imgBase64);
+                        if ($binary !== false && strlen($binary) > 0) {
+                            $dir = "uploads/camera_images/{$stationCode}/{$camId}";
+                            Storage::disk('public')->makeDirectory($dir);
+                            $relPath = "{$dir}/{$filename}";
+                            Storage::disk('public')->put($relPath, $binary);
+
+                            $station = MonitoringStation::where('code', $stationCode)->first();
+                            if ($station) {
+                                $camLabels = [
+                                    'cam_1' => 'Camera 01 (Toàn cảnh)',
+                                    'cam_2' => 'Camera 02 (Cận cảnh)',
+                                    'cam_3' => 'Camera 03 (Khu vực đất)',
+                                    'cam_4' => 'Camera 04 (Lối vào vườn)',
+                                ];
+                                $camLabel = $camLabels[$camId] ?? strtoupper($camId);
+
+                                $cameraDevice = Device::firstOrCreate([
+                                    'monitoring_station_id' => $station->id,
+                                    'code' => "CAM-{$station->code}-{$camId}",
+                                ], [
+                                    'name' => "{$camLabel} - {$station->name}",
+                                    'type' => 'camera',
+                                    'sensor_type' => 'camera',
+                                    'status' => 'active',
+                                ]);
+
+                                $media = CameraMedia::create([
+                                    'device_id' => $cameraDevice->id,
+                                    'type' => 'image',
+                                    'name' => "{$camLabel} - " . now()->format('d/m/Y H:i:s'),
+                                    'file_path' => $relPath,
+                                    'created_at' => !empty($data['captured_at']) ? Carbon::parse($data['captured_at']) : now(),
+                                ]);
+
+                                $imageUrl = asset('storage/' . $relPath);
+                                $payload['data']['image_url'] = $imageUrl;
+                                $payload['data']['file_path'] = $relPath;
+                                $payload['data']['media_id'] = $media->id;
+
+                                $this->info("[CAMERA SNAPSHOT SAVED VIA MQTT] Đã lưu ảnh từ MQTT: {$relPath} (" . round(strlen($binary) / 1024, 1) . " KB)");
+                            }
+                        }
+                    } catch (\Throwable $ex) {
+                        Log::error("[CAMERA SNAPSHOT MQTT ERROR] Lỗi lưu ảnh từ MQTT: " . $ex->getMessage());
+                    }
+                }
+            }
+
+            // Ghi log chi tiết phản hồi MQTT trả lại từ trạm (loại bỏ chuỗi base64 dài để tránh tràn log)
+            $logPayload = $payload;
+            if (!empty($logPayload['data']['image_base64'])) {
+                $logPayload['data']['image_base64'] = '[BASE64_IMAGE ' . round(strlen($logPayload['data']['image_base64']) / 1024) . ' KB]';
+            }
             Log::info("[MQTT_ACK_RECEIVED] MQTT nhận ACK phản hồi từ trạm", [
                 'topic' => $topic,
                 'station_code' => $stationCode,
@@ -220,8 +282,7 @@ class MqttListenerCommand extends Command
                 'command_id' => $commandId,
                 'success' => $success,
                 'message' => $messageText,
-                'data' => $data,
-                'full_payload' => $payload,
+                'full_payload' => $logPayload,
             ]);
 
             // Lưu ACK vào Cache để các API Web Controller có thể đọc ngay lập tức
