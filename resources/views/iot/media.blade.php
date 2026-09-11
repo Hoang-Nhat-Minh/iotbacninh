@@ -76,6 +76,24 @@
     <div class="card-body p-4">
         <div class="tab-content" id="mediaTabsContent">
             <div class="tab-pane fade show active" id="photos-content" role="tabpanel">
+                @if($images->count() > 0)
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2.5 bg-light rounded-3 border">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="form-check ms-2 mb-0">
+                                <input class="form-check-input" type="checkbox" id="check-all-photos" onchange="toggleSelectAll('photo', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark small" for="check-all-photos" style="cursor: pointer;">
+                                    Chọn tất cả trang này
+                                </label>
+                            </div>
+                            <span class="text-muted small font-monospace" id="photo-selected-count">Đã chọn: 0 ảnh</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-danger btn-sm px-3 shadow-sm" id="btn-bulk-delete-photos" onclick="openBulkDeleteModal('photo')" disabled>
+                                <i class="bi bi-trash3-fill me-1"></i> Xóa ảnh đã chọn
+                            </button>
+                        </div>
+                    </div>
+                @endif
                 <div class="row g-3">
                     @forelse($images as $img)
                         @php
@@ -88,6 +106,12 @@
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="card h-100 border shadow-sm hover-shadow transition">
                                 <div class="position-relative">
+                                    <div class="position-absolute top-0 end-0 m-2" style="z-index: 3;" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="form-check-input photo-item-checkbox border-2 shadow-sm" 
+                                               value="{{ $img->id }}" 
+                                               style="width: 20px; height: 20px; cursor: pointer;" 
+                                               onchange="updateSelectionState('photo')">
+                                    </div>
                                     <img src="{{ $imgUrl }}" alt="{{ $img->name }}" class="card-img-top"
                                          style="height: 180px; object-fit: cover; cursor: pointer;"
                                          onclick="openViewMediaModal('image', '{{ $imgUrl }}', '{{ addslashes($img->name) }}')"
@@ -139,6 +163,24 @@
             </div>
 
             <div class="tab-pane fade" id="videos-content" role="tabpanel">
+                @if($videos->count() > 0)
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2.5 bg-light rounded-3 border">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="form-check ms-2 mb-0">
+                                <input class="form-check-input" type="checkbox" id="check-all-videos" onchange="toggleSelectAll('video', this.checked)">
+                                <label class="form-check-label fw-semibold text-dark small" for="check-all-videos" style="cursor: pointer;">
+                                    Chọn tất cả trang này
+                                </label>
+                            </div>
+                            <span class="text-muted small font-monospace" id="video-selected-count">Đã chọn: 0 video</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-danger btn-sm px-3 shadow-sm" id="btn-bulk-delete-videos" onclick="openBulkDeleteModal('video')" disabled>
+                                <i class="bi bi-trash3-fill me-1"></i> Xóa video đã chọn
+                            </button>
+                        </div>
+                    </div>
+                @endif
                 <div class="row g-3">
                     @forelse($videos as $vid)
                         @php
@@ -150,7 +192,13 @@
                         @endphp
                         <div class="col-lg-4 col-md-6">
                             <div class="card border shadow-sm">
-                                <div class="p-4 bg-dark text-white text-center rounded-top" style="height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onclick="openViewMediaModal('video', '{{ $vidUrl }}', '{{ addslashes($vid->name) }}')">
+                                <div class="p-4 bg-dark text-white text-center rounded-top position-relative" style="height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;" onclick="openViewMediaModal('video', '{{ $vidUrl }}', '{{ addslashes($vid->name) }}')">
+                                    <div class="position-absolute top-0 end-0 m-2" style="z-index: 3;" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="form-check-input video-item-checkbox border-2 shadow-sm" 
+                                               value="{{ $vid->id }}" 
+                                               style="width: 20px; height: 20px; cursor: pointer;" 
+                                               onchange="updateSelectionState('video')">
+                                    </div>
                                     <i class="bi bi-play-circle-fill text-danger" style="font-size: 54px;"></i>
                                     <span class="small mt-2 font-monospace">{{ $camName }}</span>
                                 </div>
@@ -230,12 +278,35 @@
         </div>
         <form action="{{ url('/iot/media/delete') }}" method="POST">
             @csrf
+            <input type="hidden" name="id" id="delete-media-id">
             <div class="modal-body text-center py-4">
                 <p>Bạn có chắc muốn xóa file: <br><strong id="delete-media-name" class="text-danger"></strong>?</p>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary btn-modal-close">Hủy</button>
                 <button type="submit" class="btn btn-danger">Xác Nhận Xóa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="app-modal" id="modal-bulk-delete-media">
+    <div class="modal-dialog" style="max-width: 440px;">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-trash3-fill text-danger"></i> Xóa Hàng Loạt File</h5>
+            <button type="button" class="modal-close-btn">&times;</button>
+        </div>
+        <form id="form-bulk-delete-media" action="{{ url('/iot/media/delete') }}" method="POST">
+            @csrf
+            <div id="bulk-delete-hidden-inputs"></div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-exclamation-triangle-fill text-danger mb-3 d-inline-block" style="font-size: 42px;"></i>
+                <h6 class="fw-bold text-dark mb-1">Xác nhận xóa các file đã chọn?</h6>
+                <p class="text-muted small mb-0">Bạn đang chuẩn bị xóa vĩnh viễn <strong id="bulk-delete-count" class="text-danger">0 file</strong> khỏi hệ thống và máy chủ lưu trữ.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-modal-close">Hủy</button>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-1"></i> Xác Nhận Xóa</button>
             </div>
         </form>
     </div>
@@ -268,8 +339,62 @@ function openRenameMediaModal(id, name) {
     openModal('modal-rename-media');
 }
 function openDeleteMediaModal(id, name) {
+    document.getElementById('delete-media-id').value = id;
     document.getElementById('delete-media-name').textContent = name;
     openModal('modal-delete-media');
+}
+
+function toggleSelectAll(type, isChecked) {
+    const checkboxes = document.querySelectorAll(`.${type}-item-checkbox`);
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+    });
+    updateSelectionState(type);
+}
+
+function updateSelectionState(type) {
+    const checkboxes = document.querySelectorAll(`.${type}-item-checkbox`);
+    const checked = document.querySelectorAll(`.${type}-item-checkbox:checked`);
+    const count = checked.length;
+    
+    const countEl = document.getElementById(`${type}-selected-count`);
+    if (countEl) {
+        countEl.textContent = `Đã chọn: ${count} ${type === 'photo' ? 'ảnh' : 'video'}`;
+    }
+
+    const deleteBtn = document.getElementById(`btn-bulk-delete-${type}s`);
+    if (deleteBtn) {
+        deleteBtn.disabled = count === 0;
+    }
+
+    const checkAll = document.getElementById(`check-all-${type}s`);
+    if (checkAll) {
+        checkAll.checked = (checkboxes.length > 0 && count === checkboxes.length);
+    }
+}
+
+function openBulkDeleteModal(type) {
+    const checked = document.querySelectorAll(`.${type}-item-checkbox:checked`);
+    if (checked.length === 0) return;
+
+    const countText = document.getElementById('bulk-delete-count');
+    if (countText) {
+        countText.textContent = `${checked.length} ${type === 'photo' ? 'ảnh' : 'video'}`;
+    }
+
+    const hiddenContainer = document.getElementById('bulk-delete-hidden-inputs');
+    if (hiddenContainer) {
+        hiddenContainer.innerHTML = '';
+        checked.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ids[]';
+            input.value = cb.value;
+            hiddenContainer.appendChild(input);
+        });
+    }
+
+    openModal('modal-bulk-delete-media');
 }
 </script>
 @endpush

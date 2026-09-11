@@ -62,13 +62,35 @@ class MediaMonitoringController extends Controller
 
     public function destroy(Request $request)
     {
-        $validated = $request->validate([
-            'id' => 'required|integer',
+        $request->validate([
+            'id' => 'required_without:ids|nullable|integer',
+            'ids' => 'required_without:id|nullable|array',
+            'ids.*' => 'integer',
         ]);
 
-        $media = CameraMedia::findOrFail($validated['id']);
-        $media->delete();
+        $ids = [];
+        if ($request->filled('ids')) {
+            $ids = (array) $request->input('ids');
+        } elseif ($request->filled('id')) {
+            $ids = [(int) $request->input('id')];
+        }
 
-        return redirect()->route('iot.media')->with('success', 'Xóa file media thành công.');
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'Không tìm thấy file media cần xóa.');
+        }
+
+        $medias = CameraMedia::whereIn('id', $ids)->get();
+        $count = 0;
+
+        foreach ($medias as $media) {
+            // Xóa file vật lý khỏi ổ đĩa lưu trữ nếu có
+            if ($media->file_path && !str_starts_with($media->file_path, 'http')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($media->file_path);
+            }
+            $media->delete();
+            $count++;
+        }
+
+        return redirect()->back()->with('success', "Đã xóa thành công {$count} file media.");
     }
 }

@@ -517,7 +517,12 @@
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem;">
                         <i class="bi bi-images text-primary"></i> Nhật Ký Ảnh Chụp Tức Thời
                     </h5>
-                    <span class="badge bg-light text-muted border font-monospace" id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-muted border font-monospace" id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
+                        <a href="{{ route('iot.media', ['station_id' => $station['id']]) }}" class="btn btn-outline-primary btn-sm py-0.5 px-2" style="font-size: 11px;" title="Quản lý & Xóa ảnh trong kho media">
+                            <i class="bi bi-folder2-open me-1"></i>Kho media
+                        </a>
+                    </div>
                 </div>
 
                 <div class="row g-2" id="snapshot-gallery">

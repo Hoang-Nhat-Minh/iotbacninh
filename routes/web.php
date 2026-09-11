@@ -227,6 +227,7 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
 
         Route::post('/media/rename', [ManagerMediaController::class, 'rename']);
         Route::post('/media/delete', [ManagerMediaController::class, 'destroy']);
+        Route::post('/media/bulk-delete', [ManagerMediaController::class, 'destroy']);
 
         Route::post('/locations/store', [ManagerLocationController::class, 'store']);
         Route::post('/locations/update/{id?}', [ManagerLocationController::class, 'update']);
