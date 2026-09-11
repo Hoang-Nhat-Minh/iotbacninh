@@ -133,10 +133,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
                             <select name="camera_id" class="form-select" required>
-                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
-                                <option value="cam_2">Cam 02 (Phía Tây)</option>
-                                <option value="cam_3">Cam 03 (Phía Nam)</option>
-                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                                <option value="cam_1">Camera 01</option>
+                                <option value="cam_2">Camera 02</option>
+                                <option value="cam_3">Camera 03</option>
+                                <option value="cam_4">Camera 04</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -195,10 +195,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
                             <select name="camera_id" id="edit-location-cam" class="form-select" required>
-                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
-                                <option value="cam_2">Cam 02 (Phía Tây)</option>
-                                <option value="cam_3">Cam 03 (Phía Nam)</option>
-                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                                <option value="cam_1">Camera 01</option>
+                                <option value="cam_2">Camera 02</option>
+                                <option value="cam_3">Camera 03</option>
+                                <option value="cam_4">Camera 04</option>
                             </select>
                         </div>
                         <div class="col-md-6">

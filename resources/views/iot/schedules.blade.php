@@ -121,11 +121,11 @@
                 <div class="mb-3">
                     <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
                     <select name="camera_id" class="form-select" required>
-                        <option value="all" selected>Tất cả Camera (Chụp lần lượt 4 camera)</option>
-                        <option value="cam_1">Camera 01 (Toàn cảnh - 192.168.1.10)</option>
-                        <option value="cam_2">Camera 02 (Cận cảnh - 192.168.1.11)</option>
-                        <option value="cam_3">Camera 03 (Khu vực đất - 192.168.1.12)</option>
-                        <option value="cam_4">Camera 04 (Lối vào vườn - 192.168.1.13)</option>
+                        <option value="all" selected>Tất cả Camera (1 - 4)</option>
+                        <option value="cam_1">Camera 01</option>
+                        <option value="cam_2">Camera 02</option>
+                        <option value="cam_3">Camera 03</option>
+                        <option value="cam_4">Camera 04</option>
                     </select>
                 </div>
                 <div class="row g-3 mb-3">
@@ -185,11 +185,11 @@
                 <div class="mb-3">
                     <label class="form-label">Camera áp dụng</label>
                     <select name="camera_id" id="edit-schedule-camera-id" class="form-select">
-                        <option value="all">Tất cả Camera (Chụp lần lượt 4 camera)</option>
-                        <option value="cam_1">Camera 01 (Toàn cảnh - 192.168.1.10)</option>
-                        <option value="cam_2">Camera 02 (Cận cảnh - 192.168.1.11)</option>
-                        <option value="cam_3">Camera 03 (Khu vực đất - 192.168.1.12)</option>
-                        <option value="cam_4">Camera 04 (Lối vào vườn - 192.168.1.13)</option>
+                        <option value="all">Tất cả Camera (1 - 4)</option>
+                        <option value="cam_1">Camera 01</option>
+                        <option value="cam_2">Camera 02</option>
+                        <option value="cam_3">Camera 03</option>
+                        <option value="cam_4">Camera 04</option>
                     </select>
                 </div>
                 <div class="row g-3 mb-3">

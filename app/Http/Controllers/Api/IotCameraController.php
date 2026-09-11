@@ -273,12 +273,12 @@ class IotCameraController extends Controller
                         Storage::disk('public')->put($relPath, $binary);
 
                         $camLabels = [
-                            'cam_1' => 'Camera 01 (Toàn cảnh)',
-                            'cam_2' => 'Camera 02 (Cận cảnh)',
-                            'cam_3' => 'Camera 03 (Khu vực đất)',
-                            'cam_4' => 'Camera 04 (Lối vào vườn)',
+                            'cam_1' => 'Camera 01',
+                            'cam_2' => 'Camera 02',
+                            'cam_3' => 'Camera 03',
+                            'cam_4' => 'Camera 04',
                         ];
-                        $camLabel = $camLabels[$camId] ?? strtoupper($camId);
+                        $camLabel = $camLabels[$camId] ?? ('Camera ' . strtoupper(str_replace('cam_', '', $camId)));
 
                         $cameraDevice = Device::firstOrCreate([
                             'monitoring_station_id' => $station->id,

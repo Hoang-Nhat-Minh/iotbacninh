@@ -31,14 +31,14 @@ class ImageCaptureLocation extends Model
 
     public function getCameraLabelAttribute(): string
     {
-        $camLabels = [
-            'cam_1' => 'Camera 01 (Toàn cảnh)',
-            'cam_2' => 'Camera 02 (Cận cảnh)',
-            'cam_3' => 'Camera 03 (Khu vực đất)',
-            'cam_4' => 'Camera 04 (Lối vào vườn)',
+        $map = [
+            'cam_1' => 'Camera 01',
+            'cam_2' => 'Camera 02',
+            'cam_3' => 'Camera 03',
+            'cam_4' => 'Camera 04',
         ];
 
-        return $camLabels[$this->camera_id ?? 'cam_1'] ?? ($this->camera_id ?: 'Camera 01');
+        return $map[$this->camera_id ?? 'cam_1'] ?? ($this->camera_id ?: 'Camera 01');
     }
 
     public function monitoringStation(): BelongsTo

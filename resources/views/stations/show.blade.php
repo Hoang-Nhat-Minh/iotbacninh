@@ -254,7 +254,7 @@
                         <span id="stream-status-text">SẴN SÀNG</span>
                     </span>
                     <span class="badge bg-dark text-white border border-secondary px-2.5 py-1.5 font-monospace">
-                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01 (Toàn cảnh)</span>
+                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01</span>
                     </span>
                 </div>
 
@@ -587,10 +587,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Camera áp dụng <span class="text-danger">*</span></label>
                             <select name="camera_id" id="save-preset-cam-id" class="form-select" required>
-                                <option value="cam_1">Cam 01 (Toàn cảnh / Mặc định)</option>
-                                <option value="cam_2">Cam 02 (Phía Tây)</option>
-                                <option value="cam_3">Cam 03 (Phía Nam)</option>
-                                <option value="cam_4">Cam 04 (Phía Bắc)</option>
+                                <option value="cam_1">Camera 01</option>
+                                <option value="cam_2">Camera 02</option>
+                                <option value="cam_3">Camera 03</option>
+                                <option value="cam_4">Camera 04</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -726,10 +726,10 @@
 
         // 1. Chuyển đổi giữa 4 Camera của trạm
         const cameraLabels = {
-            'cam_1': 'Camera 01 (Toàn cảnh)',
-            'cam_2': 'Camera 02 (Cận cảnh)',
-            'cam_3': 'Camera 03 (Khu vực đất)',
-            'cam_4': 'Camera 04 (Lối vào vườn)'
+            'cam_1': 'Camera 01',
+            'cam_2': 'Camera 02',
+            'cam_3': 'Camera 03',
+            'cam_4': 'Camera 04'
         };
 
         function switchCamera(camId) {

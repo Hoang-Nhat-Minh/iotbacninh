@@ -63,12 +63,12 @@ class IotIngestionController extends Controller
         $camId = $request->input('camera_id', 'cam_1');
 
         $cameraNames = [
-            'cam_1' => 'Camera 01 (Toàn cảnh)',
-            'cam_2' => 'Camera 02 (Cận cảnh)',
-            'cam_3' => 'Camera 03 (Khu vực đất)',
-            'cam_4' => 'Camera 04 (Lối vào vườn)',
+            'cam_1' => 'Camera 01',
+            'cam_2' => 'Camera 02',
+            'cam_3' => 'Camera 03',
+            'cam_4' => 'Camera 04',
         ];
-        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper($camId));
+        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper(str_replace('cam_', '', $camId)));
 
         $path = $request->file('image')->store('uploads/camera_images/' . $station->code . '/' . $camId, 'public');
 
@@ -113,12 +113,12 @@ class IotIngestionController extends Controller
         $camId = $request->input('camera_id', 'cam_1');
 
         $cameraNames = [
-            'cam_1' => 'Camera 01 (Toàn cảnh)',
-            'cam_2' => 'Camera 02 (Cận cảnh)',
-            'cam_3' => 'Camera 03 (Khu vực đất)',
-            'cam_4' => 'Camera 04 (Lối vào vườn)',
+            'cam_1' => 'Camera 01',
+            'cam_2' => 'Camera 02',
+            'cam_3' => 'Camera 03',
+            'cam_4' => 'Camera 04',
         ];
-        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper($camId));
+        $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper(str_replace('cam_', '', $camId)));
 
         $path = $request->file('video')->store('uploads/camera_videos/' . $station->code . '/' . $camId, 'public');
 
