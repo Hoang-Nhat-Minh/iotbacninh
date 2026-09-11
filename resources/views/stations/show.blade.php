@@ -236,10 +236,7 @@
                     </span>
                 </div>
 
-                <!-- Hình ảnh luồng Camera / Snapshot fallback -->
-                <img id="camera-feed"
-                    src="{{ $station['camera_url'] ?? 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=1000&q=80' }}"
-                    alt="Camera Live Feed" class="camera-feed-img" style="display: none;">
+
 
                 <!-- AI Bounding Box Cảnh Báo Sâu Bệnh (Mô phỏng) -->
                 <div id="ai-detection-overlay" class="ai-detect-box" style="display: none;">
@@ -516,16 +513,19 @@
                         @php
                             $devCode = $media->device->code ?? '';
                             $camTag = str_contains($devCode, 'cam_1') ? 'Cam 01' : (str_contains($devCode, 'cam_2') ? 'Cam 02' : (str_contains($devCode, 'cam_3') ? 'Cam 03' : (str_contains($devCode, 'cam_4') ? 'Cam 04' : 'Camera')));
+                            $filePath = $media->file_path;
+                            $imgUrl = str_starts_with($filePath, 'http') ? $filePath : asset('storage/' . $filePath);
                         @endphp
                         <div class="col-4">
                             <div class="border rounded-3 p-1 position-relative bg-light shadow-sm">
                                 <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace" style="font-size: 9px; z-index: 2;">
                                     {{ $camTag }}
                                 </span>
-                                <a href="{{ asset('storage/' . $media->file_path) }}" target="_blank" title="Bấm để phóng to ảnh gốc">
-                                    <img src="{{ asset('storage/' . $media->file_path) }}"
+                                <a href="{{ $imgUrl }}" target="_blank" title="Bấm để phóng to ảnh gốc">
+                                    <img src="{{ $imgUrl }}"
                                         class="snapshot-thumb" alt="{{ $media->name ?? 'Snapshot' }}"
-                                        style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;">
+                                        style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;"
+                                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center text-muted\' style=\'height:80px; font-size:10px;\'><i class=\'bi bi-image me-1\'></i> Lỗi ảnh</div>';">
                                 </a>
                                 <div class="text-muted font-monospace text-center mt-1 text-truncate" style="font-size: 10px;">
                                     {{ $media->created_at ? $media->created_at->format('H:i - d/m') : '' }}
@@ -864,15 +864,6 @@
         function renewStream() {
             startStream(180);
         }
-
-        // 5. Đồng hồ đếm ngược phiên xem
-        function startCountdown(seconds) {
-            clearInterval(countdownTimer);
-            remainingSeconds = seconds;
-
-            const statusBadge = document.getElementById('stream-status-badge');
-            const statusText = document.getElementById('stream-status-text');
-            const statusDot = document.getElementById('stream-status-dot');
 
         // 5. Đồng hồ đếm ngược phiên xem (đã chuẩn hóa số nguyên, chống lỗi số thực thập phân)
         function startCountdown(seconds) {

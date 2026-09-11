@@ -234,7 +234,7 @@ class MonitoringStationController extends Controller
                 'rain' => round($latestReadings['rain'], 1),
                 'wind' => round($latestReadings['wind'], 1),
             ],
-            'camera_url' => 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=1000&q=80',
+            'camera_url' => null,
             'camera_label' => 'Camera IP PTZ #01 - Thường Trực 24/7',
             'history' => $history,
             'devices' => $st->devices,
@@ -242,7 +242,13 @@ class MonitoringStationController extends Controller
             'last_contact' => $lastContact ? Carbon::parse($lastContact)->diffForHumans() : 'Chưa có',
         ];
 
-        $recentSnapshots = $st->cameraMedia()->with('device')->latest()->take(6)->get();
+        $recentSnapshots = $st->cameraMedia()
+            ->with('device')
+            ->where('file_path', 'not like', 'http%')
+            ->where('file_path', 'not like', '%sample%')
+            ->latest()
+            ->take(6)
+            ->get();
 
         return view('stations.show', compact('station', 'latestTelemetry', 'presets', 'recentSnapshots'));
     }

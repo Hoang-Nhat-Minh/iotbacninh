@@ -79,7 +79,8 @@
                 <div class="row g-3">
                     @forelse($images as $img)
                         @php
-                            $imgUrl = asset('storage/' . $img->file_path);
+                            $filePath = $img->file_path;
+                            $imgUrl = str_starts_with($filePath, 'http') ? $filePath : asset('storage/' . $filePath);
                             $stName = $img->device->monitoringStation->name ?? 'Trạm quan trắc';
                             $camName = $img->device->name ?? 'Camera';
                             $timeStr = $img->created_at ? $img->created_at->format('d/m/Y H:i:s') : '';
@@ -90,7 +91,7 @@
                                     <img src="{{ $imgUrl }}" alt="{{ $img->name }}" class="card-img-top"
                                          style="height: 180px; object-fit: cover; cursor: pointer;"
                                          onclick="openViewMediaModal('image', '{{ $imgUrl }}', '{{ addslashes($img->name) }}')"
-                                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1592417817098-8f3d6eb22d57?auto=format&fit=crop&q=80&w=600&h=400';">
+                                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center bg-light text-muted\' style=\'height:180px;\'><i class=\'bi bi-image me-1\'></i> Không tải được ảnh</div>';">
                                     <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-2 px-2 py-1 font-monospace" style="font-size: 11px;">
                                         <i class="bi bi-camera-video me-1"></i>{{ $camName }}
                                     </span>
@@ -141,7 +142,8 @@
                 <div class="row g-3">
                     @forelse($videos as $vid)
                         @php
-                            $vidUrl = asset('storage/' . $vid->file_path);
+                            $vidPath = $vid->file_path;
+                            $vidUrl = str_starts_with($vidPath, 'http') ? $vidPath : asset('storage/' . $vidPath);
                             $stName = $vid->device->monitoringStation->name ?? 'Trạm quan trắc';
                             $camName = $vid->device->name ?? 'Camera';
                             $timeStr = $vid->created_at ? $vid->created_at->format('d/m/Y H:i') : '';
@@ -187,8 +189,9 @@
             <h5 class="modal-title" id="view-media-title">Xem Nội Dung Media</h5>
             <button type="button" class="modal-close-btn">&times;</button>
         </div>
-        <div class="modal-body text-center p-0">
+        <div class="modal-body text-center p-0 bg-dark">
             <img id="view-media-img" src="" alt="media" class="img-fluid" style="max-height: 500px; width: 100%; object-fit: contain;">
+            <video id="view-media-video" controls class="img-fluid" style="max-height: 500px; width: 100%; display: none;"></video>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary btn-modal-close">Đóng</button>
@@ -243,7 +246,20 @@
 <script>
 function openViewMediaModal(type, url, name) {
     document.getElementById('view-media-title').textContent = name;
-    document.getElementById('view-media-img').src = url;
+    const imgEl = document.getElementById('view-media-img');
+    const vidEl = document.getElementById('view-media-video');
+    if (type === 'video') {
+        imgEl.style.display = 'none';
+        imgEl.src = '';
+        vidEl.style.display = 'block';
+        vidEl.src = url;
+    } else {
+        vidEl.style.display = 'none';
+        vidEl.pause();
+        vidEl.src = '';
+        imgEl.style.display = 'block';
+        imgEl.src = url;
+    }
     openModal('modal-view-media');
 }
 function openRenameMediaModal(id, name) {

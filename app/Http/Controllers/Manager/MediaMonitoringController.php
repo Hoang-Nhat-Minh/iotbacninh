@@ -14,8 +14,14 @@ class MediaMonitoringController extends Controller
         $stationId = $request->input('station_id');
         $deviceId = $request->input('device_id');
 
-        $imagesQuery = CameraMedia::where('type', 'image')->with(['device.monitoringStation']);
-        $videosQuery = CameraMedia::where('type', 'video')->with(['device.monitoringStation']);
+        $imagesQuery = CameraMedia::where('type', 'image')
+            ->where('file_path', 'not like', 'http%')
+            ->where('file_path', 'not like', '%sample%')
+            ->with(['device.monitoringStation']);
+        $videosQuery = CameraMedia::where('type', 'video')
+            ->where('file_path', 'not like', 'http%')
+            ->where('file_path', 'not like', '%sample%')
+            ->with(['device.monitoringStation']);
 
         if ($stationId) {
             $imagesQuery->whereHas('device', function ($q) use ($stationId) {

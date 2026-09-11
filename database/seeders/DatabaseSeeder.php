@@ -228,33 +228,7 @@ class DatabaseSeeder extends Seeder
         );
 
 
-        // 6. Demo Camera Media
-        CameraMedia::firstOrCreate(
-            ['name' => 'CAM_TT01_20260814_063000.jpg'],
-            [
-                'device_id' => $cameraDevice->id,
-                'type' => 'image',
-                'file_path' => 'https://images.unsplash.com/photo-1592417817098-8f3d6eb22d57?auto=format&fit=crop&q=80&w=600&h=400',
-            ]
-        );
-
-        CameraMedia::firstOrCreate(
-            ['name' => 'CAM_TT01_20260814_060000.jpg'],
-            [
-                'device_id' => $cameraDevice->id,
-                'type' => 'image',
-                'file_path' => 'https://images.unsplash.com/photo-1592417817098-8f3d6eb22d57?auto=format&fit=crop&q=80&w=600&h=400',
-            ]
-        );
-
-        CameraMedia::firstOrCreate(
-            ['name' => 'REC_TT01_20260814_0600.mp4'],
-            [
-                'device_id' => $cameraDevice->id,
-                'type' => 'video',
-                'file_path' => 'uploads/videos/sample.mp4',
-            ]
-        );
+        // 6. Camera Media (Không dùng dữ liệu demo ảo, chỉ lưu trữ ảnh/video thực tế từ trạm)
 
         // 7. System Settings
         $settings = [
