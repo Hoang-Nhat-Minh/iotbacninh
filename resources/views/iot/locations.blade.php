@@ -89,7 +89,7 @@
                                             <i class="bi bi-camera-fill"></i>
                                         </button>
                                         <button class="btn btn-secondary btn-icon btn-sm" title="Sửa góc chụp"
-                                            onclick="openEditLocationModal({{ $loc->id }}, '{{ addslashes($loc->name) }}', {{ $loc->pan_angle }}, {{ $loc->tilt_angle }}, {{ $loc->zoom_level }}, '{{ $loc->camera_id ?? 'cam_1' }}', '{{ $loc->schedule_id ?? '' }}')">
+                                            onclick="openEditLocationModal({{ $loc->id }}, '{{ addslashes($loc->name) }}', {{ $loc->pan_angle ?? 0.0 }}, {{ $loc->tilt_angle ?? 0.0 }}, {{ $loc->zoom_level ?? 1.0 }}, '{{ $loc->camera_id ?? 'cam_1' }}', '{{ $loc->schedule_id ?? '' }}')">
                                             <i class="bi bi-pencil-square text-primary"></i>
                                         </button>
                                         <button class="btn btn-secondary btn-icon btn-sm" title="Xóa góc chụp"

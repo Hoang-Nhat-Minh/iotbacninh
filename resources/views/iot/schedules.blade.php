@@ -69,7 +69,7 @@
                                         </button>
                                     </form>
                                     <button class="btn btn-secondary btn-icon btn-sm" title="Sửa khung giờ"
-                                            onclick="openEditScheduleModal({{ $s->id }}, '{{ $s->monitoring_station_id ?? '' }}', '{{ addslashes($s->name) }}', '{{ $s->start_time }}', '{{ $s->end_time }}', {{ $s->interval_minutes }}, '{{ $s->status }}', '{{ $s->camera_id ?? 'all' }}')">
+                                            onclick="openEditScheduleModal({{ $s->id }}, '{{ $s->monitoring_station_id ?? '' }}', '{{ addslashes($s->name) }}', '{{ $s->start_time }}', '{{ $s->end_time }}', {{ (int)($s->interval_minutes ?? $s->interval ?? 60) }}, '{{ $s->status }}', '{{ $s->camera_id ?? 'all' }}')">
                                         <i class="bi bi-pencil-square text-primary"></i>
                                     </button>
                                     <button class="btn btn-secondary btn-icon btn-sm" title="Xóa khung giờ"

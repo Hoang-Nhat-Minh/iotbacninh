@@ -47,5 +47,10 @@ class ImageCollectionSchedule extends Model
     {
         return $this->hasMany(ImageCaptureLocation::class, 'schedule_id');
     }
+
+    public function getIntervalMinutesAttribute()
+    {
+        return (int) ($this->interval ?: 60);
+    }
 }
 
