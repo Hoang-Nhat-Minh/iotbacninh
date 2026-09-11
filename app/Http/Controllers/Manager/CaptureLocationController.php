@@ -82,4 +82,39 @@ class CaptureLocationController extends Controller
 
         return redirect()->back()->with('success', 'Xóa tọa độ góc chụp thành công.');
     }
+
+    /**
+     * Kích hoạt xoay PTZ camera tới góc cấu hình và chụp ảnh thử nghiệm.
+     */
+    public function testCapture(Request $request, \App\Services\Iot\MqttService $mqttService, $id = null)
+    {
+        $id = $id ?: $request->input('id');
+        $location = ImageCaptureLocation::with('monitoringStation')->findOrFail($id);
+        $station = $location->monitoringStation;
+
+        if (!$station) {
+            return response()->json(['success' => false, 'message' => 'Trạm quan trắc không tồn tại.'], 404);
+        }
+
+        $camId = $location->camera_id ?: 'cam_1';
+        $result = $mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
+            'camera_id' => $camId,
+            'quality' => 'main',
+            'trigger_source' => 'manual_test_location',
+            'location_id' => $location->id,
+            'location_name' => $location->name,
+            'pan' => (float) $location->pan_angle,
+            'tilt' => (float) $location->tilt_angle,
+            'zoom' => (float) $location->zoom_level,
+        ]);
+
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['success']
+                ? "Đã gửi lệnh xoay PTZ (Pan: {$location->pan_angle}°, Tilt: {$location->tilt_angle}°, Zoom: {$location->zoom_level}x) và chụp ảnh tới trạm {$station->name}."
+                : "Gửi lệnh tới trạm thất bại.",
+            'command' => $result,
+        ]);
+    }
 }
+

@@ -3,6 +3,7 @@
 namespace App\Services\Iot;
 
 use App\Models\Iot\ImageCollectionSchedule;
+use App\Models\Iot\ImageCaptureLocation;
 use App\Models\Iot\MonitoringStation;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -68,30 +69,42 @@ class CameraScheduleService
                 continue;
             }
 
-            // 4. Xác định danh sách Camera cần chụp theo cấu hình của lịch trình
-            $targetCams = [];
-            if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
-                $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
-            } else {
-                $targetCams = [$schedule->camera_id];
-            }
-
-            // Gửi lệnh MQTT CAPTURE_SNAPSHOT xuống từng trạm và từng camera
+            // 4. Duyệt từng trạm và gửi lệnh chụp các điểm (kèm tọa độ góc quay PTZ từ iot/locations)
             foreach ($stations as $station) {
-                foreach ($targetCams as $camIdx => $camId) {
-                    $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
-                        'camera_id' => $camId,
+                $targets = $this->getCaptureTargets($schedule, $station);
+
+                foreach ($targets as $idx => $target) {
+                    $cmdPayload = [
+                        'camera_id' => $target['camera_id'],
                         'quality' => 'main',
                         'trigger_source' => 'auto_schedule',
                         'schedule_id' => $schedule->id,
                         'schedule_name' => $schedule->name,
-                    ]);
+                    ];
 
-                    $logMsg = "[AUTO_SCHEDULE_CAPTURE] Kích hoạt chụp ảnh tự động theo lịch '{$schedule->name}' tới trạm {$station->code} ({$camId})";
+                    $hasPtz = false;
+                    if ($target['pan'] !== null || $target['tilt'] !== null || $target['zoom'] !== null) {
+                        $cmdPayload['pan'] = $target['pan'];
+                        $cmdPayload['tilt'] = $target['tilt'];
+                        $cmdPayload['zoom'] = $target['zoom'];
+                        $hasPtz = true;
+                    }
+                    if (!empty($target['location_id'])) {
+                        $cmdPayload['location_id'] = $target['location_id'];
+                    }
+                    if (!empty($target['location_name'])) {
+                        $cmdPayload['location_name'] = $target['location_name'];
+                    }
+
+                    $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', $cmdPayload);
+
+                    $locDesc = !empty($target['location_name']) ? " - Góc: {$target['location_name']} (Pan: {$target['pan']}°, Tilt: {$target['tilt']}°, Zoom: {$target['zoom']}x)" : "";
+                    $logMsg = "[AUTO_SCHEDULE_CAPTURE] Kích hoạt chụp ảnh theo lịch '{$schedule->name}' tới trạm {$station->code} ({$target['camera_id']}){$locDesc}";
                     Log::info($logMsg, [
                         'schedule_id' => $schedule->id,
                         'station' => $station->code,
-                        'camera_id' => $camId,
+                        'camera_id' => $target['camera_id'],
+                        'target' => $target,
                         'command_result' => $cmdResult,
                     ]);
 
@@ -99,14 +112,18 @@ class CameraScheduleService
                         'schedule_id' => $schedule->id,
                         'schedule_name' => $schedule->name,
                         'station_code' => $station->code,
-                        'camera_id' => $camId,
+                        'camera_id' => $target['camera_id'],
+                        'location_name' => $target['location_name'] ?? null,
+                        'pan' => $target['pan'] ?? null,
+                        'tilt' => $target['tilt'] ?? null,
+                        'zoom' => $target['zoom'] ?? null,
                         'success' => $cmdResult['success'] ?? false,
                         'command_id' => $cmdResult['command_id'] ?? null,
                     ];
 
-                    // Nếu chụp nhiều camera, giãn cách 1 giây để trạm xử lý tuần tự mượt mà
-                    if (count($targetCams) > 1 && $camIdx < count($targetCams) - 1) {
-                        sleep(1);
+                    // Nếu chụp nhiều điểm (hoặc có quay PTZ), giãn cách thời gian để trạm quay motor & chụp tuần tự
+                    if (count($targets) > 1 && $idx < count($targets) - 1) {
+                        sleep($hasPtz ? 4 : 1);
                     }
                 }
             }
@@ -133,27 +150,40 @@ class CameraScheduleService
             $stations = MonitoringStation::where('status', '!=', 'inactive')->get();
         }
 
-        $targetCams = [];
-        if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
-            $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
-        } else {
-            $targetCams = [$schedule->camera_id];
-        }
-
         foreach ($stations as $station) {
-            foreach ($targetCams as $camIdx => $camId) {
-                $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', [
-                    'camera_id' => $camId,
+            $targets = $this->getCaptureTargets($schedule, $station);
+
+            foreach ($targets as $idx => $target) {
+                $cmdPayload = [
+                    'camera_id' => $target['camera_id'],
                     'quality' => 'main',
                     'trigger_source' => 'manual_schedule_trigger',
                     'schedule_id' => $schedule->id,
                     'schedule_name' => $schedule->name,
-                ]);
+                ];
 
-                Log::info("[MANUAL_SCHEDULE_TRIGGER] Kích hoạt chụp thủ công theo lịch '{$schedule->name}' tới trạm {$station->code} ({$camId})", [
+                $hasPtz = false;
+                if ($target['pan'] !== null || $target['tilt'] !== null || $target['zoom'] !== null) {
+                    $cmdPayload['pan'] = $target['pan'];
+                    $cmdPayload['tilt'] = $target['tilt'];
+                    $cmdPayload['zoom'] = $target['zoom'];
+                    $hasPtz = true;
+                }
+                if (!empty($target['location_id'])) {
+                    $cmdPayload['location_id'] = $target['location_id'];
+                }
+                if (!empty($target['location_name'])) {
+                    $cmdPayload['location_name'] = $target['location_name'];
+                }
+
+                $cmdResult = $this->mqttService->publishCameraCommand($station->code, 'CAPTURE_SNAPSHOT', $cmdPayload);
+
+                $locDesc = !empty($target['location_name']) ? " - Góc: {$target['location_name']} (Pan: {$target['pan']}°, Tilt: {$target['tilt']}°, Zoom: {$target['zoom']}x)" : "";
+                Log::info("[MANUAL_SCHEDULE_TRIGGER] Kích hoạt chụp thủ công theo lịch '{$schedule->name}' tới trạm {$station->code} ({$target['camera_id']}){$locDesc}", [
                     'schedule_id' => $schedule->id,
                     'station' => $station->code,
-                    'camera_id' => $camId,
+                    'camera_id' => $target['camera_id'],
+                    'target' => $target,
                     'command_result' => $cmdResult,
                 ]);
 
@@ -161,13 +191,17 @@ class CameraScheduleService
                     'schedule_id' => $schedule->id,
                     'schedule_name' => $schedule->name,
                     'station_code' => $station->code,
-                    'camera_id' => $camId,
+                    'camera_id' => $target['camera_id'],
+                    'location_name' => $target['location_name'] ?? null,
+                    'pan' => $target['pan'] ?? null,
+                    'tilt' => $target['tilt'] ?? null,
+                    'zoom' => $target['zoom'] ?? null,
                     'success' => $cmdResult['success'] ?? false,
                     'command_id' => $cmdResult['command_id'] ?? null,
                 ];
 
-                if (count($targetCams) > 1 && $camIdx < count($targetCams) - 1) {
-                    sleep(1);
+                if (count($targets) > 1 && $idx < count($targets) - 1) {
+                    sleep($hasPtz ? 4 : 1);
                 }
             }
         }
@@ -176,4 +210,71 @@ class CameraScheduleService
 
         return $triggered;
     }
+
+    /**
+     * Xác định danh sách các điểm chụp (camera & góc PTZ) cho một trạm theo lịch trình.
+     */
+    protected function getCaptureTargets(ImageCollectionSchedule $schedule, MonitoringStation $station): array
+    {
+        // 1. Ưu tiên các điểm góc chụp được gán trực tiếp với lịch trình này cho trạm
+        $linkedLocations = ImageCaptureLocation::where('monitoring_station_id', $station->id)
+            ->where('schedule_id', $schedule->id)
+            ->where('status', 'active')
+            ->get();
+
+        if ($linkedLocations->isNotEmpty()) {
+            return $linkedLocations->map(function ($loc) {
+                return [
+                    'camera_id' => $loc->camera_id ?: 'cam_1',
+                    'pan' => (float) $loc->pan_angle,
+                    'tilt' => (float) $loc->tilt_angle,
+                    'zoom' => (float) $loc->zoom_level,
+                    'location_id' => $loc->id,
+                    'location_name' => $loc->name,
+                ];
+            })->all();
+        }
+
+        // 2. Nếu không có điểm chụp nào gắn trực tiếp schedule_id, lấy theo danh sách camera cấu hình trong schedule
+        $targetCams = [];
+        if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
+            $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
+        } else {
+            $targetCams = [$schedule->camera_id];
+        }
+
+        $targets = [];
+        foreach ($targetCams as $camId) {
+            // Kiểm tra xem camera này của trạm có cấu hình góc chụp nào trong ImageCaptureLocation không
+            $camLocations = ImageCaptureLocation::where('monitoring_station_id', $station->id)
+                ->where('camera_id', $camId)
+                ->where('status', 'active')
+                ->get();
+
+            if ($camLocations->isNotEmpty()) {
+                foreach ($camLocations as $loc) {
+                    $targets[] = [
+                        'camera_id' => $camId,
+                        'pan' => (float) $loc->pan_angle,
+                        'tilt' => (float) $loc->tilt_angle,
+                        'zoom' => (float) $loc->zoom_level,
+                        'location_id' => $loc->id,
+                        'location_name' => $loc->name,
+                    ];
+                }
+            } else {
+                $targets[] = [
+                    'camera_id' => $camId,
+                    'pan' => null,
+                    'tilt' => null,
+                    'zoom' => null,
+                    'location_id' => null,
+                    'location_name' => null,
+                ];
+            }
+        }
+
+        return $targets;
+    }
 }
+

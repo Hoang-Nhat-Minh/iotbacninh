@@ -43,8 +43,9 @@ class ImageCollectionSchedule extends Model
         return $this->belongsTo(MonitoringStation::class, 'monitoring_station_id');
     }
 
-    public function getIntervalMinutesAttribute()
+    public function locations()
     {
-        return $this->interval;
+        return $this->hasMany(ImageCaptureLocation::class, 'schedule_id');
     }
 }
+

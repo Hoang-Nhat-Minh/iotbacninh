@@ -84,6 +84,10 @@
                                 </td>
                                 <td style="text-align: center;">
                                     <div class="d-inline-flex gap-1">
+                                        <button class="btn btn-secondary btn-icon btn-sm text-success" title="Quay PTZ & Chụp ảnh góc này"
+                                            onclick="testCaptureLocation(event, {{ $loc->id }}, '{{ addslashes($loc->name) }}')">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </button>
                                         <button class="btn btn-secondary btn-icon btn-sm" title="Sửa góc chụp"
                                             onclick="openEditLocationModal({{ $loc->id }}, '{{ addslashes($loc->name) }}', {{ $loc->pan_angle }}, {{ $loc->tilt_angle }}, {{ $loc->zoom_level }}, '{{ $loc->camera_id ?? 'cam_1' }}', '{{ $loc->schedule_id ?? '' }}')">
                                             <i class="bi bi-pencil-square text-primary"></i>
@@ -284,6 +288,39 @@
             document.getElementById('delete-location-id').value = id;
             document.getElementById('delete-location-name').textContent = name;
             openModal('modal-delete-location');
+        }
+
+        function testCaptureLocation(event, id, name) {
+            if (!confirm('Bạn có muốn kích hoạt quay camera và chụp ảnh thử nghiệm tại điểm: "' + name + '" không?')) {
+                return;
+            }
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm text-success" role="status"></span>';
+
+            fetch('{{ url("/iot/locations/test-capture") }}/' + id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                if (data.success) {
+                    alert(data.message || 'Đã gửi lệnh xoay PTZ và chụp ảnh tới trạm thành công!');
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể gửi lệnh tới trạm.'));
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('Lỗi kết nối máy chủ: ' + err);
+            });
         }
     </script>
 @endpush

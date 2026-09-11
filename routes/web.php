@@ -232,12 +232,14 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
         Route::post('/locations/store', [ManagerLocationController::class, 'store']);
         Route::post('/locations/update/{id?}', [ManagerLocationController::class, 'update']);
         Route::post('/locations/delete/{id?}', [ManagerLocationController::class, 'destroy']);
+        Route::post('/locations/test-capture/{id?}', [ManagerLocationController::class, 'testCapture']);
     });
 
     // Fallback alias routes for locations
     Route::post('/locations/store', [ManagerLocationController::class, 'store']);
     Route::post('/locations/update/{id?}', [ManagerLocationController::class, 'update']);
     Route::post('/locations/delete/{id?}', [ManagerLocationController::class, 'destroy']);
+    Route::post('/locations/test-capture/{id?}', [ManagerLocationController::class, 'testCapture']);
 
     // Fallback alias routes for stations
     Route::post('/stations/store', [ManagerStationController::class, 'store']);
