@@ -213,29 +213,17 @@ class CameraScheduleService
 
     /**
      * Xác định danh sách các điểm chụp (camera & góc PTZ) cho một trạm theo lịch trình.
+     * Luôn ưu tiên phạm vi camera được cấu hình trong $schedule->camera_id:
+     * - Nếu chỉ định camera cụ thể (ví dụ: cam_1): CHỈ chụp duy nhất camera đó.
+     *   + Nếu camera đó có cấu hình góc chụp active: di chuyển và chụp lần lượt các góc đó.
+     *   + Nếu không có góc chụp nào: chụp 1 ảnh theo góc hiện tại.
+     * - Nếu chọn 'all' (hoặc để trống): Duyệt qua toàn bộ 4 camera (cam_1, cam_2, cam_3, cam_4).
+     *   + Camera nào có cấu hình góc chụp: di chuyển và chụp theo các góc đó.
+     *   + Camera nào không có góc chụp: chụp bình thường theo góc hiện tại.
      */
     protected function getCaptureTargets(ImageCollectionSchedule $schedule, MonitoringStation $station): array
     {
-        // 1. Ưu tiên các điểm góc chụp được gán trực tiếp với lịch trình này cho trạm
-        $linkedLocations = ImageCaptureLocation::where('monitoring_station_id', $station->id)
-            ->where('schedule_id', $schedule->id)
-            ->where('status', 'active')
-            ->get();
-
-        if ($linkedLocations->isNotEmpty()) {
-            return $linkedLocations->map(function ($loc) {
-                return [
-                    'camera_id' => $loc->camera_id ?: 'cam_1',
-                    'pan' => (float) $loc->pan_angle,
-                    'tilt' => (float) $loc->tilt_angle,
-                    'zoom' => (float) $loc->zoom_level,
-                    'location_id' => $loc->id,
-                    'location_name' => $loc->name,
-                ];
-            })->all();
-        }
-
-        // 2. Nếu không có điểm chụp nào gắn trực tiếp schedule_id, lấy theo danh sách camera cấu hình trong schedule
+        // 1. Luôn xác định danh sách camera mục tiêu từ cấu hình của Lịch trình
         $targetCams = [];
         if (empty($schedule->camera_id) || $schedule->camera_id === 'all') {
             $targetCams = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
@@ -244,14 +232,30 @@ class CameraScheduleService
         }
 
         $targets = [];
+
+        // 2. Duyệt qua từng camera trong phạm vi mục tiêu
         foreach ($targetCams as $camId) {
-            // Kiểm tra xem camera này của trạm có cấu hình góc chụp nào trong ImageCaptureLocation không
+            // Kiểm tra các góc chụp active của camera này tại trạm
+            // Ưu tiên các góc chụp có gắn schedule_id này nếu có, hoặc góc chụp chung (schedule_id null)
             $camLocations = ImageCaptureLocation::where('monitoring_station_id', $station->id)
                 ->where('camera_id', $camId)
                 ->where('status', 'active')
+                ->where(function ($q) use ($schedule) {
+                    $q->where('schedule_id', $schedule->id)
+                      ->orWhereNull('schedule_id');
+                })
                 ->get();
 
+            // Nếu không tìm thấy, thử lấy bất kỳ góc active nào của camera đó tại trạm
+            if ($camLocations->isEmpty()) {
+                $camLocations = ImageCaptureLocation::where('monitoring_station_id', $station->id)
+                    ->where('camera_id', $camId)
+                    ->where('status', 'active')
+                    ->get();
+            }
+
             if ($camLocations->isNotEmpty()) {
+                // Nếu có cấu hình góc chụp: di chuyển camera tới từng góc rồi chụp
                 foreach ($camLocations as $loc) {
                     $targets[] = [
                         'camera_id' => $camId,
@@ -263,6 +267,7 @@ class CameraScheduleService
                     ];
                 }
             } else {
+                // Nếu camera không có góc chụp nào: chụp bình thường theo góc hiện tại (không cần chỉnh góc)
                 $targets[] = [
                     'camera_id' => $camId,
                     'pan' => null,

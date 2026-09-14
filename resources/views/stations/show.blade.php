@@ -81,9 +81,107 @@
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
         }
 
-        #camera-standby-cover:hover .play-btn-circle {
+        .play-btn-circle:hover {
             transform: scale(1.1);
             box-shadow: 0 0 35px rgba(59, 130, 246, 0.6) !important;
+        }
+
+        /* Lưới 4 Camera (2x2 Grid View) */
+        .camera-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .camera-grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cam-cell {
+            position: relative;
+            background: #0b0f19;
+            border-radius: 14px;
+            border: 2px solid #1e293b;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .cam-cell:hover {
+            border-color: #3b82f6;
+        }
+
+        .cam-cell.active-focus {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .cam-cell-header {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .cam-cell-header * {
+            pointer-events: auto;
+        }
+
+        .cam-cell-footer {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .cam-cell-footer * {
+            pointer-events: auto;
+        }
+
+        .cam-cell-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.82) 0%, rgba(10, 15, 26, 0.96) 100%);
+            color: #ffffff;
+            z-index: 5;
+            transition: opacity 0.2s ease;
+        }
+
+        .cam-cell-cover:hover .play-btn-circle {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+        }
+
+        /* Chế độ xem phóng to 1 camera (Single View) */
+        .camera-grid-container.single-mode .cam-cell {
+            display: none;
+        }
+
+        .camera-grid-container.single-mode .cam-cell.active-focus {
+            display: block;
+            grid-column: span 2;
+            aspect-ratio: 16 / 9;
         }
 
         /* PTZ Control Wheel & Panel */
@@ -214,113 +312,116 @@
     </x-page-header>
 
     <div class="row g-4 mb-4">
-        <!-- 1. CỘT BÊN TRÁI (8 COLS): KHUNG CAMERA LIVE STREAM -->
+        <!-- 1. CỘT BÊN TRÁI (8 COLS): LƯỚI 4 CAMERA LIVE STREAM -->
         <div class="col-lg-8">
-            <div class="camera-viewport position-relative mb-3">
-                <!-- Video Player phát trực tiếp (Hls.js) -->
-                <video id="camera-live-video" class="camera-feed-img w-100 h-100" playsinline controls autoplay muted
-                    style="display: none; background: #000;"></video>
-
-                <!-- Màn hình sẵn sàng phát trực tiếp (Cover Player) -->
-                <div id="camera-standby-cover"
-                    class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center text-white p-4"
-                    style="background: radial-gradient(circle at center, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.96) 100%); z-index: 5; cursor: pointer;"
-                    onclick="startStream()">
-                    <div class="play-btn-circle mb-3 shadow-lg d-flex align-items-center justify-content-center"
-                        style="width: 84px; height: 84px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.25);">
-                        <i class="bi bi-play-fill text-white" style="font-size: 46px; margin-left: 5px;"></i>
+            <!-- Header công cụ xem camera (Chuyển chế độ Lưới 4 cam / Phóng to & Nút Phát tất cả) -->
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold shadow-sm">
+                        <i class="bi bi-display text-primary me-1"></i> Chế độ hiển thị:
+                    </span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-primary active btn-mode-toggle" id="btn-mode-grid" onclick="setViewMode('grid')">
+                            <i class="bi bi-grid-fill me-1"></i> 4 Camera (Lưới 2x2)
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-mode-toggle" id="btn-mode-single" onclick="setViewMode('single')">
+                            <i class="bi bi-square me-1"></i> Phóng to 1 Cam
+                        </button>
                     </div>
-                    <span
-                        class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill small fw-medium">
-                        <i class="bi bi-camera-video me-1"></i> Bấm để phát video
-                    </span>
                 </div>
 
-
-
-                <!-- AI Bounding Box Cảnh Báo Sâu Bệnh (Mô phỏng) -->
-                <div id="ai-detection-overlay" class="ai-detect-box" style="display: none;">
-                    <span class="badge bg-danger text-white style-badge font-monospace" style="font-size: 10px;">AI DETECT:
-                        SƯƠNG MAI (94.5%)</span>
-                    <span class="text-white font-monospace text-end"
-                        style="font-size: 9px; text-shadow: 0 1px 2px #000;">X:420 Y:350</span>
-                </div>
-
-                <!-- Overlay Top Left -->
-                <div class="cam-overlay-top-left d-flex align-items-center gap-2">
-                    <span id="stream-status-badge"
-                        class="badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm">
-                        <span class="live-dot" id="stream-status-dot" style="background-color: #94a3b8;"></span>
-                        <span id="stream-status-text">SẴN SÀNG</span>
-                    </span>
-                    <span class="badge bg-dark text-white border border-secondary px-2.5 py-1.5 font-monospace">
-                        {{ $station['code'] ?? 'TRẠM-01' }} | <span id="active-cam-label">Camera 01</span>
-                    </span>
-                </div>
-
-                <!-- Overlay Top Right -->
-                <div class="cam-overlay-top-right d-flex align-items-center gap-2">
-                    <span class="badge bg-dark text-white border border-secondary px-2.5 py-1.5 font-monospace">
-                        <i class="bi bi-clock me-1 text-info"></i> <span id="live-clock">--:--:--</span>
-                    </span>
-                    <button type="button" class="btn btn-sm btn-dark border border-secondary px-2.5 text-white"
-                        title="Toàn màn hình" onclick="toggleFullscreen()">
-                        <i class="bi bi-arrows-fullscreen"></i>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm d-flex align-items-center gap-1.5" id="btn-start-all-streams" onclick="startAllStreams()">
+                        <i class="bi bi-play-circle-fill"></i> Phát cả 4 Cam
                     </button>
-                </div>
-
-                <!-- Overlay Bottom Status Bar -->
-                <div
-                    class="cam-overlay-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 text-white small">
-                    <div class="d-flex align-items-center gap-3">
-                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> |
-                            Tilt: <strong id="val-tilt">--°</strong></span>
-                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">--x</strong></span>
-                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-all-streams" onclick="stopAllStreams()">
+                        <i class="bi bi-stop-circle-fill"></i> Dừng tất cả
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-all-streams" onclick="renewAllStreams()" title="Gia hạn thêm thời gian xem cho các cam đang chạy">
+                        <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
+                    </button>
                 </div>
             </div>
 
-            <!-- Thanh Điều Khiển Camera On-Demand -->
+            <!-- Khung Lưới 4 Camera (Grid 2x2) -->
+            <div class="camera-grid-container mb-3" id="camera-grid-box">
+                @foreach (['cam_1' => 'Camera 01 (Cổng chính)', 'cam_2' => 'Camera 02 (Vườn ươm)', 'cam_3' => 'Camera 03 (Nhà kính)', 'cam_4' => 'Camera 04 (Quan trắc)'] as $cId => $cName)
+                    <div class="cam-cell {{ $cId === 'cam_1' ? 'active-focus' : '' }}" id="cam-cell-{{ $cId }}" onclick="focusCamera('{{ $cId }}')">
+                        <video id="video-{{ $cId }}" class="w-100 h-100" playsinline controls autoplay muted style="display: none; object-fit: cover; background: #000;"></video>
+
+                        <!-- Màn hình chờ phát video -->
+                        <div id="standby-{{ $cId }}" class="cam-cell-cover" onclick="startSingleStream('{{ $cId }}')">
+                            <div class="play-btn-circle mb-2 shadow-sm d-flex align-items-center justify-content-center"
+                                style="width: 52px; height: 52px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25);">
+                                <i class="bi bi-play-fill text-white fs-3" style="margin-left: 2px;"></i>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill" style="font-size: 11px;">
+                                <i class="bi bi-camera-video me-1"></i> Bấm phát
+                            </span>
+                        </div>
+
+                        <!-- Header Overlay -->
+                        <div class="cam-cell-header">
+                            <span class="badge bg-dark bg-opacity-75 text-white border border-secondary border-opacity-50 px-2 py-1 font-monospace" style="font-size: 11px;">
+                                <span class="live-dot me-1" id="dot-{{ $cId }}" style="background-color: #94a3b8;"></span>
+                                <span id="label-{{ $cId }}">{{ $cName }}</span>
+                            </span>
+                            <span class="badge bg-success px-2 py-1 focus-badge {{ $cId === 'cam_1' ? '' : 'd-none' }}" id="focus-badge-{{ $cId }}" style="font-size: 10px;">
+                                <i class="bi bi-crosshair me-1"></i> Đang chọn PTZ
+                            </span>
+                        </div>
+
+                        <!-- Footer Overlay -->
+                        <div class="cam-cell-footer">
+                            <span class="badge bg-black bg-opacity-75 text-white border border-dark px-2 py-1 font-monospace" style="font-size: 10px;" id="status-{{ $cId }}">
+                                SẴN SÀNG
+                            </span>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
+                                    title="Phát/Dừng camera này" onclick="event.stopPropagation(); toggleStreamForCam('{{ $cId }}')">
+                                    <i class="bi bi-power" id="pwr-{{ $cId }}"></i>
+                                </button>
+                                <button type="button" class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
+                                    title="Toàn màn hình camera này" onclick="event.stopPropagation(); toggleFullscreenForCam('{{ $cId }}')">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Thanh Điều Khiển Chọn Camera PTZ & Thông Tin Phiên -->
             <div class="card border-0 shadow-sm mb-3 bg-light">
-                <div class="card-body py-2.5 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="card-body py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold">
-                            <i class="bi bi-camera-video-fill text-primary me-1"></i> Chọn Camera:
+                            <i class="bi bi-crosshair text-success me-1"></i> Camera điều khiển PTZ:
                         </span>
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-primary active btn-cam-select" id="btn-cam-1"
-                                data-cam-id="cam_1" onclick="switchCamera('cam_1')">
+                                data-cam-id="cam_1" onclick="focusCamera('cam_1')">
                                 <i class="bi bi-eye me-1"></i> Cam 01
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-2"
-                                data-cam-id="cam_2" onclick="switchCamera('cam_2')">
+                                data-cam-id="cam_2" onclick="focusCamera('cam_2')">
                                 <i class="bi bi-zoom-in me-1"></i> Cam 02
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-3"
-                                data-cam-id="cam_3" onclick="switchCamera('cam_3')">
+                                data-cam-id="cam_3" onclick="focusCamera('cam_3')">
                                 <i class="bi bi-camera me-1"></i> Cam 03
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-4"
-                                data-cam-id="cam_4" onclick="switchCamera('cam_4')">
+                                data-cam-id="cam_4" onclick="focusCamera('cam_4')">
                                 <i class="bi bi-camera-video me-1"></i> Cam 04
                             </button>
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center gap-2" id="stream-action-group">
-                        <button type="button"
-                            class="btn btn-sm btn-primary fw-medium shadow-sm d-flex align-items-center gap-1.5"
-                            id="btn-start-stream" onclick="startStream()">
-                            <i class="bi bi-play-fill fs-6"></i> Xem trực tiếp
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-stream"
-                            onclick="stopStream()">
-                            <i class="bi bi-stop-fill fs-6"></i> Dừng phát
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none"
-                            id="btn-renew-stream" onclick="renewStream()" title="Gia hạn thêm thời gian xem">
-                            <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
-                        </button>
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> | Tilt: <strong id="val-tilt">--°</strong></span>
+                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">--x</strong></span>
+                        <span class="ms-1 border-start ps-2"><i class="bi bi-clock me-1 text-info"></i> <strong id="live-clock">--:--:--</strong></span>
                     </div>
                 </div>
             </div>
@@ -439,8 +540,8 @@
                         <i class="bi bi-bookmark-plus-fill me-1"></i> Lưu góc chụp tự động
                     </button>
                     <button type="button" class="btn btn-outline-secondary py-2 fw-medium opacity-50" id="btn-record"
-                        onclick="toggleRecording()" disabled title="Vui lòng bấm xem trực tiếp trước khi ghi hình">
-                        <i class="bi bi-record-circle me-1"></i> Ghi hình 10s
+                        onclick="toggleRecording()" disabled title="Vui lòng bật xem trực tiếp camera để ghi nhận session">
+                        <i class="bi bi-record-circle me-1"></i> Lưu Session Này (3 phút)
                     </button>
                     <button type="button" class="btn btn-outline-success py-2 fw-medium" onclick="runAiCropScan()">
                         <i class="bi bi-cpu-fill me-1"></i> Quét AI sâu bệnh
@@ -638,35 +739,58 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         const stationCode = "{{ $station['code'] ?? 'ST-PHUCHOA-01' }}";
+        const cameraIds = ['cam_1', 'cam_2', 'cam_3', 'cam_4'];
+        const cameraLabels = {
+            'cam_1': 'Camera 01 (Cổng chính)',
+            'cam_2': 'Camera 02 (Vườn ươm)',
+            'cam_3': 'Camera 03 (Nhà kính)',
+            'cam_4': 'Camera 04 (Quan trắc)'
+        };
+
         let activeCamId = 'cam_1';
-        let isStreamActive = false;
-        let hlsInstance = null;
-        let countdownTimer = null;
-        let remainingSeconds = 0;
+        let viewMode = 'grid'; // 'grid' | 'single'
+        let hlsInstances = {};
+        let streamRemaining = { cam_1: 0, cam_2: 0, cam_3: 0, cam_4: 0 };
+        let streamTimers = { cam_1: null, cam_2: null, cam_3: null, cam_4: null };
 
         let currentPan = 0.0;
         let currentTilt = 0.0;
         let currentZoom = 1.0;
-        let isRecording = false;
-        let activeMediaRecorder = null;
-        let recordCountdownInterval = null;
-        let recordedChunks = [];
+        
+        // Quản lý Buffer phiên xem 3 phút độc lập cho từng camera
+        let sessionBuffers = {
+            cam_1: null,
+            cam_2: null,
+            cam_3: null,
+            cam_4: null
+        };
 
-        function updateRecordButtonState(enabled, message) {
+        function updateRecordButtonState(enabled) {
             const btn = document.getElementById('btn-record');
             if (!btn) return;
-            if (isRecording) return;
 
-            if (enabled) {
+            const isLive = streamRemaining[activeCamId] > 0;
+            const buf = sessionBuffers[activeCamId];
+
+            if (isLive && enabled) {
                 btn.disabled = false;
-                btn.className = 'btn btn-outline-danger py-2 fw-medium';
-                btn.title = message || 'Ghi hình 10 giây từ luồng trực tiếp';
                 btn.removeAttribute('disabled');
+
+                if (buf && buf.isMarkedToSave) {
+                    btn.className = 'btn btn-danger py-2 fw-medium animate-pulse';
+                    btn.title = 'Đã đánh dấu lưu trọn vẹn session này. Bấm vào đây nếu muốn xuất và tải video ngay!';
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Đã chọn lưu Session (Bấm để tải ngay)';
+                } else {
+                    btn.className = 'btn btn-outline-danger py-2 fw-medium';
+                    btn.title = 'Bấm để lưu lại toàn bộ phiên xem live 3 phút này (từ lúc bắt đầu xem)';
+                    btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Lưu Session Này (3 phút)';
+                }
             } else {
                 btn.disabled = true;
-                btn.className = 'btn btn-outline-secondary py-2 fw-medium opacity-50';
-                btn.title = message || 'Vui lòng bấm xem trực tiếp trước khi ghi hình';
                 btn.setAttribute('disabled', 'disabled');
+                btn.className = 'btn btn-outline-secondary py-2 fw-medium opacity-50';
+                btn.title = 'Vui lòng bật xem trực tiếp camera để ghi nhận session';
+                btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Lưu Session Này (3 phút)';
             }
         }
 
@@ -697,9 +821,6 @@
                 const data = await res.json();
                 if (data.success && data.ptz) {
                     updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
-                    console.log(
-                        `%c[PTZ THỰC TẾ] ${targetCam}: Pan=${data.ptz.pan}°, Tilt=${data.ptz.tilt}°, Zoom=${data.ptz.zoom}x`,
-                        'color: #10b981; font-weight: bold;');
                 }
             } catch (e) {
                 console.warn('[PTZ] Không thể lấy tọa độ PTZ từ camera:', e);
@@ -724,56 +845,71 @@
             console.groupEnd();
         }
 
-        // 1. Chuyển đổi giữa 4 Camera của trạm
-        const cameraLabels = {
-            'cam_1': 'Camera 01',
-            'cam_2': 'Camera 02',
-            'cam_3': 'Camera 03',
-            'cam_4': 'Camera 04'
-        };
-
-        function switchCamera(camId) {
-            if (activeCamId === camId) return;
+        // 1. Chuyển đổi và Focus Camera để điều khiển PTZ & Chụp ảnh
+        function focusCamera(camId) {
             activeCamId = camId;
 
-            // Cập nhật trạng thái active cho cả 4 nút
+            // Highlight ô camera trong grid
+            cameraIds.forEach(id => {
+                const cell = document.getElementById(`cam-cell-${id}`);
+                const badge = document.getElementById(`focus-badge-${id}`);
+                if (cell) {
+                    if (id === camId) {
+                        cell.classList.add('active-focus');
+                    } else {
+                        cell.classList.remove('active-focus');
+                    }
+                }
+                if (badge) {
+                    if (id === camId) {
+                        badge.classList.remove('d-none');
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+                }
+            });
+
+            // Đồng bộ trạng thái active của thanh nút chọn camera
             document.querySelectorAll('.btn-cam-select').forEach(btn => {
                 const isSelected = btn.getAttribute('data-cam-id') === camId;
                 btn.className = isSelected ? 'btn btn-primary active btn-cam-select' :
                     'btn btn-outline-secondary btn-cam-select';
             });
 
-            document.getElementById('active-cam-label').textContent = cameraLabels[camId] || `Camera ${camId}`;
-
-            // Hỏi tọa độ PTZ thực tế của camera vừa chọn
+            // Lấy tọa độ PTZ thực tế của camera vừa chọn
             fetchPtzStatus(camId);
 
-            if (isStreamActive) {
-                stopStream(false);
-                setTimeout(() => startStream(), 500);
+            // Cập nhật trạng thái nút Ghi hình theo camera đang focus
+            const isLive = streamRemaining[camId] > 0;
+            updateRecordButtonState(isLive);
+        }
+
+        // Chuyển đổi chế độ hiển thị: Lưới 4 cam (grid) hoặc Phóng to 1 cam (single)
+        function setViewMode(mode) {
+            viewMode = mode;
+            const gridBox = document.getElementById('camera-grid-box');
+            const btnGrid = document.getElementById('btn-mode-grid');
+            const btnSingle = document.getElementById('btn-mode-single');
+
+            if (mode === 'single') {
+                gridBox.classList.add('single-mode');
+                btnSingle.className = 'btn btn-primary active btn-mode-toggle';
+                btnGrid.className = 'btn btn-outline-secondary btn-mode-toggle';
             } else {
-                checkInitialStreamStatus();
+                gridBox.classList.remove('single-mode');
+                btnGrid.className = 'btn btn-primary active btn-mode-toggle';
+                btnSingle.className = 'btn btn-outline-secondary btn-mode-toggle';
             }
         }
 
-        // 2. Kích hoạt xem trực tiếp
-        async function startStream(duration = 180) {
-            const startBtn = document.getElementById('btn-start-stream');
-            if (startBtn) startBtn.disabled = true;
-            showToast('Đang kết nối luồng camera trực tiếp...', 'info');
-
+        // 2. Kích hoạt phát video cho 1 Camera cụ thể
+        async function startSingleStream(camId, duration = 180) {
+            showToast(`Đang kết nối ${cameraLabels[camId] || camId}...`, 'info');
             const reqPayload = {
-                camera_id: activeCamId,
+                camera_id: camId,
                 duration_seconds: duration,
                 quality: 'sub'
             };
-
-            console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Bắt đầu xem stream trạm ${stationCode}:`,
-                'color: #2563eb; font-weight: bold;', {
-                    topic: `khcn/stations/${stationCode}/camera/command`,
-                    action: 'START_STREAM',
-                    params: reqPayload
-                });
 
             try {
                 const res = await fetch(`/api/iot/stations/${stationCode}/camera/stream`, {
@@ -786,252 +922,261 @@
                 });
                 const result = await res.json();
 
-                // Ghi log chi tiết: Lệnh gửi đi & Kết quả MQTT trả lại
-                logMqttAction('START_STREAM', {
+                logMqttAction(`START_STREAM (${camId})`, {
                     topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
                     action: 'START_STREAM',
                     command_id: result.command?.command_id,
                     payload_sent: result.command?.payload || reqPayload
                 }, {
                     mqtt_published: result.command?.success ?? result.success,
-                    mqtt_response_ack: result.ack || 'Đang xử lý ngầm trên Broker/Worker',
+                    mqtt_response_ack: result.ack || result,
                     stream_info: result.stream
                 });
 
                 if (result.success && result.stream) {
-                    if (result.ptz) {
+                    if (result.ptz && camId === activeCamId) {
                         updatePtzDisplay(result.ptz.pan, result.ptz.tilt, result.ptz.zoom);
                     }
-                    initHlsPlayer(result.stream.hls_url);
-                    startCountdown(duration);
-                    showToast('Đã gửi lệnh, đang kết nối luồng video...', 'info');
+                    initHlsPlayerForCam(camId, result.stream.hls_url);
+                    startCountdownForCam(camId, duration);
+                    updateStreamGlobalButtons();
+                    if (camId === activeCamId) {
+                        updateRecordButtonState(true);
+                    }
+                    showToast(`Đã kết nối trực tiếp ${cameraLabels[camId]}!`, 'success');
                 } else {
-                    showToast('Không thể kết nối camera: ' + (result.message || 'Lỗi server'), 'error');
+                    showToast(`Không thể kết nối ${cameraLabels[camId]}: ` + (result.message || 'Lỗi server'), 'error');
                 }
             } catch (err) {
-                console.error('[MQTT CAMERA ERROR] Lỗi gửi lệnh startStream:', err);
-                showToast('Lỗi kết nối máy chủ camera', 'error');
-            } finally {
-                if (startBtn) startBtn.disabled = false;
+                console.error(`[STREAM ERROR] ${camId}:`, err);
+                showToast(`Lỗi kết nối máy chủ camera ${camId}`, 'error');
             }
         }
 
-        // 3. Khởi tạo trình phát video Hls.js
-        function initHlsPlayer(hlsUrl) {
-            const video = document.getElementById('camera-live-video');
-            const standbyCover = document.getElementById('camera-standby-cover');
-            const startBtn = document.getElementById('btn-start-stream');
-            const stopBtn = document.getElementById('btn-stop-stream');
-            const renewBtn = document.getElementById('btn-renew-stream');
+        // 3. Khởi tạo HLS Player cho 1 camera
+        function initHlsPlayerForCam(camId, hlsUrl) {
+            const video = document.getElementById(`video-${camId}`);
+            const standby = document.getElementById(`standby-${camId}`);
+            if (!video || !standby) return;
 
-            standbyCover.classList.add('d-none');
-            standbyCover.classList.remove('d-flex');
-            standbyCover.style.display = 'none';
+            standby.style.display = 'none';
             video.style.display = 'block';
-            startBtn.classList.add('d-none');
-            stopBtn.classList.remove('d-none');
-            renewBtn.classList.remove('d-none');
-            isStreamActive = true;
 
-            if (hlsInstance) {
-                hlsInstance.destroy();
+            if (hlsInstances[camId]) {
+                hlsInstances[camId].destroy();
+                hlsInstances[camId] = null;
             }
 
             if (Hls.isSupported()) {
-                hlsInstance = new Hls({
+                const hls = new Hls({
                     enableWorker: true,
                     lowLatencyMode: true,
                     backBufferLength: 30,
                     manifestLoadingMaxRetry: 10,
                     manifestLoadingRetryDelay: 1500
                 });
-                hlsInstance.loadSource(hlsUrl);
-                hlsInstance.attachMedia(video);
+                hls.loadSource(hlsUrl);
+                hls.attachMedia(video);
 
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                    fatalRetryCount = 0;
-                    updateRecordButtonState(true);
-                    showToast('Đã kết nối camera trực tiếp!', 'success');
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     video.play().catch(e => console.log('Autoplay muted:', e));
+                    if (camId === activeCamId) updateRecordButtonState(true);
                 });
 
-                let fatalRetryCount = 0;
-                const maxFatalRetries = 10;
-                hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                video.onplaying = () => {
+                    startSessionBuffering(camId);
+                };
+
+                let retries = 0;
+                hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        switch (data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                fatalRetryCount++;
-                                if (fatalRetryCount <= maxFatalRetries) {
-                                    console.warn(
-                                        `[HLS] Đang chờ trạm khởi tạo luồng video (lần ${fatalRetryCount}/${maxFatalRetries})...`
-                                    );
-                                    setTimeout(() => {
-                                        if (hlsInstance) {
-                                            if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR ||
-                                                data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
-                                                hlsInstance.loadSource(hlsUrl);
-                                            } else {
-                                                hlsInstance.startLoad();
-                                            }
-                                        }
-                                    }, 1500);
-                                } else {
-                                    console.error('[HLS] Trạm chưa đẩy luồng video lên Media Server:', data);
-                                    showToast('Chưa nhận được tín hiệu hình ảnh từ trạm camera. Vui lòng thử lại.',
-                                        'error');
-                                    stopStream(false);
-                                }
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                console.warn('[HLS] Đang khắc phục lỗi giải mã media...');
-                                hlsInstance.recoverMediaError();
-                                break;
-                            default:
-                                showToast('Lỗi phát luồng video từ trạm.', 'error');
-                                stopStream(false);
-                                break;
+                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR && retries < 10) {
+                            retries++;
+                            setTimeout(() => {
+                                if (hlsInstances[camId]) hls.startLoad();
+                            }, 1500);
+                        } else {
+                            stopSingleStream(camId, false);
                         }
                     }
                 });
+
+                hlsInstances[camId] = hls;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Hỗ trợ Safari iOS/macOS
                 video.src = hlsUrl;
-                video.addEventListener('loadedmetadata', () => {
-                    updateRecordButtonState(true);
-                    showToast('Đã kết nối camera trực tiếp!', 'success');
-                    video.play().catch(e => console.log(e));
-                });
+                video.play().catch(e => console.log(e));
+                video.onplaying = () => {
+                    startSessionBuffering(camId);
+                };
             }
         }
 
-        // 4. Dừng luồng phát video
-        async function stopStream(callApi = true) {
-            clearInterval(countdownTimer);
-            if (hlsInstance) {
-                hlsInstance.destroy();
-                hlsInstance = null;
+        // 4. Dừng luồng phát của 1 camera
+        async function stopSingleStream(camId, callApi = true) {
+            clearInterval(streamTimers[camId]);
+            streamRemaining[camId] = 0;
+
+            // Đóng gói và lưu video nếu session này được chọn lưu
+            finalizeSessionBuffer(camId);
+
+            if (hlsInstances[camId]) {
+                hlsInstances[camId].destroy();
+                hlsInstances[camId] = null;
             }
 
-            const video = document.getElementById('camera-live-video');
-            const standbyCover = document.getElementById('camera-standby-cover');
-            const startBtn = document.getElementById('btn-start-stream');
-            const stopBtn = document.getElementById('btn-stop-stream');
-            const renewBtn = document.getElementById('btn-renew-stream');
-            const statusBadge = document.getElementById('stream-status-badge');
-            const statusText = document.getElementById('stream-status-text');
-            const statusDot = document.getElementById('stream-status-dot');
+            const video = document.getElementById(`video-${camId}`);
+            const standby = document.getElementById(`standby-${camId}`);
+            const dot = document.getElementById(`dot-${camId}`);
+            const status = document.getElementById(`status-${camId}`);
 
-            video.pause();
-            video.src = '';
-            video.style.display = 'none';
-            standbyCover.classList.remove('d-none');
-            standbyCover.classList.add('d-flex');
-            standbyCover.style.display = 'flex';
-
-            startBtn.classList.remove('d-none');
-            stopBtn.classList.add('d-none');
-            renewBtn.classList.add('d-none');
-
-            statusBadge.className =
-                'badge bg-secondary text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
-            statusDot.style.backgroundColor = '#94a3b8';
-            statusText.textContent = 'SẴN SÀNG';
-            isStreamActive = false;
-            if (isRecording) {
-                stopRecording(false);
+            if (video) {
+                video.pause();
+                video.src = '';
+                video.style.display = 'none';
             }
-            updateRecordButtonState(false);
+            if (standby) standby.style.display = 'flex';
+            if (dot) dot.style.backgroundColor = '#94a3b8';
+            if (status) status.textContent = 'SẴN SÀNG';
+
+            if (camId === activeCamId) {
+                updateRecordButtonState(false);
+            }
+
+            updateStreamGlobalButtons();
 
             if (callApi) {
-                showToast('Đã dừng phát video.', 'info');
-                const reqPayload = {
-                    camera_id: activeCamId
-                };
-                console.log(`%c[MQTT LỆNH ĐIỀU KHIỂN] Dừng stream trạm ${stationCode}:`,
-                    'color: #dc2626; font-weight: bold;', {
-                        topic: `khcn/stations/${stationCode}/camera/command`,
-                        action: 'STOP_STREAM',
-                        params: reqPayload
-                    });
-
                 try {
-                    const res = await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
+                    await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(reqPayload)
-                    });
-                    const result = await res.json();
-
-                    logMqttAction('STOP_STREAM', {
-                        topic: result.command?.topic || `khcn/stations/${stationCode}/camera/command`,
-                        action: 'STOP_STREAM',
-                        command_id: result.command?.command_id,
-                        payload_sent: result.command?.payload || reqPayload
-                    }, {
-                        mqtt_published: result.command?.success ?? result.success,
-                        mqtt_response_ack: result.ack || result
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ camera_id: camId })
                     });
                 } catch (e) {
-                    console.error('[MQTT CAMERA ERROR] Lỗi dừng stream:', e);
+                    console.error('[STOP STREAM ERROR]', e);
                 }
             }
         }
 
-        function renewStream() {
-            startStream(180);
+        function toggleStreamForCam(camId) {
+            if (streamRemaining[camId] > 0) {
+                stopSingleStream(camId, true);
+                showToast(`Đã dừng phát ${cameraLabels[camId]}`, 'info');
+            } else {
+                startSingleStream(camId);
+            }
         }
 
-        // 5. Đồng hồ đếm ngược phiên xem (đã chuẩn hóa số nguyên, chống lỗi số thực thập phân)
-        function startCountdown(seconds) {
-            clearInterval(countdownTimer);
-            remainingSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+        // Bật / Dừng toàn bộ 4 Camera đồng thời
+        async function startAllStreams(duration = 180) {
+            showToast('Đang kích hoạt phát trực tiếp cả 4 Camera...', 'info');
+            const startAllBtn = document.getElementById('btn-start-all-streams');
+            if (startAllBtn) startAllBtn.disabled = true;
 
-            const statusBadge = document.getElementById('stream-status-badge');
-            const statusText = document.getElementById('stream-status-text');
-            const statusDot = document.getElementById('stream-status-dot');
+            for (let i = 0; i < cameraIds.length; i++) {
+                const cId = cameraIds[i];
+                startSingleStream(cId, duration);
+                if (i < cameraIds.length - 1) {
+                    await new Promise(r => setTimeout(r, 350));
+                }
+            }
+            if (startAllBtn) startAllBtn.disabled = false;
+        }
 
-            statusBadge.className = 'badge bg-danger text-white px-2.5 py-1.5 d-flex align-items-center gap-1.5 shadow-sm';
-            statusDot.style.backgroundColor = '#ef4444';
+        async function stopAllStreams() {
+            showToast('Đang dừng tất cả các luồng camera...', 'info');
+            for (const cId of cameraIds) {
+                if (streamRemaining[cId] > 0) {
+                    stopSingleStream(cId, true);
+                }
+            }
+        }
 
-            updateCountdownDisplay();
+        function renewAllStreams() {
+            cameraIds.forEach(cId => {
+                if (streamRemaining[cId] > 0) {
+                    startSingleStream(cId, 180);
+                }
+            });
+            showToast('Đã gia hạn thêm 3 phút cho các luồng đang phát.', 'success');
+        }
 
-            countdownTimer = setInterval(() => {
-                remainingSeconds--;
-                if (remainingSeconds <= 0) {
-                    clearInterval(countdownTimer);
-                    stopStream(false);
-                    showToast('Phiên phát trực tiếp đã kết thúc.', 'info');
+        function updateStreamGlobalButtons() {
+            const anyActive = cameraIds.some(cId => streamRemaining[cId] > 0);
+            const stopAllBtn = document.getElementById('btn-stop-all-streams');
+            const renewAllBtn = document.getElementById('btn-renew-all-streams');
+
+            if (stopAllBtn && renewAllBtn) {
+                if (anyActive) {
+                    stopAllBtn.classList.remove('d-none');
+                    renewAllBtn.classList.remove('d-none');
                 } else {
-                    updateCountdownDisplay();
+                    stopAllBtn.classList.add('d-none');
+                    renewAllBtn.classList.add('d-none');
+                }
+            }
+        }
+
+        // 5. Đếm ngược phiên phát của từng camera
+        function startCountdownForCam(camId, seconds) {
+            clearInterval(streamTimers[camId]);
+            streamRemaining[camId] = Math.max(0, Math.floor(Number(seconds) || 0));
+
+            const dot = document.getElementById(`dot-${camId}`);
+            const status = document.getElementById(`status-${camId}`);
+            if (dot) dot.style.backgroundColor = '#ef4444';
+
+            const updateDisplay = () => {
+                const totalSec = Math.max(0, Math.floor(streamRemaining[camId]));
+                const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+                const s = (totalSec % 60).toString().padStart(2, '0');
+                if (status) status.textContent = `LIVE (${m}:${s})`;
+            };
+
+            updateDisplay();
+
+            streamTimers[camId] = setInterval(() => {
+                streamRemaining[camId]--;
+                if (streamRemaining[camId] <= 0) {
+                    clearInterval(streamTimers[camId]);
+                    stopSingleStream(camId, false);
+                    showToast(`Phiên xem ${cameraLabels[camId]} đã kết thúc.`, 'info');
+                } else {
+                    updateDisplay();
                 }
             }, 1000);
         }
 
-        function updateCountdownDisplay() {
-            const totalSec = Math.max(0, Math.floor(remainingSeconds));
-            const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
-            const s = (totalSec % 60).toString().padStart(2, '0');
-            document.getElementById('stream-status-text').textContent = `LIVE (${m}:${s})`;
+        function toggleFullscreenForCam(camId) {
+            const cell = document.getElementById(`cam-cell-${camId}`);
+            if (!cell) return;
+            if (!document.fullscreenElement) {
+                cell.requestFullscreen().catch(err => {});
+            } else {
+                document.exitFullscreen();
+            }
         }
 
         // 6. Kiểm tra nếu luồng đang mở sẵn từ trước
         async function checkInitialStreamStatus() {
-            try {
-                const res = await fetch(`/api/iot/stations/${stationCode}/camera/status?camera_id=${activeCamId}`);
-                const data = await res.json();
-                if (data.ptz) {
-                    updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
+            cameraIds.forEach(async (cId) => {
+                try {
+                    const res = await fetch(`/api/iot/stations/${stationCode}/camera/status?camera_id=${cId}`);
+                    const data = await res.json();
+                    if (data.ptz && cId === activeCamId) {
+                        updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
+                    }
+                    if (data.active && data.remaining_seconds > 0 && data.stream) {
+                        initHlsPlayerForCam(cId, data.stream.hls_url);
+                        startCountdownForCam(cId, data.remaining_seconds);
+                        updateStreamGlobalButtons();
+                        if (cId === activeCamId) {
+                            updateRecordButtonState(true);
+                        }
+                    }
+                } catch (e) {
+                    // Ignore
                 }
-                if (data.active && data.remaining_seconds > 0 && data.stream) {
-                    initHlsPlayer(data.stream.hls_url);
-                    startCountdown(data.remaining_seconds);
-                }
-            } catch (e) {
-                // Ignore
-            }
+            });
         }
 
         // 7. Đồng hồ hệ thống góc phải
@@ -1256,26 +1401,17 @@
             }
         }
 
-        function toggleRecording() {
-            const video = document.getElementById('camera-live-video');
+        // =========================================================================
+        // GHI ĐỆM VÀ LƯU TRỌN VẸN PHIÊN XEM LIVE 3 PHÚT (SESSION BUFFERING)
+        // =========================================================================
+        function startSessionBuffering(camId) {
+            const video = document.getElementById(`video-${camId}`);
+            if (!video) return;
 
-            if (!isStreamActive || !video || video.paused || video.ended) {
-                showToast('Vui lòng bật xem trực tiếp trước khi ghi hình!', 'warning');
-                updateRecordButtonState(false);
+            // Nếu camera này đang có bộ đệm hoạt động tốt thì không khởi tạo lại
+            if (sessionBuffers[camId] && sessionBuffers[camId].recorder && sessionBuffers[camId].recorder.state === 'recording') {
                 return;
             }
-
-            if (isRecording) {
-                stopRecording(true);
-                return;
-            }
-
-            startRecording();
-        }
-
-        function startRecording() {
-            const btn = document.getElementById('btn-record');
-            const video = document.getElementById('camera-live-video');
 
             let stream = null;
             try {
@@ -1285,13 +1421,11 @@
                     stream = video.mozCaptureStream();
                 }
             } catch (err) {
-                console.error('[RECORD] Lỗi captureStream:', err);
-            }
-
-            if (!stream) {
-                showToast('Trình duyệt không hỗ trợ quay video trực tiếp từ thẻ phát!', 'error');
+                console.warn(`[SESSION BUFFER] captureStream lỗi cho ${camId}:`, err);
                 return;
             }
+
+            if (!stream) return;
 
             let mimeType = '';
             let fileExt = 'webm';
@@ -1313,46 +1447,66 @@
             }
 
             try {
-                recordedChunks = [];
-                activeMediaRecorder = mimeType ? new MediaRecorder(stream, {
-                    mimeType
-                }) : new MediaRecorder(stream);
+                const chunks = [];
+                const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+                recorder.ondataavailable = function(e) {
+                    if (e.data && e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                sessionBuffers[camId] = {
+                    recorder: recorder,
+                    chunks: chunks,
+                    mimeType: mimeType,
+                    fileExt: fileExt,
+                    isMarkedToSave: false,
+                    startTime: new Date()
+                };
+
+                recorder.start(1000); // Lưu từng mẩu 1 giây để gom liên tục từ đầu phiên
+                console.log(`[SESSION BUFFER] Bắt đầu ghi đệm phiên xem live từ 00:00 cho ${camId}`);
+
+                if (camId === activeCamId) {
+                    updateRecordButtonState(true);
+                }
             } catch (e) {
-                console.error('[RECORD] Khởi tạo MediaRecorder thất bại:', e);
-                showToast('Không thể khởi tạo bộ ghi hình trên trình duyệt: ' + e.message, 'error');
-                return;
+                console.warn(`[SESSION BUFFER] Không thể khởi tạo MediaRecorder cho ${camId}:`, e);
             }
+        }
 
-            activeMediaRecorder.ondataavailable = function(e) {
-                if (e.data && e.data.size > 0) {
-                    recordedChunks.push(e.data);
+        function finalizeSessionBuffer(camId, manualTrigger = false) {
+            const buf = sessionBuffers[camId];
+            if (!buf || !buf.recorder) return;
+
+            const shouldSave = buf.isMarkedToSave;
+            const recorder = buf.recorder;
+            const chunks = buf.chunks;
+            const mimeType = buf.mimeType || 'video/webm';
+            const fileExt = buf.fileExt || 'webm';
+
+            recorder.ondataavailable = null;
+            recorder.onstop = null;
+
+            try {
+                if (recorder.state !== 'inactive') {
+                    recorder.stop();
                 }
-            };
+            } catch (e) {}
 
-            activeMediaRecorder.onstop = function() {
-                clearInterval(recordCountdownInterval);
-                isRecording = false;
-                updateRecordButtonState(isStreamActive);
-                btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
+            sessionBuffers[camId] = null;
 
-                if (recordedChunks.length === 0) {
-                    showToast('Không có dữ liệu video để lưu!', 'warning');
-                    return;
-                }
-
-                const blobType = mimeType || 'video/webm';
-                const blob = new Blob(recordedChunks, {
-                    type: blobType
-                });
+            if (shouldSave && chunks && chunks.length > 0) {
+                const blob = new Blob(chunks, { type: mimeType });
                 const blobUrl = window.URL.createObjectURL(blob);
 
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
-                const timeStr =
-                    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-                const filename = `Record_${stationCode}_${activeCamId}_${timeStr}.${fileExt}`;
+                const timeStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const filename = `Session_${stationCode}_${camId}_${timeStr}.${fileExt}`;
 
-                // 1. Tự động tải file video về máy tính / điện thoại
+                // 1. Tải file về máy tính người dùng
                 const a = document.createElement('a');
                 a.href = blobUrl;
                 a.download = filename;
@@ -1361,55 +1515,59 @@
                 a.remove();
                 setTimeout(() => window.URL.revokeObjectURL(blobUrl), 4000);
 
-                showToast(`Đã lưu video clip ghi hình (${filename})!`, 'success');
+                showToast(`Đã lưu toàn bộ video session 3 phút vừa xem (${filename})!`, 'success');
 
-                // 2. Đồng bộ upload file video lên Laravel để lưu vào mục Media
-                uploadRecordedVideo(blob, filename);
-            };
-
-            isRecording = true;
-            let countdown = 10;
-            btn.className = 'btn btn-danger py-2 fw-medium animate-pulse';
-            btn.innerHTML = `<i class="bi bi-stop-circle-fill me-1"></i> Đang ghi hình (${countdown}s)...`;
-
-            activeMediaRecorder.start(500);
-            showToast('Bắt đầu ghi hình 10s từ camera trực tiếp...', 'info');
-
-            recordCountdownInterval = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    btn.innerHTML = `<i class="bi bi-stop-circle-fill me-1"></i> Đang ghi hình (${countdown}s)...`;
-                } else {
-                    clearInterval(recordCountdownInterval);
-                    stopRecording(true);
-                }
-            }, 1000);
-        }
-
-        function stopRecording(processData = true) {
-            clearInterval(recordCountdownInterval);
-            if (activeMediaRecorder && activeMediaRecorder.state !== 'inactive') {
-                if (!processData) {
-                    activeMediaRecorder.onstop = null;
-                }
-                activeMediaRecorder.stop();
+                // 2. Upload đồng bộ lên máy chủ
+                uploadRecordedVideo(blob, filename, camId);
             }
-            activeMediaRecorder = null;
-            isRecording = false;
 
-            const btn = document.getElementById('btn-record');
-            if (btn) {
-                updateRecordButtonState(isStreamActive);
-                btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Ghi hình 10s';
+            if (camId === activeCamId) {
+                updateRecordButtonState(streamRemaining[camId] > 0);
             }
         }
 
-        async function uploadRecordedVideo(blob, filename) {
+        function toggleRecording() {
+            const isLive = streamRemaining[activeCamId] > 0;
+            const video = document.getElementById(`video-${activeCamId}`);
+
+            if (!isLive || !video || video.paused || video.ended) {
+                showToast(`Vui lòng bật xem trực tiếp ${cameraLabels[activeCamId] || activeCamId} trước!`, 'warning');
+                updateRecordButtonState(false);
+                return;
+            }
+
+            let buf = sessionBuffers[activeCamId];
+            if (!buf || !buf.recorder) {
+                startSessionBuffering(activeCamId);
+                buf = sessionBuffers[activeCamId];
+            }
+
+            if (!buf) {
+                showToast('Trình duyệt chưa khởi tạo xong bộ đệm video của session này!', 'error');
+                return;
+            }
+
+            if (!buf.isMarkedToSave) {
+                // Người dùng bấm lưu -> Đánh dấu giữ lại toàn bộ phiên này
+                buf.isMarkedToSave = true;
+                updateRecordButtonState(true);
+                showToast(`Đã chọn lưu toàn bộ session này! Dữ liệu video từ đầu phiên đến hết 3 phút sẽ được lưu tự động (hoặc bấm nút lần nữa để tải về ngay).`, 'success');
+            } else {
+                // Nếu bấm lại khi đã đánh dấu lưu -> Xuất và tải ngay mẩu hiện tại
+                showToast(`Đang xuất và tải video session hiện tại của ${cameraLabels[activeCamId]}...`, 'info');
+                finalizeSessionBuffer(activeCamId, true);
+                if (streamRemaining[activeCamId] > 0) {
+                    setTimeout(() => startSessionBuffering(activeCamId), 300);
+                }
+            }
+        }
+
+        async function uploadRecordedVideo(blob, filename, camId = null) {
             try {
                 const formData = new FormData();
                 formData.append('video', blob, filename);
                 formData.append('station_code', stationCode);
-                formData.append('camera_id', activeCamId);
+                formData.append('camera_id', camId || activeCamId);
                 formData.append('captured_at', new Date().toISOString());
 
                 const res = await fetch('/api/iot/camera/upload-video', {

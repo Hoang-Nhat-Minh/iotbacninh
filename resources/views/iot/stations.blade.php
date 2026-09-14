@@ -46,6 +46,54 @@
             border-radius: 8px;
         }
 
+        /* Quick Station Selector Grid at Top */
+        .station-quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .station-quick-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .station-quick-card:hover {
+            border-color: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .station-quick-card.active {
+            border-color: #0284c7 !important;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%) !important;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18), 0 8px 24px rgba(2, 132, 199, 0.08);
+        }
+
+        .btn-camera-highlight {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-camera-highlight:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+            transform: translateY(-1px);
+        }
+
         /* Bottom Stations List Card */
         .map-stations-card {
             border-radius: 16px;
@@ -238,9 +286,159 @@
         </x-slot:actions>
     </x-page-header>
 
+    <!-- 1. BỘ CHỌN TRẠM NHANH & DANH SÁCH TẤT CẢ CÁC TRẠM (ĐẶT Ở TRÊN CÙNG ĐỂ CHUYỂN ĐỔI DỄ DÀNG) -->
+    @if (count($stations) > 0)
+        <!-- Khối thẻ chọn trạm nhanh -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.98rem;">
+                    <i class="bi bi-broadcast text-primary"></i> Chuyển Đổi Nhanh Trạm Quan Trắc ({{ count($stations) }} Trạm)
+                </h5>
+                <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStationListTable" aria-expanded="false" aria-controls="collapseStationListTable">
+                    <i class="bi bi-table me-1"></i> Bảng Danh Sách Trạm Chi Tiết <i class="bi bi-chevron-down ms-1"></i>
+                </button>
+            </div>
+            
+            <div class="station-quick-grid">
+                @foreach ($stations as $idx => $st)
+                    <div class="station-quick-card {{ $idx === 0 ? 'active' : '' }}" id="station-quick-card-{{ $st['id'] }}" onclick="selectStation({{ $st['id'] }})">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace fw-bold">{{ $st['code'] }}</span>
+                            @if (!$st['has_real_data'])
+                                <span class="badge bg-light text-muted border" style="font-size: 11px;"><i class="bi bi-dash-circle"></i> Chờ tín hiệu</span>
+                            @elseif ($st['status'] === 'offline')
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 11px;"><i class="bi bi-wifi-off"></i> Offline</span>
+                            @elseif ($st['status'] === 'danger')
+                                <span class="badge bg-danger text-white" style="font-size: 11px;"><i class="bi bi-exclamation-triangle-fill"></i> Cảnh báo</span>
+                            @elseif ($st['status'] === 'maintenance')
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle" style="font-size: 11px;"><i class="bi bi-tools"></i> Bảo trì</span>
+                            @else
+                                <span class="badge bg-success text-white" style="font-size: 11px;"><i class="bi bi-check-circle-fill"></i> Trực tuyến</span>
+                            @endif
+                        </div>
+                        <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.93rem;" title="{{ $st['name'] }}">{{ $st['name'] }}</div>
+                        <div class="text-muted small text-truncate mb-2" style="font-size: 11.5px;"><i class="bi bi-geo-alt text-danger me-1"></i>{{ $st['zone'] }}</div>
+                        
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <div class="d-flex gap-2 text-muted" style="font-size: 11.5px;">
+                                <span title="Nhiệt độ"><i class="bi bi-thermometer-half text-danger"></i> <strong id="quick-temp-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong></span>
+                                <span title="Độ ẩm không khí"><i class="bi bi-droplet-fill text-info"></i> <strong id="quick-hum-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong></span>
+                            </div>
+                            <a href="{{ url('/iot/stations/' . $st['id']) }}" class="btn btn-sm btn-camera-highlight py-1 px-2" style="font-size: 11.5px; border-radius: 6px;" onclick="event.stopPropagation();" title="Xem camera trạm {{ $st['code'] }}">
+                                <i class="bi bi-camera-video-fill"></i> Camera
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
 
+            <!-- Bảng danh sách trạm thu gọn / mở rộng tiện lợi -->
+            <div class="collapse mt-3" id="collapseStationListTable">
+                <div class="map-stations-card">
+                    <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-table text-success"></i> Danh Sách Chi Tiết Các Trạm Quan Trắc
+                        </h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                            <i class="bi bi-check-circle-fill me-1"></i> Tự động đồng bộ
+                        </span>
+                    </div>
+                    <div class="stations-scroll-body">
+                        <div class="table-responsive">
+                            <table class="custom-table w-100 mb-0">
+                                <thead class="sticky-top bg-light" style="z-index: 2;">
+                                    <tr>
+                                        <th style="width: 75px;">Mã Trạm</th>
+                                        <th>Tên Trạm & Vùng Trồng</th>
+                                        <th>Tọa Độ GIS</th>
+                                        <th>Cảm Biến</th>
+                                        <th>Tần Suất</th>
+                                        <th>Trạng Thái</th>
+                                        <th style="width: 220px; text-align: center;">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($stations as $idx => $st)
+                                        <tr class="station-table-row {{ $idx === 0 ? 'active' : '' }}"
+                                            id="table-row-{{ $st['id'] }}" onclick="selectStation({{ $st['id'] }})">
+                                            <td>
+                                                <strong class="text-primary font-monospace">{{ $st['code'] }}</strong>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                    @if ($st['status'] === 'danger')
+                                                        <span class="pulse-danger-dot" title="Cảnh báo bệnh"></span>
+                                                    @else
+                                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 12px;"></i>
+                                                    @endif
+                                                    {{ $st['name'] }}
+                                                </div>
+                                                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $st['zone'] }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted small font-monospace">
+                                                    {{ $st['latitude'] ?? 21.0542 }}, {{ $st['longitude'] ?? 106.0712 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-2 text-muted small" style="font-size: 11.5px;">
+                                                    <span><i class="bi bi-thermometer-half text-danger"></i>
+                                                        <strong id="tbl-temp-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong></span>
+                                                    <span><i class="bi bi-droplet-fill text-info"></i>
+                                                        <strong id="tbl-hum-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong></span>
+                                                    <span><i class="bi bi-moisture text-success"></i>
+                                                        <strong id="tbl-soil-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['soil_moist'] . '%' : '--' }}</strong></span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-secondary border font-monospace">{{ $st['data_interval'] }}s</span>
+                                            </td>
+                                            <td>
+                                                <span id="tbl-status-badge-{{ $st['id'] }}">
+                                                    @if (!$st['has_real_data'])
+                                                        <span class="badge bg-light text-muted border fw-medium"><i class="bi bi-dash-circle me-1"></i> Chờ tín hiệu</span>
+                                                    @elseif ($st['status'] === 'offline')
+                                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium"><i class="bi bi-wifi-off me-1"></i> Offline</span>
+                                                    @elseif ($st['status'] === 'danger')
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium"><i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $st['status_label'] }}</span>
+                                                    @elseif($st['status'] === 'maintenance')
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle fw-medium"><i class="bi bi-tools me-1"></i> Bảo trì</span>
+                                                    @else
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle fw-medium"><i class="bi bi-shield-check me-1"></i> Ổn định</span>
+                                                    @endif
+                                                </span>
+                                            </td>
+                                            <td style="text-align: center;" onclick="event.stopPropagation();">
+                                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                                    <button class="btn btn-outline-primary btn-sm py-1 px-2" title="Xem chi tiết trạm bên dưới"
+                                                        onclick="selectStation({{ $st['id'] }})">
+                                                        <i class="bi bi-eye me-1"></i> Chi tiết
+                                                    </button>
+                                                    <a href="{{ url('/iot/stations/' . $st['id']) }}" class="btn btn-primary btn-sm py-1 px-2" title="Xem Camera trực tiếp" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
+                                                        <i class="bi bi-camera-video me-1"></i> Camera
+                                                    </a>
+                                                    <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-outline-secondary btn-sm py-1 px-2" title="Chỉnh sửa trạm">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <div class="vr mx-1 text-muted opacity-25" style="height: 20px;"></div>
+                                                    <button class="btn btn-outline-danger btn-sm py-1 px-2" title="Xóa trạm"
+                                                        onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
-    <!-- 1. HÀNG TRÊN: THÔNG TIN CHI TIẾT TRẠM ĐANG CHỌN (TÍCH HỢP TAB DỮ LIỆU & TAB BẢN ĐỒ GIS) -->
+    <!-- 2. THÔNG TIN CHI TIẾT TRẠM ĐANG CHỌN (TÍCH HỢP TAB DỮ LIỆU & TAB BẢN ĐỒ GIS) -->
     <div class="mb-4">
         @if (count($stations) === 0)
             <div class="card p-5 text-center my-2 bg-white rounded-4 shadow-sm border">
@@ -293,7 +491,19 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-2">
-                            <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-sm btn-outline-secondary px-3 py-2">
+                            <!-- Nút Xem Camera nổi bật & trực quan -->
+                            <a href="{{ url('/iot/stations/' . $st['id']) }}" class="btn btn-camera-highlight py-2 px-3">
+                                <i class="bi bi-camera-video-fill"></i>
+                                <span>Xem Camera Trực Tiếp</span>
+                                <span class="badge bg-success text-white py-1 px-2" style="font-size: 10px; border-radius: 999px;">
+                                    <i class="bi bi-broadcast me-1"></i> LIVE
+                                </span>
+                            </a>
+
+                            <!-- Dải phân cách an toàn để tránh bấm nhầm nút xóa -->
+                            <div class="vr mx-2 text-muted opacity-25" style="height: 32px;"></div>
+
+                            <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-sm btn-outline-secondary px-3 py-2" title="Chỉnh sửa trạm">
                                 <i class="bi bi-pencil-square me-1"></i> Sửa Trạm
                             </a>
                             <button type="button" class="btn btn-sm btn-outline-danger px-2 py-2"
@@ -301,9 +511,6 @@
                                 onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
                                 <i class="bi bi-trash"></i>
                             </button>
-                            <a href="{{ url('/iot/stations/' . $st['id']) }}" class="btn btn-sm btn-primary px-3 py-2">
-                                <i class="bi bi-camera-video me-1"></i> Xem Camera
-                            </a>
                         </div>
                     </div>
 
@@ -758,129 +965,6 @@
         @endforeach
     </div>
 
-    <!-- 2. HÀNG DƯỚI: DANH SÁCH CÁC TRẠM QUAN TRẮC (CÓ HEIGHT CỐ ĐỊNH & OVERFLOW SCROLL) -->
-    <div class="map-stations-card mb-4">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
-            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
-                <i class="bi bi-broadcast text-success fs-5"></i> Danh Sách Các Trạm Quan Trắc IoT ({{ count($stations) }}
-                Trạm)
-            </h5>
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
-                <i class="bi bi-check-circle-fill me-1"></i> Tự động đồng bộ IoT
-            </span>
-        </div>
-        <div class="stations-scroll-body">
-            <div class="table-responsive">
-                <table class="custom-table w-100 mb-0">
-                    <thead class="sticky-top bg-light" style="z-index: 2;">
-                        <tr>
-                            <th style="width: 75px;">Mã Trạm</th>
-                            <th>Tên Trạm & Vùng Trồng</th>
-                            <th>Tọa Độ GIS (Lat, Lng)</th>
-                            <th>Thông Số Cảm Biến</th>
-                            <th>Tần Suất</th>
-                            <th>Trạng Thái</th>
-                            <th style="width: 170px; text-align: center;">Thao Tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($stations as $idx => $st)
-                            <tr class="station-table-row {{ $idx === 0 ? 'active' : '' }}"
-                                id="table-row-{{ $st['id'] }}" onclick="selectStation({{ $st['id'] }})">
-                                <td>
-                                    <strong class="text-primary font-monospace">{{ $st['code'] }}</strong>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                                        @if ($st['status'] === 'danger')
-                                            <span class="pulse-danger-dot" title="Cảnh báo bệnh"></span>
-                                        @else
-                                            <i class="bi bi-check-circle-fill text-success" style="font-size: 12px;"></i>
-                                        @endif
-                                        {{ $st['name'] }}
-                                    </div>
-                                    <small class="text-muted"><i
-                                            class="bi bi-geo-alt me-1"></i>{{ $st['zone'] }}</small>
-                                </td>
-                                <td>
-                                    <span class="text-muted small font-monospace">
-                                        {{ $st['latitude'] ?? 21.0542 }}, {{ $st['longitude'] ?? 106.0712 }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2 text-muted small" style="font-size: 11.5px;">
-                                        <span><i class="bi bi-thermometer-half text-danger"></i>
-                                            <strong id="tbl-temp-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['temp'] . '°C' : '--' }}</strong></span>
-                                        <span><i class="bi bi-droplet-fill text-info"></i>
-                                            <strong id="tbl-hum-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['humidity'] . '%' : '--' }}</strong></span>
-                                        <span><i class="bi bi-moisture text-success"></i>
-                                            <strong id="tbl-soil-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['soil_moist'] . '%' : '--' }}</strong></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span
-                                        class="badge bg-light text-secondary border font-monospace">{{ $st['data_interval'] }}s</span>
-                                </td>
-                                <td>
-                                    <span id="tbl-status-badge-{{ $st['id'] }}">
-                                        @if (!$st['has_real_data'])
-                                            <span class="badge bg-light text-muted border fw-medium">
-                                                <i class="bi bi-dash-circle me-1"></i> Chưa có tín hiệu
-                                            </span>
-                                        @elseif ($st['status'] === 'offline')
-                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium">
-                                                <i class="bi bi-wifi-off me-1"></i> Mất kết nối (Offline)
-                                            </span>
-                                        @elseif ($st['status'] === 'danger')
-                                            <span
-                                                class="badge bg-danger-subtle text-danger border border-danger-subtle fw-medium">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $st['status_label'] }}
-                                            </span>
-                                        @elseif($st['status'] === 'maintenance')
-                                            <span
-                                                class="badge bg-warning-subtle text-warning border border-warning-subtle fw-medium">
-                                                <i class="bi bi-tools me-1"></i> Bảo trì
-                                            </span>
-                                        @else
-                                            <span
-                                                class="badge bg-success-subtle text-success border border-success-subtle fw-medium">
-                                                <i class="bi bi-shield-check me-1"></i> Ổn định
-                                            </span>
-                                        @endif
-                                    </span>
-                                </td>
-
-
-                                <td style="text-align: center;" onclick="event.stopPropagation();">
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-primary btn-sm py-1 px-2" title="Định vị & chọn trạm"
-                                            onclick="selectStation({{ $st['id'] }})">
-                                            <i class="bi bi-geo-alt"></i> Xem
-                                        </button>
-                                        <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-secondary btn-sm py-1 px-2" title="Chỉnh sửa trạm">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <button class="btn btn-secondary btn-sm py-1 px-2 text-danger" title="Xóa trạm"
-                                            onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
-                                    Chưa có trạm quan trắc nào được cấu hình.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal Xóa Trạm Quan Trắc -->
     <div class="app-modal" id="modal-delete-station">
         <div class="modal-dialog" style="max-width: 440px;">
@@ -1029,17 +1113,22 @@
 
 
         function selectStation(id) {
-            // 1. Active row trong danh sách bảng dưới
+            // 0. Active card trong bộ chọn trạm nhanh ở trên cùng
+            document.querySelectorAll('.station-quick-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            const activeCard = document.getElementById('station-quick-card-' + id);
+            if (activeCard) {
+                activeCard.classList.add('active');
+            }
+
+            // 1. Active row trong danh sách bảng chi tiết
             document.querySelectorAll('.station-table-row').forEach(row => {
                 row.classList.remove('active');
             });
             const activeRow = document.getElementById('table-row-' + id);
             if (activeRow) {
                 activeRow.classList.add('active');
-                activeRow.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest'
-                });
             }
 
             // 2. Chuyển đổi Panel thông tin trạm được chọn
@@ -1049,10 +1138,6 @@
             const activePanel = document.getElementById('station-panel-' + id);
             if (activePanel) {
                 activePanel.classList.remove('d-none');
-                activePanel.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
             }
 
             const st = stationsData.find(s => s.id === id);
@@ -1249,7 +1334,13 @@
                                 : '--';
                         }
 
-                        // 5. Cập nhật các dòng trong bảng danh sách phía dưới
+                        // 5. Cập nhật các thẻ Quick Card ở trên cùng và các dòng trong bảng
+                        const quickTemp = document.getElementById('quick-temp-' + st.id);
+                        if (quickTemp) quickTemp.textContent = st.has_real_data ? st.temp + '°C' : '--';
+
+                        const quickHum = document.getElementById('quick-hum-' + st.id);
+                        if (quickHum) quickHum.textContent = st.has_real_data ? st.humidity + '%' : '--';
+
                         const rowTemp = document.getElementById('tbl-temp-' + st.id);
                         if (rowTemp) rowTemp.textContent = st.has_real_data ? st.temp + '°C' : '--';
 
