@@ -321,23 +321,30 @@
                         <i class="bi bi-display text-primary me-1"></i> Chế độ hiển thị:
                     </span>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-primary active btn-mode-toggle" id="btn-mode-grid" onclick="setViewMode('grid')">
+                        <button type="button" class="btn btn-primary active btn-mode-toggle" id="btn-mode-grid"
+                            onclick="setViewMode('grid')">
                             <i class="bi bi-grid-fill me-1"></i> 4 Camera (Lưới 2x2)
                         </button>
-                        <button type="button" class="btn btn-outline-secondary btn-mode-toggle" id="btn-mode-single" onclick="setViewMode('single')">
+                        <button type="button" class="btn btn-outline-secondary btn-mode-toggle" id="btn-mode-single"
+                            onclick="setViewMode('single')">
                             <i class="bi bi-square me-1"></i> Phóng to 1 Cam
                         </button>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm d-flex align-items-center gap-1.5" id="btn-start-all-streams" onclick="startAllStreams()">
+                    <button type="button"
+                        class="btn btn-sm btn-success fw-bold shadow-sm d-flex align-items-center gap-1.5"
+                        id="btn-start-all-streams" onclick="startAllStreams()">
                         <i class="bi bi-play-circle-fill"></i> Phát cả 4 Cam
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-all-streams" onclick="stopAllStreams()">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-medium d-none" id="btn-stop-all-streams"
+                        onclick="stopAllStreams()">
                         <i class="bi bi-stop-circle-fill"></i> Dừng tất cả
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none" id="btn-renew-all-streams" onclick="renewAllStreams()" title="Gia hạn thêm thời gian xem cho các cam đang chạy">
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-medium d-none"
+                        id="btn-renew-all-streams" onclick="renewAllStreams()"
+                        title="Gia hạn thêm thời gian xem cho các cam đang chạy">
                         <i class="bi bi-arrow-clockwise me-1"></i> +3 Phút
                     </button>
                 </div>
@@ -346,43 +353,58 @@
             <!-- Khung Lưới 4 Camera (Grid 2x2) -->
             <div class="camera-grid-container mb-3" id="camera-grid-box">
                 @foreach (['cam_1' => 'Camera 1', 'cam_2' => 'Camera 2', 'cam_3' => 'Camera 3', 'cam_4' => 'Camera 4'] as $cId => $cName)
-                    <div class="cam-cell {{ $cId === 'cam_1' ? 'active-focus' : '' }}" id="cam-cell-{{ $cId }}" onclick="focusCamera('{{ $cId }}')">
-                        <video id="video-{{ $cId }}" class="w-100 h-100" playsinline controls autoplay muted style="display: none; object-fit: cover; background: #000;"></video>
+                    <div class="cam-cell {{ $cId === 'cam_1' ? 'active-focus' : '' }}" id="cam-cell-{{ $cId }}"
+                        onclick="focusCamera('{{ $cId }}')">
+                        <video id="video-{{ $cId }}" class="w-100 h-100" playsinline controls autoplay muted
+                            style="display: none; object-fit: cover; background: #000;"></video>
 
                         <!-- Màn hình chờ phát video -->
-                        <div id="standby-{{ $cId }}" class="cam-cell-cover" onclick="startSingleStream('{{ $cId }}')">
+                        <div id="standby-{{ $cId }}" class="cam-cell-cover"
+                            onclick="startSingleStream('{{ $cId }}')">
                             <div class="play-btn-circle mb-2 shadow-sm d-flex align-items-center justify-content-center"
                                 style="width: 52px; height: 52px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25);">
                                 <i class="bi bi-play-fill text-white fs-3" style="margin-left: 2px;"></i>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill" style="font-size: 11px;">
+                            <span
+                                class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill"
+                                style="font-size: 11px;">
                                 <i class="bi bi-camera-video me-1"></i> Bấm phát
                             </span>
                         </div>
 
                         <!-- Header Overlay -->
                         <div class="cam-cell-header">
-                            <span class="badge bg-dark bg-opacity-75 text-white border border-secondary border-opacity-50 px-2 py-1 font-monospace" style="font-size: 11px;">
-                                <span class="live-dot me-1" id="dot-{{ $cId }}" style="background-color: #94a3b8;"></span>
+                            <span
+                                class="badge bg-dark bg-opacity-75 text-white border border-secondary border-opacity-50 px-2 py-1 font-monospace"
+                                style="font-size: 11px;">
+                                <span class="live-dot me-1" id="dot-{{ $cId }}"
+                                    style="background-color: #94a3b8;"></span>
                                 <span id="label-{{ $cId }}">{{ $cName }}</span>
                             </span>
-                            <span class="badge bg-success px-2 py-1 focus-badge {{ $cId === 'cam_1' ? '' : 'd-none' }}" id="focus-badge-{{ $cId }}" style="font-size: 10px;">
+                            <span class="badge bg-success px-2 py-1 focus-badge {{ $cId === 'cam_1' ? '' : 'd-none' }}"
+                                id="focus-badge-{{ $cId }}" style="font-size: 10px;">
                                 <i class="bi bi-crosshair me-1"></i> Đang chọn PTZ
                             </span>
                         </div>
 
                         <!-- Footer Overlay -->
                         <div class="cam-cell-footer">
-                            <span class="badge bg-black bg-opacity-75 text-white border border-dark px-2 py-1 font-monospace" style="font-size: 10px;" id="status-{{ $cId }}">
+                            <span
+                                class="badge bg-black bg-opacity-75 text-white border border-dark px-2 py-1 font-monospace"
+                                style="font-size: 10px;" id="status-{{ $cId }}">
                                 SẴN SÀNG
                             </span>
                             <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
-                                    title="Phát/Dừng camera này" onclick="event.stopPropagation(); toggleStreamForCam('{{ $cId }}')">
+                                <button type="button"
+                                    class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
+                                    title="Phát/Dừng camera này"
+                                    onclick="event.stopPropagation(); toggleStreamForCam('{{ $cId }}')">
                                     <i class="bi bi-power" id="pwr-{{ $cId }}"></i>
                                 </button>
-                                <button type="button" class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
-                                    title="Toàn màn hình camera này" onclick="event.stopPropagation(); toggleFullscreenForCam('{{ $cId }}')">
+                                <button type="button"
+                                    class="btn btn-xs btn-dark bg-opacity-75 border border-secondary text-white py-0.5 px-1.5"
+                                    title="Toàn màn hình camera này"
+                                    onclick="event.stopPropagation(); toggleFullscreenForCam('{{ $cId }}')">
                                     <i class="bi bi-arrows-fullscreen"></i>
                                 </button>
                             </div>
@@ -419,9 +441,12 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2 text-muted small">
-                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> | Tilt: <strong id="val-tilt">--°</strong></span>
-                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong id="val-zoom">--x</strong></span>
-                        <span class="ms-1 border-start ps-2"><i class="bi bi-clock me-1 text-info"></i> <strong id="live-clock">--:--:--</strong></span>
+                        <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> |
+                            Tilt: <strong id="val-tilt">--°</strong></span>
+                        <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong
+                                id="val-zoom">--x</strong></span>
+                        <span class="ms-1 border-start ps-2"><i class="bi bi-clock me-1 text-info"></i> <strong
+                                id="live-clock">--:--:--</strong></span>
                     </div>
                 </div>
             </div>
@@ -560,7 +585,8 @@
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem;">
                         <i class="bi bi-bookmark-star-fill text-warning"></i> Góc Camera Tọa Độ Đặt Sẵn
                     </h5>
-                    <span class="badge bg-light text-muted border font-monospace">{{ count($presets ?? []) }} Tọa độ</span>
+                    <span class="badge bg-light text-muted border font-monospace">{{ count($presets ?? []) }} Tọa
+                        độ</span>
                 </div>
 
                 <div class="row g-2">
@@ -750,13 +776,23 @@
         let activeCamId = 'cam_1';
         let viewMode = 'grid'; // 'grid' | 'single'
         let hlsInstances = {};
-        let streamRemaining = { cam_1: 0, cam_2: 0, cam_3: 0, cam_4: 0 };
-        let streamTimers = { cam_1: null, cam_2: null, cam_3: null, cam_4: null };
+        let streamRemaining = {
+            cam_1: 0,
+            cam_2: 0,
+            cam_3: 0,
+            cam_4: 0
+        };
+        let streamTimers = {
+            cam_1: null,
+            cam_2: null,
+            cam_3: null,
+            cam_4: null
+        };
 
         let currentPan = 0.0;
         let currentTilt = 0.0;
         let currentZoom = 1.0;
-        
+
         // Quản lý Buffer phiên xem 3 phút độc lập cho từng camera
         let sessionBuffers = {
             cam_1: null,
@@ -908,7 +944,8 @@
 
             const statusEl = document.getElementById(`status-${camId}`);
             const dotEl = document.getElementById(`dot-${camId}`);
-            if (statusEl) statusEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width: 8px; height: 8px;"></span> KHỞI TẠO...';
+            if (statusEl) statusEl.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-1" style="width: 8px; height: 8px;"></span> KHỞI TẠO...';
             if (dotEl) dotEl.style.backgroundColor = '#f59e0b';
 
             const reqPayload = {
@@ -1087,8 +1124,12 @@
                 try {
                     await fetch(`/api/iot/stations/${stationCode}/camera/stop`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ camera_id: camId })
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            camera_id: camId
+                        })
                     });
                 } catch (e) {
                     console.error('[STOP STREAM ERROR]', e);
@@ -1199,7 +1240,8 @@
         async function checkInitialStreamStatus() {
             cameraIds.forEach(async (cId) => {
                 try {
-                    const res = await fetch(`/api/iot/stations/${stationCode}/camera/status?camera_id=${cId}`);
+                    const res = await fetch(
+                        `/api/iot/stations/${stationCode}/camera/status?camera_id=${cId}`);
                     const data = await res.json();
                     if (data.ptz && cId === activeCamId) {
                         updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
@@ -1448,7 +1490,8 @@
             if (!video) return;
 
             // Nếu camera này đang có bộ đệm hoạt động tốt thì không khởi tạo lại
-            if (sessionBuffers[camId] && sessionBuffers[camId].recorder && sessionBuffers[camId].recorder.state === 'recording') {
+            if (sessionBuffers[camId] && sessionBuffers[camId].recorder && sessionBuffers[camId].recorder.state ===
+                'recording') {
                 return;
             }
 
@@ -1487,7 +1530,9 @@
 
             try {
                 const chunks = [];
-                const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+                const recorder = mimeType ? new MediaRecorder(stream, {
+                    mimeType
+                }) : new MediaRecorder(stream);
 
                 recorder.ondataavailable = function(e) {
                     if (e.data && e.data.size > 0) {
@@ -1537,12 +1582,15 @@
             sessionBuffers[camId] = null;
 
             if (shouldSave && chunks && chunks.length > 0) {
-                const blob = new Blob(chunks, { type: mimeType });
+                const blob = new Blob(chunks, {
+                    type: mimeType
+                });
                 const blobUrl = window.URL.createObjectURL(blob);
 
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, '0');
-                const timeStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                const timeStr =
+                    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
                 const filename = `Session_${stationCode}_${camId}_${timeStr}.${fileExt}`;
 
                 // 1. Tải file về máy tính người dùng
@@ -1590,7 +1638,9 @@
                 // Người dùng bấm Ghi hình -> Đánh dấu ghi lại phiên này
                 buf.isMarkedToSave = true;
                 updateRecordButtonState(true);
-                showToast(`Đang ghi hình ${cameraLabels[activeCamId]}! Dữ liệu video từ đầu phiên đến hết giờ xem sẽ được tự động lưu (hoặc bấm nút lần nữa để lưu ngay).`, 'success');
+                showToast(
+                    `Đang ghi hình ${cameraLabels[activeCamId]}! Dữ liệu video từ đầu phiên đến hết giờ xem sẽ được tự động lưu (hoặc bấm nút lần nữa để lưu ngay).`,
+                    'success');
             } else {
                 // Nếu bấm lại khi đang ghi hình -> Xuất và lưu ngay
                 showToast(`Đang xuất và lưu video của ${cameraLabels[activeCamId]}...`, 'info');
