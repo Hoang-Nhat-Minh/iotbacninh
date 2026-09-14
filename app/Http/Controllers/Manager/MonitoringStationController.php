@@ -46,7 +46,7 @@ class MonitoringStationController extends Controller
             'garden.user',
             'devices',
             'sensorReadings' => function ($q) {
-                $q->latest('recorded_at')->take(20);
+                $q->latest('recorded_at')->take(30);
             }
         ])->get();
 
@@ -202,7 +202,7 @@ class MonitoringStationController extends Controller
         // Lịch sử hiển thị (Dữ liệu thật 100% từ Database)
         $history = [];
         if ($st->sensorReadings && $st->sensorReadings->count() > 0) {
-            $takeReadings = $st->sensorReadings->take(10);
+            $takeReadings = $st->sensorReadings->sortByDesc('recorded_at')->take(10);
             foreach ($takeReadings as $sr) {
                 $parsed = $this->extractReadingValues($sr->data ?? []);
                 $history[] = [
@@ -405,8 +405,13 @@ class MonitoringStationController extends Controller
             if (isset($parsed['soil_temp'])) $soilTemp = $parsed['soil_temp'];
             if (isset($parsed['soil_moist'])) $soilMoist = $parsed['soil_moist'];
 
-            // Xây dựng biểu đồ từ lịch sử các mốc thời gian thực tế của các gói JSON
-            $recentJsonList = $st->sensorReadings->sortBy('recorded_at')->take(12);
+            // Xây dựng biểu đồ từ lịch sử các mốc thời gian thực tế mới nhất của các gói JSON
+            // Luôn lấy các bản ghi MỚI NHẤT (latest), sau đó sắp xếp tăng dần theo thời gian để điểm mới nhất nằm ở cuối biểu đồ
+            $recentJsonList = $st->sensorReadings
+                ->sortByDesc('recorded_at')
+                ->take(15)
+                ->sortBy('recorded_at')
+                ->values();
             if ($recentJsonList->count() > 0) {
                 $tempHistory = [];
                 $humHistory = [];
