@@ -90,8 +90,12 @@
         .camera-grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 0;
             margin-bottom: 12px;
+            background: #000000;
+            border: 1px solid #1e293b;
+            border-radius: 0;
+            overflow: hidden;
         }
 
         @media (max-width: 768px) {
@@ -103,21 +107,23 @@
         .cam-cell {
             position: relative;
             background: #0b0f19;
-            border-radius: 14px;
-            border: 2px solid #1e293b;
+            border-radius: 0;
+            border: 1px solid #1e293b;
             overflow: hidden;
             aspect-ratio: 16 / 9;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
 
         .cam-cell:hover {
             border-color: #3b82f6;
+            z-index: 1;
         }
 
         .cam-cell.active-focus {
             border-color: #10b981 !important;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 0 0 2px #10b981;
+            z-index: 2;
         }
 
         .cam-cell-header {
@@ -422,21 +428,13 @@
                         </span>
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-primary active btn-cam-select" id="btn-cam-1"
-                                data-cam-id="cam_1" onclick="focusCamera('cam_1')">
-                                <i class="bi bi-eye me-1"></i> Camera 1
-                            </button>
+                                data-cam-id="cam_1" onclick="focusCamera('cam_1')">Camera 1</button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-2"
-                                data-cam-id="cam_2" onclick="focusCamera('cam_2')">
-                                <i class="bi bi-zoom-in me-1"></i> Camera 2
-                            </button>
+                                data-cam-id="cam_2" onclick="focusCamera('cam_2')">Camera 2</button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-3"
-                                data-cam-id="cam_3" onclick="focusCamera('cam_3')">
-                                <i class="bi bi-camera me-1"></i> Camera 3
-                            </button>
+                                data-cam-id="cam_3" onclick="focusCamera('cam_3')">Camera 3</button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-4"
-                                data-cam-id="cam_4" onclick="focusCamera('cam_4')">
-                                <i class="bi bi-camera-video me-1"></i> Camera 4
-                            </button>
+                                data-cam-id="cam_4" onclick="focusCamera('cam_4')">Camera 4</button>
                         </div>
                     </div>
 
@@ -576,122 +574,7 @@
         </div>
     </div>
 
-    <!-- 3. HÀNG DƯỚI: VỊ TRÍ GÓC XOAY ĐẶT SẴN (LẤY TỪ DATABASE) & THƯ VIỆN ẢNH CHỤP -->
-    <div class="row g-4">
-        <!-- Góc Camera Tọa Độ Đặt Sẵn (Load dữ liệu thật) -->
-        <div class="col-lg-6">
-            <div class="card border-0 bg-white rounded-4 shadow-sm p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem;">
-                        <i class="bi bi-bookmark-star-fill text-warning"></i> Góc Camera Tọa Độ Đặt Sẵn
-                    </h5>
-                    <span class="badge bg-light text-muted border font-monospace">{{ count($presets ?? []) }} Tọa
-                        độ</span>
-                </div>
 
-                <div class="row g-2">
-                    @forelse($presets as $idx => $preset)
-                        <div class="col-6">
-                            <div class="preset-card-item">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="fw-bold text-dark small text-truncate" title="{{ $preset->name }}">
-                                        {{ $preset->name }}
-                                    </div>
-                                    <span
-                                        class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace"
-                                        style="font-size: 10px;">
-                                        {{ strtoupper($preset->camera_id ?? 'cam_1') }}
-                                    </span>
-                                </div>
-                                <div class="text-muted small font-monospace" style="font-size: 11px;">
-                                    Pan: {{ number_format($preset->pan_angle, 1) }}° | Tilt:
-                                    {{ number_format($preset->tilt_angle, 1) }}° |
-                                    {{ number_format($preset->zoom_level, 1) }}x
-                                </div>
-                                @if ($preset->schedule)
-                                    <div class="mt-1">
-                                        <span
-                                            class="badge bg-light text-secondary border font-monospace text-truncate d-inline-block"
-                                            style="font-size: 10px; max-width: 100%;"
-                                            title="{{ $preset->schedule->name }}">
-                                            <i
-                                                class="bi bi-clock me-1 text-primary"></i>{{ substr($preset->schedule->start_time, 0, 5) }}
-                                            - {{ substr($preset->schedule->end_time, 0, 5) }}
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-12 text-center text-muted py-3">Chưa có tọa độ góc chụp nào được lưu.</div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <!-- Nhật Ký Ảnh Chụp Tức Thời -->
-        <div class="col-lg-6">
-            <div class="card border-0 bg-white rounded-4 shadow-sm p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem;">
-                        <i class="bi bi-images text-primary"></i> Nhật Ký Ảnh Chụp Tức Thời
-                    </h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-light text-muted border font-monospace"
-                            id="snapshot-count">{{ count($recentSnapshots ?? []) }} Hình ảnh</span>
-                        <a href="{{ route('iot.media', ['station_id' => $station['id']]) }}"
-                            class="btn btn-outline-primary btn-sm py-0.5 px-2" style="font-size: 11px;"
-                            title="Quản lý & Xóa ảnh trong kho media">
-                            <i class="bi bi-folder2-open me-1"></i>Kho media
-                        </a>
-                    </div>
-                </div>
-
-                <div class="row g-2" id="snapshot-gallery">
-                    @forelse($recentSnapshots ?? [] as $media)
-                        @php
-                            $devCode = $media->device->code ?? '';
-                            $camTag = str_contains($devCode, 'cam_1')
-                                ? 'Cam 01'
-                                : (str_contains($devCode, 'cam_2')
-                                    ? 'Cam 02'
-                                    : (str_contains($devCode, 'cam_3')
-                                        ? 'Cam 03'
-                                        : (str_contains($devCode, 'cam_4')
-                                            ? 'Cam 04'
-                                            : 'Camera')));
-                            $filePath = $media->file_path;
-                            $imgUrl = str_starts_with($filePath, 'http') ? $filePath : asset('storage/' . $filePath);
-                        @endphp
-                        <div class="col-4">
-                            <div class="border rounded-3 p-1 position-relative bg-light shadow-sm">
-                                <span
-                                    class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1 px-1.5 py-0.5 font-monospace"
-                                    style="font-size: 9px; z-index: 2;">
-                                    {{ $camTag }}
-                                </span>
-                                <a href="{{ $imgUrl }}" target="_blank" title="Bấm để phóng to ảnh gốc">
-                                    <img src="{{ $imgUrl }}" class="snapshot-thumb"
-                                        alt="{{ $media->name ?? 'Snapshot' }}"
-                                        style="height: 80px; width: 100%; object-fit: cover; border-radius: 6px;"
-                                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center text-muted\' style=\'height:80px; font-size:10px;\'><i class=\'bi bi-image me-1\'></i> Lỗi ảnh</div>';">
-                                </a>
-                                <div class="text-muted font-monospace text-center mt-1 text-truncate"
-                                    style="font-size: 10px;">
-                                    {{ $media->created_at ? $media->created_at->format('H:i - d/m') : '' }}
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-12 text-center text-muted py-3 empty-snap-msg">
-                            <i class="bi bi-camera me-1"></i> Chưa có ảnh chụp nào từ trạm.<br>Bấm nút máy ảnh ở bảng điều
-                            khiển để chụp tức thì.
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal Lưu Tọa Độ Góc Chụp Hiện Tại -->
     <div class="app-modal" id="modal-save-preset">
