@@ -113,10 +113,10 @@ class IotIngestionController extends Controller
         $camId = $request->input('camera_id', 'cam_1');
 
         $cameraNames = [
-            'cam_1' => 'Camera 01',
-            'cam_2' => 'Camera 02',
-            'cam_3' => 'Camera 03',
-            'cam_4' => 'Camera 04',
+            'cam_1' => 'Camera 1',
+            'cam_2' => 'Camera 2',
+            'cam_3' => 'Camera 3',
+            'cam_4' => 'Camera 4',
         ];
         $camLabel = $cameraNames[$camId] ?? ('Camera ' . strtoupper(str_replace('cam_', '', $camId)));
 
@@ -135,7 +135,7 @@ class IotIngestionController extends Controller
         $media = CameraMedia::create([
             'device_id' => $cameraDevice->id,
             'type' => 'video',
-            'name' => $camLabel . ' (Clip 10s) - ' . now()->format('d/m/Y H:i:s'),
+            'name' => $camLabel . ' (Session Live) - ' . now()->format('d/m/Y H:i:s'),
             'file_path' => $path,
             'created_at' => $request->captured_at ? \Carbon\Carbon::parse($request->captured_at) : now(),
         ]);
@@ -170,4 +170,3 @@ class IotIngestionController extends Controller
         ], $result['success'] ? 200 : 500);
     }
 }
-
