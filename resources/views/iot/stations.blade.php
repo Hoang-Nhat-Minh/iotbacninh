@@ -54,6 +54,10 @@
             margin-bottom: 20px;
         }
 
+        .station-detail-panel {
+            scroll-margin-top: 85px;
+        }
+
         .station-quick-card {
             background: #ffffff;
             border-radius: 16px;
@@ -1138,6 +1142,16 @@
             const activePanel = document.getElementById('station-panel-' + id);
             if (activePanel) {
                 activePanel.classList.remove('d-none');
+
+                // 3. Scroll mượt xuống vị trí station-detail-panel (trừ hao 85px cho sticky header)
+                const headerOffset = 85;
+                const elementPosition = activePanel.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
             }
 
             const st = stationsData.find(s => s.id === id);
