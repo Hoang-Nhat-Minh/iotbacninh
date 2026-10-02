@@ -491,36 +491,28 @@ class IotCameraController extends Controller
      * Tạo đường dẫn URL phát video HLS và WebRTC WHEP phù hợp với môi trường HTTP/HTTPS
      * và hỗ trợ chạy trực tiếp qua Nginx Reverse Proxy để tránh lỗi Mixed Content.
      */
+    /**
+     * Tạo đường dẫn URL phát video HLS và WebRTC WHEP phù hợp với môi trường HTTP/HTTPS
+     * và hỗ trợ chạy trực tiếp qua Nginx Reverse Proxy để tránh lỗi Mixed Content & SSL.
+     */
     private function buildStreamUrls(Request $request, string $streamKey): array
     {
         $isHttps = $request->isSecure() || $request->header('X-Forwarded-Proto') === 'https';
-        $scheme = env('MEDIA_SERVER_SCHEME', $isHttps ? 'https' : 'http');
-        $mediaHost = env('MEDIA_SERVER_HOST', $request->getHost());
 
-        // 1. URL HLS: Nếu có biến MEDIA_SERVER_HLS_BASE_URL thì ưu tiên
-        if ($customHlsBase = env('MEDIA_SERVER_HLS_BASE_URL')) {
-            $hlsUrl = rtrim($customHlsBase, '/') . "/{$streamKey}/index.m3u8";
+        // 1. Khi chạy HTTPS (Production trên domain có chứng chỉ SSL Let's Encrypt):
+        // BẮT BUỘC đi qua Nginx Reverse Proxy trên domain của Web (KHÔNG mang port 9072/9073).
+        // Nếu gọi https://117.6.44.206:9072 hoặc 9073 sẽ bị lỗi ERR_SSL_PROTOCOL_ERROR do cổng MediaMTX chỉ là HTTP thuần!
+        if ($isHttps) {
+            $host = env('MEDIA_SERVER_PUBLIC_HOST', $request->getHost());
+            $hlsUrl = "https://{$host}/live/{$streamKey}/index.m3u8";
+            $webrtcUrl = "https://{$host}/live/{$streamKey}/whep";
         } else {
-            $configuredHlsPort = env('MEDIA_SERVER_HLS_PORT');
-            if ($configuredHlsPort && !in_array((string) $configuredHlsPort, ['80', '443', 'none', 'false'], true)) {
-                $hlsHost = "{$mediaHost}:{$configuredHlsPort}";
-            } else {
-                $hlsHost = $isHttps ? $mediaHost : "{$mediaHost}:9072";
-            }
-            $hlsUrl = "{$scheme}://{$hlsHost}/live/{$streamKey}/index.m3u8";
-        }
-
-        // 2. URL WebRTC WHEP
-        if ($customWebrtcBase = env('MEDIA_SERVER_WEBRTC_BASE_URL')) {
-            $webrtcUrl = rtrim($customWebrtcBase, '/') . "/{$streamKey}/whep";
-        } else {
-            $configuredWebrtcPort = env('MEDIA_SERVER_WEBRTC_PORT');
-            if ($configuredWebrtcPort && !in_array((string) $configuredWebrtcPort, ['80', '443', 'none', 'false'], true)) {
-                $webrtcHost = "{$mediaHost}:{$configuredWebrtcPort}";
-            } else {
-                $webrtcHost = $isHttps ? $mediaHost : "{$mediaHost}:9073";
-            }
-            $webrtcUrl = "{$scheme}://{$webrtcHost}/live/{$streamKey}/whep";
+            // 2. Môi trường Local HTTP thử nghiệm
+            $mediaHost = env('MEDIA_SERVER_HOST', $request->getHost());
+            $hlsPort = env('MEDIA_SERVER_HLS_PORT', 9072);
+            $webrtcPort = env('MEDIA_SERVER_WEBRTC_PORT', 9073);
+            $hlsUrl = "http://{$mediaHost}:{$hlsPort}/live/{$streamKey}/index.m3u8";
+            $webrtcUrl = "http://{$mediaHost}:{$webrtcPort}/live/{$streamKey}/whep";
         }
 
         return [
@@ -553,4 +545,3 @@ class IotCameraController extends Controller
         return null;
     }
 }
-
