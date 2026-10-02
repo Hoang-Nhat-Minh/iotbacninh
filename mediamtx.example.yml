@@ -24,7 +24,7 @@ hls: yes
 hlsAddress: :9072
 hlsAlwaysRemux: no
 hlsVariant: lowLatency
-hlsSegmentCount: 5
+hlsSegmentCount: 7              # MediaMTX Low-Latency HLS bắt buộc tối thiểu 7 phân đoạn
 hlsSegmentDuration: 1s
 hlsPartDuration: 200ms
 hlsSegmentMaxSize: 50M
