@@ -115,6 +115,13 @@
             cursor: pointer;
         }
 
+        .cam-cell video {
+            pointer-events: none !important;
+            user-select: none;
+            -webkit-user-select: none;
+            outline: none;
+        }
+
         .cam-cell:hover {
             border-color: #3b82f6;
             z-index: 1;
@@ -360,9 +367,13 @@
             <div class="camera-grid-container mb-3" id="camera-grid-box">
                 @foreach (['cam_1' => 'Camera 1', 'cam_2' => 'Camera 2', 'cam_3' => 'Camera 3', 'cam_4' => 'Camera 4'] as $cId => $cName)
                     <div class="cam-cell {{ $cId === 'cam_1' ? 'active-focus' : '' }}" id="cam-cell-{{ $cId }}"
-                        onclick="focusCamera('{{ $cId }}')">
-                        <video id="video-{{ $cId }}" class="w-100 h-100" playsinline controls autoplay muted
-                            style="display: none; object-fit: cover; background: #000;"></video>
+                        onclick="focusCamera('{{ $cId }}')"
+                        ondblclick="toggleFullscreenForCam('{{ $cId }}')"
+                        oncontextmenu="event.preventDefault()">
+                        <video id="video-{{ $cId }}" class="w-100 h-100" playsinline autoplay muted
+                            disablePictureInPicture
+                            controlsList="nodownload nofullscreen noremoteplayback"
+                            style="display: none; object-fit: cover; background: #000; pointer-events: none;"></video>
 
                         <!-- Màn hình chờ phát video -->
                         <div id="standby-{{ $cId }}" class="cam-cell-cover"
@@ -961,6 +972,12 @@
                     startSessionBuffering(camId);
                 };
 
+                video.onpause = () => {
+                    if (video.srcObject) {
+                        video.play().catch(() => {});
+                    }
+                };
+
                 let iceDisconnectTimer = null;
                 pc.oniceconnectionstatechange = () => {
                     console.log(`[ICE STATE] ${camId}: ${pc.iceConnectionState}`);
@@ -1110,6 +1127,12 @@
 
                 video.onplaying = () => {
                     startSessionBuffering(camId);
+                };
+
+                video.onpause = () => {
+                    if (hlsInstances[camId]) {
+                        video.play().catch(() => {});
+                    }
                 };
 
                 let retries = 0;
