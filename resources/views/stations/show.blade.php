@@ -914,15 +914,15 @@
             standby.style.display = 'none';
             video.style.display = 'block';
 
-            // Hẹn giờ dự phòng: nếu sau 3.5 giây chưa nhận được hình ảnh -> tự động chuyển sang luồng dự phòng HLS
+            // Hẹn giờ dự phòng: nếu sau 9 giây chưa nhận được hình ảnh -> tự động chuyển sang luồng dự phòng HLS
             if (playerFallbackTimers[camId]) clearTimeout(playerFallbackTimers[camId]);
             playerFallbackTimers[camId] = setTimeout(() => {
                 if (!video.srcObject || video.paused) {
-                    console.warn(`[LIVESTREAM] Tự động chuyển sang chế độ dự phòng cho ${camId}...`);
+                    console.warn(`[LIVESTREAM] Hết thời gian chờ kết nối trực tiếp cho ${camId}, chuyển luồng dự phòng...`);
                     cleanupCameraPlayers(camId, false);
                     initHlsPlayerForCam(camId, hlsUrl);
                 }
-            }, 3500);
+            }, 9000);
 
             try {
                 const pc = new RTCPeerConnection({
@@ -988,32 +988,53 @@
                     });
                 }
 
-                // Gửi Offer SDP tới máy chủ
-                let targetUrl = webrtcUrl;
-                let response = await fetch(targetUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/sdp' },
-                    body: pc.localDescription.sdp
-                });
+                // Gửi Offer SDP tới máy chủ MediaMTX WHEP
+                // Khi bật luồng on-demand, FFmpeg ở trạm mất ~1.5 - 2.5s để khởi động và đẩy luồng RTMP lên máy chủ.
+                // Trong lúc đó, MediaMTX sẽ trả về 404 (chưa có luồng). Cần cơ chế thử lại định kỳ thay vì bỏ cuộc ngay.
+                const maxRetries = 10;
+                const retryDelayMs = 800;
+                let answerSdp = null;
+                let whepSessionUrl = null;
 
-                // Nếu 404 với đường dẫn /whep thì tự động thử đường dẫn gốc
-                if (response.status === 404 && targetUrl.endsWith('/whep')) {
-                    targetUrl = targetUrl.replace(/\/whep$/, '');
-                    response = await fetch(targetUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/sdp' },
-                        body: pc.localDescription.sdp
-                    });
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    // Nếu camera đã bị hủy hoặc đóng kết nối thì dừng
+                    if (pc.signalingState === 'closed') return;
+
+                    try {
+                        const response = await fetch(webrtcUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/sdp' },
+                            body: pc.localDescription.sdp
+                        });
+
+                        if (response.ok) {
+                            answerSdp = await response.text();
+                            whepSessionUrl = response.headers.get('Location');
+                            break;
+                        }
+
+                        if (response.status === 404) {
+                            console.log(`[LIVESTREAM] Đang chờ luồng từ trạm (${attempt}/${maxRetries})...`);
+                            await new Promise(r => setTimeout(r, retryDelayMs));
+                            continue;
+                        }
+
+                        throw new Error(`Máy chủ trả về mã HTTP ${response.status}`);
+                    } catch (fetchErr) {
+                        if (attempt === maxRetries) {
+                            throw fetchErr;
+                        }
+                        await new Promise(r => setTimeout(r, retryDelayMs));
+                    }
                 }
 
-                if (response.ok) {
-                    const answerSdp = await response.text();
-                    const whepSessionUrl = response.headers.get('Location');
-                    await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
-                    webrtcInstances[camId] = { pc, whepSessionUrl };
-                } else {
-                    throw new Error(`Máy chủ trả về mã HTTP ${response.status}`);
+                if (!answerSdp) {
+                    throw new Error('Hết thời gian chờ luồng trực tiếp từ máy chủ');
                 }
+
+                if (pc.signalingState === 'closed') return;
+                await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+                webrtcInstances[camId] = { pc, whepSessionUrl };
             } catch (err) {
                 console.warn(`[LIVESTREAM] Không thể mở luồng trực tiếp cho ${camId}: ${err.message}. Kích hoạt chế độ dự phòng.`);
                 if (playerFallbackTimers[camId]) {
