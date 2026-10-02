@@ -355,6 +355,6 @@ Route::prefix('labeler')->group(function () {
     });
 });
 
-// Route proxy HLS cho MediaMTX qua HTTPS (hoạt động song song hoặc dự phòng cho Nginx reverse proxy /live/)
-Route::get('/live/{path}', [IotCameraController::class, 'proxyHls'])->where('path', '.*');
+// Route proxy đa luồng (HLS & WebRTC WHEP) cho MediaMTX qua HTTPS (hoạt động song song hoặc dự phòng cho Nginx reverse proxy /live/)
+Route::match(['get', 'post', 'options', 'delete', 'patch'], '/live/{path}', [IotCameraController::class, 'proxyStream'])->where('path', '.*');
 

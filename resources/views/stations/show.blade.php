@@ -658,7 +658,9 @@
 
         let activeCamId = 'cam_1';
         let viewMode = 'grid'; // 'grid' | 'single'
+        let webrtcInstances = {};
         let hlsInstances = {};
+        let playerFallbackTimers = {};
         let streamRemaining = {
             cam_1: 0,
             cam_2: 0,
@@ -869,12 +871,9 @@
                         updateRecordButtonState(true);
                     }
 
-                    // Nếu camera chưa có HLS player hoặc đang tắt, khởi tạo player mới sau 1s
-                    // Nếu camera đang phát trực tiếp (trường hợp gia hạn), giữ nguyên luồng video để ghi hình liên tục không bị giật
-                    if (!hlsInstances[camId]) {
-                        setTimeout(() => {
-                            initHlsPlayerForCam(camId, result.stream.hls_url);
-                        }, 1000);
+                    // Khởi tạo luồng phát trực tiếp (ưu tiên WebRTC siêu tốc, tự động dự phòng HLS)
+                    if (!webrtcInstances[camId] && !hlsInstances[camId]) {
+                        initPlayerForCam(camId, result.stream);
                     }
 
                     showToast(`Đang kết nối trực tiếp ${cameraLabels[camId]}...`, 'success');
@@ -891,7 +890,142 @@
             }
         }
 
-        // 3. Khởi tạo HLS Player cho 1 camera
+        // 3. Khởi tạo Trình phát Video (Ưu tiên kết nối trực tiếp siêu tốc, tự động dự phòng)
+        function initPlayerForCam(camId, streamInfo) {
+            const webrtcUrl = streamInfo?.webrtc_url;
+            const hlsUrl = streamInfo?.hls_url;
+
+            // Nếu trình duyệt hỗ trợ WebRTC và có địa chỉ luồng trực tiếp -> Khởi tạo WebRTC WHEP
+            if (window.RTCPeerConnection && webrtcUrl) {
+                initWebRtcPlayerForCam(camId, webrtcUrl, hlsUrl);
+            } else if (hlsUrl) {
+                initHlsPlayerForCam(camId, hlsUrl);
+            }
+        }
+
+        // 3.1 Khởi tạo kết nối WebRTC WHEP trực tiếp (< 1s Latency)
+        async function initWebRtcPlayerForCam(camId, webrtcUrl, hlsUrl) {
+            const video = document.getElementById(`video-${camId}`);
+            const standby = document.getElementById(`standby-${camId}`);
+            if (!video || !standby) return;
+
+            cleanupCameraPlayers(camId, false);
+
+            standby.style.display = 'none';
+            video.style.display = 'block';
+
+            // Hẹn giờ dự phòng: nếu sau 3.5 giây chưa nhận được hình ảnh -> tự động chuyển sang luồng dự phòng HLS
+            if (playerFallbackTimers[camId]) clearTimeout(playerFallbackTimers[camId]);
+            playerFallbackTimers[camId] = setTimeout(() => {
+                if (!video.srcObject || video.paused) {
+                    console.warn(`[LIVESTREAM] Tự động chuyển sang chế độ dự phòng cho ${camId}...`);
+                    cleanupCameraPlayers(camId, false);
+                    initHlsPlayerForCam(camId, hlsUrl);
+                }
+            }, 3500);
+
+            try {
+                const pc = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ],
+                    bundlePolicy: 'max-bundle'
+                });
+
+                pc.ontrack = (event) => {
+                    // Đã nhận luồng hình ảnh thành công
+                    if (playerFallbackTimers[camId]) {
+                        clearTimeout(playerFallbackTimers[camId]);
+                        playerFallbackTimers[camId] = null;
+                    }
+
+                    if (event.streams && event.streams[0]) {
+                        video.srcObject = event.streams[0];
+                    } else {
+                        const inboundStream = new MediaStream();
+                        inboundStream.addTrack(event.track);
+                        video.srcObject = inboundStream;
+                    }
+
+                    video.play().catch(e => console.log('Autoplay muted:', e));
+                    if (camId === activeCamId) updateRecordButtonState(true);
+
+                    const statusEl = document.getElementById(`status-${camId}`);
+                    const dotEl = document.getElementById(`dot-${camId}`);
+                    if (statusEl) statusEl.textContent = 'TRỰC TIẾP';
+                    if (dotEl) dotEl.style.backgroundColor = '#ef4444';
+                };
+
+                video.onplaying = () => {
+                    startSessionBuffering(camId);
+                };
+
+                pc.oniceconnectionstatechange = () => {
+                    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                        console.warn(`[LIVESTREAM] Kết nối trực tiếp bị gián đoạn (${pc.iceConnectionState}) cho ${camId}, chuyển luồng dự phòng...`);
+                        cleanupCameraPlayers(camId, false);
+                        initHlsPlayerForCam(camId, hlsUrl);
+                    }
+                };
+
+                pc.addTransceiver('video', { direction: 'recvonly' });
+
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                // Chờ thu thập ứng cử viên mạng cục bộ (tối đa 800ms)
+                if (pc.iceGatheringState !== 'complete') {
+                    await new Promise((resolve) => {
+                        const checkState = () => {
+                            if (pc.iceGatheringState === 'complete') {
+                                pc.removeEventListener('icegatheringstatechange', checkState);
+                                resolve();
+                            }
+                        };
+                        pc.addEventListener('icegatheringstatechange', checkState);
+                        setTimeout(resolve, 800);
+                    });
+                }
+
+                // Gửi Offer SDP tới máy chủ
+                let targetUrl = webrtcUrl;
+                let response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/sdp' },
+                    body: pc.localDescription.sdp
+                });
+
+                // Nếu 404 với đường dẫn /whep thì tự động thử đường dẫn gốc
+                if (response.status === 404 && targetUrl.endsWith('/whep')) {
+                    targetUrl = targetUrl.replace(/\/whep$/, '');
+                    response = await fetch(targetUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/sdp' },
+                        body: pc.localDescription.sdp
+                    });
+                }
+
+                if (response.ok) {
+                    const answerSdp = await response.text();
+                    const whepSessionUrl = response.headers.get('Location');
+                    await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+                    webrtcInstances[camId] = { pc, whepSessionUrl };
+                } else {
+                    throw new Error(`Máy chủ trả về mã HTTP ${response.status}`);
+                }
+            } catch (err) {
+                console.warn(`[LIVESTREAM] Không thể mở luồng trực tiếp cho ${camId}: ${err.message}. Kích hoạt chế độ dự phòng.`);
+                if (playerFallbackTimers[camId]) {
+                    clearTimeout(playerFallbackTimers[camId]);
+                    playerFallbackTimers[camId] = null;
+                }
+                cleanupCameraPlayers(camId, false);
+                initHlsPlayerForCam(camId, hlsUrl);
+            }
+        }
+
+        // 3.2 Khởi tạo luồng dự phòng (HLS Player)
         function initHlsPlayerForCam(camId, hlsUrl) {
             const video = document.getElementById(`video-${camId}`);
             const standby = document.getElementById(`standby-${camId}`);
@@ -901,7 +1035,7 @@
             video.style.display = 'block';
 
             if (hlsInstances[camId]) {
-                hlsInstances[camId].destroy();
+                try { hlsInstances[camId].destroy(); } catch (e) {}
                 hlsInstances[camId] = null;
             }
 
@@ -927,6 +1061,7 @@
                     if (camId === activeCamId) updateRecordButtonState(true);
                     const statusEl = document.getElementById(`status-${camId}`);
                     const dotEl = document.getElementById(`dot-${camId}`);
+                    if (statusEl) statusEl.textContent = 'TRỰC TIẾP';
                     if (dotEl) dotEl.style.backgroundColor = '#ef4444';
                 });
 
@@ -941,9 +1076,6 @@
                             retries++;
                             setTimeout(() => {
                                 if (hlsInstances[camId] === hls) {
-                                    // ĐẶC BIỆT QUAN TRỌNG: Khi Media Server trả về 404 do trạm đang khởi động kết nối RTSP/RTMP,
-                                    // trong hls.js BẮT BUỘC phải gọi loadSource() để tải lại file playlist index.m3u8!
-                                    // Nếu chỉ gọi startLoad(), hls.js sẽ bị kẹt và không tự phát lại được nếu không reload trang.
                                     if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR || !hls.url) {
                                         hls.loadSource(hlsUrl);
                                     } else {
@@ -954,7 +1086,7 @@
                         } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
                             hls.recoverMediaError();
                         } else {
-                            console.warn(`[HLS ERROR] Luồng ${camId} gặp sự cố:`, data);
+                            console.warn(`[LIVESTREAM] Luồng ${camId} gặp sự cố:`, data);
                             stopSingleStream(camId, false);
                         }
                     }
@@ -970,6 +1102,37 @@
             }
         }
 
+        // Dọn dẹp an toàn các tiến trình phát của một camera
+        function cleanupCameraPlayers(camId, clearVideoElement = true) {
+            if (playerFallbackTimers[camId]) {
+                clearTimeout(playerFallbackTimers[camId]);
+                playerFallbackTimers[camId] = null;
+            }
+
+            if (webrtcInstances[camId]) {
+                const { pc, whepSessionUrl } = webrtcInstances[camId];
+                try { pc.close(); } catch (e) {}
+                if (whepSessionUrl) {
+                    fetch(whepSessionUrl, { method: 'DELETE' }).catch(e => {});
+                }
+                webrtcInstances[camId] = null;
+            }
+
+            if (hlsInstances[camId]) {
+                try { hlsInstances[camId].destroy(); } catch (e) {}
+                hlsInstances[camId] = null;
+            }
+
+            if (clearVideoElement) {
+                const video = document.getElementById(`video-${camId}`);
+                if (video) {
+                    video.pause();
+                    video.srcObject = null;
+                    video.src = '';
+                }
+            }
+        }
+
         // 4. Dừng luồng phát của 1 camera
         async function stopSingleStream(camId, callApi = true) {
             clearInterval(streamTimers[camId]);
@@ -978,10 +1141,7 @@
             // Đóng gói và lưu video nếu session này được chọn lưu
             finalizeSessionBuffer(camId);
 
-            if (hlsInstances[camId]) {
-                hlsInstances[camId].destroy();
-                hlsInstances[camId] = null;
-            }
+            cleanupCameraPlayers(camId, true);
 
             const video = document.getElementById(`video-${camId}`);
             const standby = document.getElementById(`standby-${camId}`);
@@ -989,8 +1149,6 @@
             const status = document.getElementById(`status-${camId}`);
 
             if (video) {
-                video.pause();
-                video.src = '';
                 video.style.display = 'none';
             }
             if (standby) standby.style.display = 'flex';
@@ -1130,7 +1288,7 @@
                         updatePtzDisplay(data.ptz.pan, data.ptz.tilt, data.ptz.zoom);
                     }
                     if (data.active && data.remaining_seconds > 0 && data.stream) {
-                        initHlsPlayerForCam(cId, data.stream.hls_url);
+                        initPlayerForCam(cId, data.stream);
                         startCountdownForCam(cId, data.remaining_seconds);
                         updateStreamGlobalButtons();
                         if (cId === activeCamId) {
@@ -1380,7 +1538,9 @@
 
             let stream = null;
             try {
-                if (typeof video.captureStream === 'function') {
+                if (video.srcObject) {
+                    stream = video.srcObject;
+                } else if (typeof video.captureStream === 'function') {
                     stream = video.captureStream();
                 } else if (typeof video.mozCaptureStream === 'function') {
                     stream = video.mozCaptureStream();

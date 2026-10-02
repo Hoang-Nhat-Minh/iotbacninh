@@ -388,13 +388,26 @@ class IotCameraController extends Controller
     }
 
     /**
-     * Proxy HLS stream từ MediaMTX nội bộ (127.0.0.1:9072) ra ngoài HTTPS.
+     * Proxy HLS & WebRTC WHEP stream từ MediaMTX nội bộ (127.0.0.1:9072 / 9073) ra ngoài HTTPS.
      * Hoạt động an toàn dự phòng ngay lập tức nếu Nginx chưa cấu hình block `location /live/`.
      */
-    public function proxyHls(string $path)
+    public function proxyStream(Request $request, string $path)
     {
         $internalHost = env('MEDIA_SERVER_INTERNAL_HOST', '127.0.0.1');
-        $internalPort = env('MEDIA_SERVER_INTERNAL_HLS_PORT', 9072);
+        $method = strtoupper($request->method());
+
+        if ($method === 'OPTIONS') {
+            return response('', 204)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        }
+
+        $isWebrtc = in_array($method, ['POST', 'PATCH', 'DELETE'], true) || str_contains($path, 'whep');
+        $internalPort = $isWebrtc
+            ? (int) env('MEDIA_SERVER_INTERNAL_WEBRTC_PORT', 9073)
+            : (int) env('MEDIA_SERVER_INTERNAL_HLS_PORT', 9072);
+
         $targetUrl = "http://{$internalHost}:{$internalPort}/live/{$path}";
 
         try {
@@ -403,6 +416,30 @@ class IotCameraController extends Controller
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+
+            $reqHeaders = [];
+            if ($isWebrtc && $request->hasHeader('Content-Type')) {
+                $reqHeaders[] = 'Content-Type: ' . $request->header('Content-Type');
+            }
+            if (in_array($method, ['POST', 'PATCH'], true)) {
+                $rawBody = $request->getContent();
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $rawBody);
+            }
+            if (!empty($reqHeaders)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $reqHeaders);
+            }
+
+            $responseHeaders = [];
+            curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
+                $len = strlen($header);
+                $parts = explode(':', $header, 2);
+                if (count($parts) === 2) {
+                    $responseHeaders[trim($parts[0])] = trim($parts[1]);
+                }
+                return $len;
+            });
+
             $content = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
@@ -413,13 +450,22 @@ class IotCameraController extends Controller
                     $contentType = 'application/vnd.apple.mpegurl';
                 } elseif (str_ends_with($path, '.ts')) {
                     $contentType = 'video/MP2T';
+                } elseif ($isWebrtc && empty($contentType)) {
+                    $contentType = 'application/sdp';
                 }
 
-                return response($content, $httpCode)
+                $res = response($content, $httpCode)
                     ->header('Content-Type', $contentType ?: 'application/octet-stream')
                     ->header('Access-Control-Allow-Origin', '*')
-                    ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
                     ->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+                if (isset($responseHeaders['Location'])) {
+                    $res->header('Location', $responseHeaders['Location']);
+                }
+
+                return $res;
             }
 
             return response()->json([
@@ -434,7 +480,15 @@ class IotCameraController extends Controller
     }
 
     /**
-     * Tạo đường dẫn URL phát video HLS và WebRTC phù hợp với môi trường HTTP/HTTPS
+     * Tương thích ngược với route proxyHls cũ.
+     */
+    public function proxyHls(Request $request, string $path)
+    {
+        return $this->proxyStream($request, $path);
+    }
+
+    /**
+     * Tạo đường dẫn URL phát video HLS và WebRTC WHEP phù hợp với môi trường HTTP/HTTPS
      * và hỗ trợ chạy trực tiếp qua Nginx Reverse Proxy để tránh lỗi Mixed Content.
      */
     private function buildStreamUrls(Request $request, string $streamKey): array
@@ -448,20 +502,17 @@ class IotCameraController extends Controller
             $hlsUrl = rtrim($customHlsBase, '/') . "/{$streamKey}/index.m3u8";
         } else {
             $configuredHlsPort = env('MEDIA_SERVER_HLS_PORT');
-            // Nếu có cấu hình port cụ thể (khác 80, 443)
             if ($configuredHlsPort && !in_array((string) $configuredHlsPort, ['80', '443', 'none', 'false'], true)) {
                 $hlsHost = "{$mediaHost}:{$configuredHlsPort}";
             } else {
-                // Mặc định: HTTPS chạy qua Nginx Reverse Proxy (không cần port)
-                // HTTP Local chạy qua port 9072 của MediaMTX
                 $hlsHost = $isHttps ? $mediaHost : "{$mediaHost}:9072";
             }
             $hlsUrl = "{$scheme}://{$hlsHost}/live/{$streamKey}/index.m3u8";
         }
 
-        // 2. URL WebRTC
+        // 2. URL WebRTC WHEP
         if ($customWebrtcBase = env('MEDIA_SERVER_WEBRTC_BASE_URL')) {
-            $webrtcUrl = rtrim($customWebrtcBase, '/') . "/{$streamKey}";
+            $webrtcUrl = rtrim($customWebrtcBase, '/') . "/{$streamKey}/whep";
         } else {
             $configuredWebrtcPort = env('MEDIA_SERVER_WEBRTC_PORT');
             if ($configuredWebrtcPort && !in_array((string) $configuredWebrtcPort, ['80', '443', 'none', 'false'], true)) {
@@ -469,12 +520,13 @@ class IotCameraController extends Controller
             } else {
                 $webrtcHost = $isHttps ? $mediaHost : "{$mediaHost}:9073";
             }
-            $webrtcUrl = "{$scheme}://{$webrtcHost}/live/{$streamKey}";
+            $webrtcUrl = "{$scheme}://{$webrtcHost}/live/{$streamKey}/whep";
         }
 
         return [
             'hls_url' => $hlsUrl,
             'webrtc_url' => $webrtcUrl,
+            'stream_path' => "live/{$streamKey}",
         ];
     }
 

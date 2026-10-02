@@ -14,14 +14,14 @@ pprof: no
 rtsp: no
 srt: no
 
-# 1. RTMP SERVER (Trạm 4G đẩy luồng lên)
+# 1. RTMP SERVER (Trạm 4G Mini PC đẩy luồng lên - Cổng 9071 hoặc 1935)
 rtmp: yes
-rtmpAddress: :1935
+rtmpAddress: :9071
 rtmpEncryption: "no"
 
-# 2. HLS SERVER (Web xem trực tiếp)
+# 2. HLS SERVER (Web xem trực tiếp chế độ dự phòng - Cổng 9072 hoặc 8888)
 hls: yes
-hlsAddress: :8888
+hlsAddress: :9072
 hlsAlwaysRemux: no
 hlsVariant: lowLatency
 hlsSegmentCount: 5
@@ -30,11 +30,13 @@ hlsPartDuration: 200ms
 hlsSegmentMaxSize: 50M
 hlsDirectory: ""
 
-# 3. WEBRTC (Tùy chọn độ trễ thấp)
+# 3. WEBRTC WHEP (Web xem trực tiếp siêu tốc < 1s - Cổng 9073 hoặc 8889)
 webrtc: yes
-webrtcAddress: :8889
+webrtcAddress: :9073
 webrtcEncryption: no
 webrtcLocalUDPAddress: :8890
+# Điền IP Public của VPS để trình duyệt người dùng bên ngoài kết nối UDP/RTP
+webrtcAdditionalHosts: ["117.6.44.206"]
 
 # 4. PATHS
 paths:
