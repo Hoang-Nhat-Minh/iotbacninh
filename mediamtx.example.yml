@@ -30,11 +30,12 @@ hlsPartDuration: 200ms
 hlsSegmentMaxSize: 50M
 hlsDirectory: ""
 
-# 3. WEBRTC WHEP (Web xem trực tiếp siêu tốc < 1s - Cổng 9073 hoặc 8889)
+# 3. WEBRTC WHEP (Web xem trực tiếp siêu tốc < 1s - Cổng 9073)
 webrtc: yes
 webrtcAddress: :9073
 webrtcEncryption: no
-webrtcLocalUDPAddress: :8890
+webrtcLocalUDPAddress: :9074
+webrtcLocalTCPAddress: :9074
 # Điền IP Public của VPS để trình duyệt người dùng bên ngoài kết nối UDP/RTP
 webrtcAdditionalHosts: ["117.6.44.206"]
 

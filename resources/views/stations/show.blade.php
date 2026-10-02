@@ -961,12 +961,34 @@
                     startSessionBuffering(camId);
                 };
 
+                let iceDisconnectTimer = null;
                 pc.oniceconnectionstatechange = () => {
-                    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-                        console.warn(`[LIVESTREAM] Kết nối trực tiếp bị gián đoạn (${pc.iceConnectionState}) cho ${camId}, chuyển luồng dự phòng...`);
+                    console.log(`[ICE STATE] ${camId}: ${pc.iceConnectionState}`);
+                    if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+                        if (iceDisconnectTimer) {
+                            clearTimeout(iceDisconnectTimer);
+                            iceDisconnectTimer = null;
+                        }
+                    } else if (pc.iceConnectionState === 'failed') {
+                        console.warn(`[LIVESTREAM] Kết nối trực tiếp thất bại (failed) cho ${camId}, chuyển luồng dự phòng...`);
                         cleanupCameraPlayers(camId, false);
                         initHlsPlayerForCam(camId, hlsUrl);
+                    } else if (pc.iceConnectionState === 'disconnected') {
+                        // Trạng thái disconnected là tạm thời trong WebRTC, không ngắt ngay mà đợi 5 giây
+                        if (!iceDisconnectTimer) {
+                            iceDisconnectTimer = setTimeout(() => {
+                                if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+                                    console.warn(`[LIVESTREAM] Mất kết nối trực tiếp quá 5s cho ${camId}, chuyển luồng dự phòng...`);
+                                    cleanupCameraPlayers(camId, false);
+                                    initHlsPlayerForCam(camId, hlsUrl);
+                                }
+                            }, 5000);
+                        }
                     }
+                };
+
+                pc.onconnectionstatechange = () => {
+                    console.log(`[CONN STATE] ${camId}: ${pc.connectionState}`);
                 };
 
                 pc.addTransceiver('video', { direction: 'recvonly' });
@@ -1576,11 +1598,11 @@
             let mimeType = '';
             let fileExt = 'webm';
             const candidateTypes = [
-                'video/mp4;codecs=avc1',
-                'video/mp4',
-                'video/webm;codecs=vp9,opus',
                 'video/webm;codecs=vp8,opus',
-                'video/webm'
+                'video/webm;codecs=vp9,opus',
+                'video/webm',
+                'video/mp4;codecs=avc1',
+                'video/mp4'
             ];
 
             for (const type of candidateTypes) {
@@ -1594,9 +1616,13 @@
 
             try {
                 const chunks = [];
-                const recorder = mimeType ? new MediaRecorder(stream, {
-                    mimeType
-                }) : new MediaRecorder(stream);
+                let recorder = null;
+                try {
+                    recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+                } catch (recInitErr) {
+                    recorder = new MediaRecorder(stream);
+                    mimeType = '';
+                }
 
                 recorder.ondataavailable = function(e) {
                     if (e.data && e.data.size > 0) {
