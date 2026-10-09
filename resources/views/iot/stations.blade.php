@@ -704,7 +704,7 @@
 
                                             </tr>
 
-                                            <!-- Lượng mưa -->
+                                            <!-- Lượng mưa trong ngày -->
                                             <tr>
                                                 <td class="ps-3 py-2.5">
                                                     <div class="d-flex align-items-center gap-2">
@@ -713,30 +713,48 @@
                                                             <i class="bi bi-cloud-rain-fill"></i>
                                                         </div>
                                                         <div>
-                                                            <div class="fw-bold text-dark mb-0">Lượng mưa đo được</div>
-                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-RAINF-01</small>
+                                                            <div class="fw-bold text-dark mb-0">Lượng mưa trong ngày</div>
+                                                            <small class="text-muted" style="font-size: 11px;">Cảm biến ES-RAINF-01 (Tích lũy 24h)</small>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td class="text-center">
                                                     <span
                                                         class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-2.5 py-1.5 font-monospace">
-                                                        {{ $st['rain'] }} mm
+                                                        {{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center font-monospace fw-medium text-secondary">
-                                                    {{ round($st['rain'] * 0.8, 1) }} mm
+                                                    {{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}
                                                 </td>
                                                 <td class="text-center font-monospace small">
-                                                    <span class="text-muted me-1">0.0 mm</span> -
-                                                    <span class="text-primary ms-1">{{ round($st['rain'] * 1.5, 1) }}
-                                                        mm</span>
+                                                    @if ($st['has_real_data'])
+                                                        <span class="text-muted me-1">0.0 mm</span> -
+                                                        <span class="text-primary ms-1">{{ $st['rain'] > 0 ? $st['rain'] . ' mm' : '0.0 mm' }}</span>
+                                                    @else
+                                                        <span class="text-muted">--</span>
+                                                    @endif
                                                 </td>
                                                 <td class="pe-3 text-center">
-                                                    <span
-                                                        class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1.5">
-                                                        <i class="bi bi-cloud-drizzle me-1"></i> Theo dõi lượng mưa
-                                                    </span>
+                                                    @if (!$st['has_real_data'])
+                                                        <span class="badge bg-light text-muted border rounded-pill px-3 py-1.5">Chưa có tín hiệu</span>
+                                                    @elseif ($st['rain'] > 50)
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Mưa rất to (&gt;50mm)
+                                                        </span>
+                                                    @elseif ($st['rain'] > 15)
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1.5">
+                                                            <i class="bi bi-cloud-rain-heavy-fill me-1"></i> Mưa vừa - to
+                                                        </span>
+                                                    @elseif ($st['rain'] > 0)
+                                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1.5">
+                                                            <i class="bi bi-cloud-drizzle-fill me-1"></i> Mưa nhỏ ({{ $st['rain'] }}mm)
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5">
+                                                            <i class="bi bi-sun-fill me-1"></i> Không mưa (0.0mm)
+                                                        </span>
+                                                    @endif
                                                 </td>
                                             </tr>
 
@@ -895,7 +913,7 @@
                                         <i class="bi bi-cloud-rain-fill"></i>
                                     </div>
                                     <div>
-                                        <div class="text-muted" style="font-size: 11px;">Lượng mưa</div>
+                                        <div class="text-muted" style="font-size: 11px;">Lượng mưa trong ngày</div>
                                         <strong class="fs-6 text-dark" id="kpi-rain-{{ $st['id'] }}">{{ $st['has_real_data'] ? $st['rain'] . ' mm' : '--' }}</strong>
                                     </div>
                                 </div>
