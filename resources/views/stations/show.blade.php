@@ -240,6 +240,32 @@
             transform: scale(0.95);
         }
 
+        /* Thanh chọn camera PTZ: cho phép các nút xuống dòng, tránh bị cắt trên màn hình hẹp */
+        #cam-select-group {
+            row-gap: 0.375rem;
+        }
+
+        #cam-select-group .btn-cam-select {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767.98px) {
+            .cam-selector-row {
+                width: 100%;
+            }
+
+            #cam-select-group {
+                width: 100%;
+            }
+
+            #cam-select-group .btn-cam-select {
+                flex: 1 1 calc(50% - 0.25rem);
+                padding-left: 0.375rem;
+                padding-right: 0.375rem;
+                font-size: 12.5px;
+            }
+        }
+
         .ptz-btn-center {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: #ffffff;
@@ -433,11 +459,11 @@
             <!-- Thanh Điều Khiển Chọn Camera PTZ & Thông Tin Phiên -->
             <div class="card border-0 shadow-sm mb-3 bg-light">
                 <div class="card-body py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2 cam-selector-row">
                         <span class="badge bg-white text-dark border px-2.5 py-1.5 fw-bold">
                             <i class="bi bi-crosshair text-success me-1"></i> Camera điều khiển PTZ:
                         </span>
-                        <div class="btn-group btn-group-sm" role="group">
+                        <div class="d-flex flex-wrap gap-1 btn-group-sm" role="group" id="cam-select-group">
                             <button type="button" class="btn btn-primary active btn-cam-select" id="btn-cam-1"
                                 data-cam-id="cam_1" onclick="focusCamera('cam_1')">Camera 1</button>
                             <button type="button" class="btn btn-outline-secondary btn-cam-select" id="btn-cam-2"
@@ -449,7 +475,7 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center gap-2 text-muted small">
+                    <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
                         <span><i class="bi bi-compass text-warning me-1"></i> Pan: <strong id="val-pan">--°</strong> |
                             Tilt: <strong id="val-tilt">--°</strong></span>
                         <span><i class="bi bi-zoom-in text-info me-1"></i> Zoom: <strong
