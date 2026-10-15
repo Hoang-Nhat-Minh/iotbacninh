@@ -24,3 +24,6 @@ iot_station_client_*
 mock_camera_stream*
 camera_station_client*
 main.py
+KE_HOACH_KIEM_THU.txt
+__pycache__
+.freebuff
