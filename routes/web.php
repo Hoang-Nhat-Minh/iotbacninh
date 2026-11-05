@@ -83,8 +83,8 @@ Route::middleware('auth')->group(function () {
         return redirect('/care/logs');
     });
 
-    // IoT Monitoring Views (UC 12-22, 44, 45, 46)
-    Route::prefix('iot')->group(function () {
+    // IoT Monitoring Views (UC 12-22, 44, 45, 46) - Chỉ Admin & Manager
+    Route::middleware('role:admin,manager')->prefix('iot')->group(function () {
         Route::get('/stations', [ManagerStationController::class, 'index'])->name('iot.stations');
         Route::get('/stations/live-data', [ManagerStationController::class, 'getLiveData'])->name('iot.stations.live_data');
         Route::get('/stations/create', [ManagerStationController::class, 'create'])->name('iot.stations.create');
@@ -219,8 +219,8 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
         Route::post('/logs/import', [AdminCareHistoryController::class, 'import'])->name('care.logs.import');
     });
 
-    // IoT Stations Management (UC 30, 44)
-    Route::prefix('iot')->group(function () {
+    // IoT Stations Management (UC 30, 44) - Chỉ Admin & Manager
+    Route::middleware('role:admin,manager')->prefix('iot')->group(function () {
         Route::post('/stations/store', [ManagerStationController::class, 'store']);
         Route::post('/stations/update/{id}', [ManagerStationController::class, 'update']);
         Route::post('/stations/delete/{id}', [ManagerStationController::class, 'destroy']);

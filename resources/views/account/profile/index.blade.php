@@ -19,6 +19,7 @@
         <div class="col-lg-4 col-md-5">
             <div class="card text-center">
                 <div class="card-body py-4">
+                    @if(Auth::user()->isAdmin() || Auth::user()->isManager())
                     <form action="{{ url('/account/profile/avatar') }}" method="POST" enctype="multipart/form-data"
                         id="form-avatar">
                         @csrf
@@ -37,6 +38,7 @@
                                 onchange="document.getElementById('form-avatar').submit()">
                         </div>
                     </form>
+                    @endif
 
                     <h4 class="fw-bold mb-1" style="font-size: 18px;">{{ $user->name ?? 'Người Dùng' }}</h4>
                     <div class="mb-3">
@@ -125,6 +127,7 @@
         </div>
 
         <div class="col-lg-8 col-md-7">
+            @if(Auth::user()->isAdmin() || Auth::user()->isManager())
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title"><i class="bi bi-pencil-square text-primary"></i> Chỉnh Sửa Thông Tin Cá Nhân</h5>
@@ -176,7 +179,9 @@
                     </form>
                 </div>
             </div>
+            @endif
 
+            @if(Auth::user()->isAdmin() || Auth::user()->isManager())
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title"><i class="bi bi-shield-lock text-primary"></i> Đổi Mật Khẩu Đăng Nhập</h5>
@@ -217,6 +222,7 @@
                     </form>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 @endsection
