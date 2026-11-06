@@ -83,8 +83,9 @@ Route::middleware('auth')->group(function () {
         return redirect('/care/logs');
     });
 
-    // IoT Monitoring Views (UC 12-22, 44, 45, 46) - Admin & Manager có thể xem
-    Route::middleware('role:admin,manager')->prefix('iot')->group(function () {
+    // IoT Monitoring Views (UC 12-22, 44, 45, 46) - Admin, Manager & User có thể xem trạm
+    // User thường chỉ xem được các trạm thuộc vườn mình sở hữu (lọc tại Controller)
+    Route::middleware('role:admin,manager,user')->prefix('iot')->group(function () {
         Route::get('/stations', [ManagerStationController::class, 'index'])->name('iot.stations');
         Route::get('/stations/live-data', [ManagerStationController::class, 'getLiveData'])->name('iot.stations.live_data');
         // NOTE: /stations/permissions phải đặt trước /stations/{id} để tránh conflict

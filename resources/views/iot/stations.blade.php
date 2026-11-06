@@ -283,9 +283,11 @@
                     <span class="live-dot-pulse"></span>
                     <span>Live 30s: <span id="live-timer-text">30s</span> (Cập nhật: <span id="live-last-updated">{{ now()->format('H:i:s') }}</span>)</span>
                 </span>
+                @if(Auth::check() && Auth::user()->isAdmin())
                 <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm IoT
                 </a>
+                @endif
             </div>
         </x-slot:actions>
     </x-page-header>
@@ -421,6 +423,7 @@
                                                     <a href="{{ url('/iot/stations/' . $st['id']) }}" class="btn btn-primary btn-sm py-1 px-2" title="Xem Camera trực tiếp" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
                                                         <i class="bi bi-camera-video me-1"></i> Camera
                                                     </a>
+                                                    @if(Auth::check() && Auth::user()->isAdmin())
                                                     <a href="{{ route('iot.stations.edit', $st['id']) }}" class="btn btn-outline-secondary btn-sm py-1 px-2" title="Chỉnh sửa trạm">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
@@ -429,6 +432,7 @@
                                                         onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -451,11 +455,13 @@
                 </div>
                 <h5 class="fw-bold text-dark">Chưa Có Trạm Quan Trắc IoT Nào</h5>
                 <p class="text-muted small mb-3">Hiện chưa có trạm quan trắc nào trong cơ sở dữ liệu. Vui lòng bấm nút bên dưới để khởi tạo trạm mới.</p>
+                @if(Auth::check() && Auth::user()->isAdmin())
                 <div>
                     <a href="{{ route('iot.stations.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle-fill me-1"></i> Thêm Trạm Quan Trắc Mới
                     </a>
                 </div>
+                @endif
             </div>
         @endif
 
@@ -500,10 +506,11 @@
                                 <i class="bi bi-camera-video-fill"></i>
                                 <span>Xem Camera Trực Tiếp</span>
                                 <span class="badge bg-success text-white py-1 px-2" style="font-size: 10px; border-radius: 999px;">
-                                    <i class="bi bi-broadcast me-1"></i> LIVE
+                                     LIVE
                                 </span>
                             </a>
 
+                            @if(Auth::check() && Auth::user()->isAdmin())
                             <!-- Dải phân cách an toàn để tránh bấm nhầm nút xóa -->
                             <div class="vr mx-2 text-muted opacity-25" style="height: 32px;"></div>
 
@@ -515,6 +522,7 @@
                                 onclick="openDeleteStationModal(event, {{ $st['id'] }}, '{{ $st['code'] }}', '{{ addslashes($st['name']) }}')">
                                 <i class="bi bi-trash"></i>
                             </button>
+                            @endif
                         </div>
                     </div>
 

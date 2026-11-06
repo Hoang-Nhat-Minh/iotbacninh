@@ -17,7 +17,13 @@ class MonitoringStationController extends Controller
 {
     public function index(Request $request)
     {
-        $gardens = Garden::all();
+        $user = auth()->user();
+        if ($user && $user->isUser()) {
+            $gardens = Garden::where('user_id', $user->id)->get();
+        } else {
+            $gardens = Garden::all();
+        }
+
         $stations = $this->formatStationsList();
 
         return view('iot.stations', compact('stations', 'gardens'));
@@ -43,13 +49,24 @@ class MonitoringStationController extends Controller
      */
     protected function formatStationsList(): array
     {
-        $dbStations = MonitoringStation::with([
+        $user = auth()->user();
+
+        $query = MonitoringStation::with([
             'garden.user',
             'devices',
             'sensorReadings' => function ($q) {
                 $q->latest('recorded_at')->take(30);
             }
-        ])->get();
+        ]);
+
+        // Nếu là role user (chủ vườn), chỉ lấy các trạm thuộc vườn người dùng đang sở hữu
+        if ($user && $user->isUser()) {
+            $query->whereHas('garden', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $dbStations = $query->get();
 
         $stations = $dbStations->map(function ($st) {
             $gardenName = $st->garden->name ?? 'Vùng trồng Bắc Ninh';
@@ -161,6 +178,8 @@ class MonitoringStationController extends Controller
 
     public function show($id)
     {
+        $user = auth()->user();
+
         $st = MonitoringStation::with([
             'garden.user',
             'devices',
@@ -168,6 +187,13 @@ class MonitoringStationController extends Controller
                 $q->latest('recorded_at')->take(50);
             }
         ])->findOrFail($id);
+
+        // Kiểm tra quyền: nếu là user thường thì trạm này phải thuộc vườn của họ
+        if ($user && $user->isUser()) {
+            if (!$st->garden || $st->garden->user_id !== $user->id) {
+                abort(403, 'Bạn không có quyền truy cập dữ liệu của trạm quan trắc này.');
+            }
+        }
 
         $presets = ImageCaptureLocation::with('schedule')->where('monitoring_station_id', $id)->get();
         $schedules = \App\Models\Iot\ImageCollectionSchedule::where(function ($q) use ($id) {
@@ -374,6 +400,10 @@ class MonitoringStationController extends Controller
      */
     public function permissions()
     {
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            abort(403, 'Chỉ Quản trị viên mới có quyền phân quyền trạm quan trắc.');
+        }
+
         $gardens = Garden::with(['user', 'stations'])->orderBy('code')->get();
         $users   = User::where('role_id', 3)->orderBy('name')->get();
 
