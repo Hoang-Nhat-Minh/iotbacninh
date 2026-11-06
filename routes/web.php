@@ -87,6 +87,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,manager')->prefix('iot')->group(function () {
         Route::get('/stations', [ManagerStationController::class, 'index'])->name('iot.stations');
         Route::get('/stations/live-data', [ManagerStationController::class, 'getLiveData'])->name('iot.stations.live_data');
+        // NOTE: /stations/permissions phải đặt trước /stations/{id} để tránh conflict
+        Route::get('/stations/permissions', [ManagerStationController::class, 'permissions'])->name('iot.stations.permissions');
         Route::get('/stations/{id}', [ManagerStationController::class, 'show'])->name('iot.stations.show');
         Route::get('/weather-history', [WeatherHistoryController::class, 'index'])->name('iot.weather.history');
         Route::get('/weather-history/detail/{stationId}/{date}', [WeatherHistoryController::class, 'detail'])->name('iot.weather.detail');
@@ -103,8 +105,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/stations/update/{id}', [ManagerStationController::class, 'update'])->name('iot.stations.update');
         Route::post('/stations/delete/{id}', [ManagerStationController::class, 'destroy'])->name('iot.stations.destroy');
 
-        // Phân quyền trạm (Admin only)
-        Route::get('/stations/permissions', [ManagerStationController::class, 'permissions'])->name('iot.stations.permissions');
+        // Phân quyền trạm (Admin only) - GET đã được đăng ký ở group role:admin,manager phía trên (trước {id})
         Route::post('/stations/permissions', [ManagerStationController::class, 'storePermissions'])->name('iot.stations.permissions.store');
     });
 
