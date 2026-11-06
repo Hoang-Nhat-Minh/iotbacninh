@@ -369,33 +369,41 @@ class MonitoringStationController extends Controller
 
     /**
      * Trang phân quyền trạm quan trắc (Admin only).
-     * Hiển thị danh sách trạm kèm vườn/chủ vườn hiện tại và form phân quyền.
+     * Hiển thị danh sách vườn + chủ vườn hiện tại, cho phép đổi chủ.
+     * Logic: User quản lý Garden nào → truy cập được tất cả Station của Garden đó.
      */
     public function permissions()
     {
-        $stations = MonitoringStation::with(['garden.user'])->orderBy('code')->get();
-        $gardens = Garden::with('user')->orderBy('name')->get();
-        $users = User::where('role_id', 3)->with('gardens')->orderBy('name')->get();
+        $gardens = Garden::with(['user', 'stations'])->orderBy('code')->get();
+        $users   = User::where('role_id', 3)->orderBy('name')->get();
 
-        return view('iot.stations.permissions', compact('stations', 'gardens', 'users'));
+        return view('iot.stations.permissions', compact('gardens', 'users'));
     }
 
     /**
-     * Lưu phân quyền trạm: gán trạm cho vườn (và do đó cho chủ vườn).
+     * Lưu phân quyền: gán chủ vườn (user_id) cho garden.
+     * Hỗ trợ cả AJAX (Accept: application/json) và form submit thông thường.
      */
     public function storePermissions(Request $request)
     {
         $validated = $request->validate([
-            'station_id' => 'required|exists:monitoring_stations,id',
             'garden_id' => 'required|exists:gardens,id',
+            'user_id'   => 'nullable|exists:users,id',
         ]);
 
-        $station = MonitoringStation::findOrFail($validated['station_id']);
-        $station->garden_id = $validated['garden_id'];
-        $station->save();
+        $garden          = Garden::findOrFail($validated['garden_id']);
+        $garden->user_id = $validated['user_id'] ?: null;
+        $garden->save();
 
-        return redirect()->route('iot.stations.permissions')
-            ->with('success', "Đã phân quyền trạm {$station->code} cho vườn mới.");
+        $msg = $garden->user_id
+            ? "Đã gán vườn {$garden->code} cho người dùng mới."
+            : "Đã bỏ chủ vườn {$garden->code}.";
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
+        return redirect()->route('iot.stations.permissions')->with('success', $msg);
     }
 
     /**
