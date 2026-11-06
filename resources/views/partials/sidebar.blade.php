@@ -279,6 +279,12 @@
                                 <span>Cấu hình quan trắc</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="{{ route('admin.magic-links.index') }}" class="sidebar-link {{ Request::is('admin/magic-links*') ? 'active' : '' }}" data-tooltip="Quản lý Magic Link">
+                                <i class="bi bi-link-45deg"></i>
+                                <span>Magic Link Đăng Nhập</span>
+                            </a>
+                        </li>
                     @endif
                     <li class="sidebar-item">
                         <a href="{{ url('/system/error-logs') }}" class="sidebar-link {{ Request::is('system/error-logs*') ? 'active' : '' }}" data-tooltip="Log lỗi hệ thống">

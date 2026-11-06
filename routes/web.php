@@ -21,6 +21,8 @@ use App\Http\Controllers\Manager\AgricultureKnowledgeController as ManagerKnowle
 use App\Http\Controllers\Manager\ErrorLogController as ManagerErrorLogController;
 use App\Http\Controllers\Manager\AccessLogController as ManagerAccessLogController;
 use App\Http\Controllers\Api\IotCameraController;
+use App\Http\Controllers\Auth\MagicLoginController;
+use App\Http\Controllers\Admin\MagicLinkController;
 
 use App\Http\Controllers\User\ProfileController as UserProfileController;
 use App\Http\Controllers\User\UserGardenController;
@@ -48,6 +50,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    // Magic Login (public, không cần đăng nhập trước)
+    Route::get('/magic-login/{token}', MagicLoginController::class)->name('magic.login');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -378,6 +382,19 @@ Route::prefix('labeler')->group(function () {
         Route::post('/knowledge/document/update/{id}', [KnowledgeBaseController::class, 'updateDocument'])->name('labeler.knowledge.document.update');
         Route::post('/knowledge/document/delete/{id}', [KnowledgeBaseController::class, 'destroyDocument'])->name('labeler.knowledge.document.delete');
         Route::get('/knowledge/document/{id}/chunks', [KnowledgeBaseController::class, 'getChunks'])->name('labeler.knowledge.document.chunks');
+    });
+
+    // ==========================================
+    // Admin: Quản lý Magic Link (Chỉ Admin)
+    // ==========================================
+    Route::middleware('role:admin')->prefix('admin/magic-links')->name('admin.magic-links.')->group(function () {
+        Route::get('/', [MagicLinkController::class, 'index'])->name('index');
+        Route::get('/create', [MagicLinkController::class, 'create'])->name('create');
+        Route::post('/', [MagicLinkController::class, 'store'])->name('store');
+        Route::get('/{magicLink}/edit', [MagicLinkController::class, 'edit'])->name('edit');
+        Route::put('/{magicLink}', [MagicLinkController::class, 'update'])->name('update');
+        Route::post('/{magicLink}/toggle', [MagicLinkController::class, 'toggle'])->name('toggle');
+        Route::delete('/{magicLink}', [MagicLinkController::class, 'destroy'])->name('destroy');
     });
 });
 
