@@ -179,7 +179,7 @@
         {{-- Filter bar --}}
         <div class="filter-bar">
             <input type="text" id="gardenSearch" class="form-control form-control-sm"
-                   placeholder="🔍  Tìm theo tên / mã vườn...">
+                   placeholder="Tìm theo tên / mã vườn...">
             <select id="filterUser" class="form-select form-select-sm" style="max-width:200px;">
                 <option value="">Tất cả người dùng</option>
                 <option value="__none__">— Chưa có chủ</option>
