@@ -148,7 +148,7 @@
     </div>
 @endsection
 
-@stack('scripts')
+@push('scripts')
 <script>
     function copyLink(button) {
         const input = button.parentElement.querySelector('input');
@@ -163,4 +163,4 @@
         }, 1500);
     }
 </script>
-@endstack
+@endpush

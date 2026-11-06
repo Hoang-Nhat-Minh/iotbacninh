@@ -29,8 +29,8 @@ class MagicLoginController extends Controller
                 ->with('error', 'Tài khoản liên kết với link này hiện không thể đăng nhập.');
         }
 
-        // Đăng nhập tự động user
-        Auth::login($user, true);
+        // Đăng nhập tự động user (không sử dụng remember_token vì bảng users không có cột này)
+        Auth::login($user);
         $request->session()->regenerate();
 
         // Ghi log truy cập (tái sử dụng model AccessLog đã có sẵn)
