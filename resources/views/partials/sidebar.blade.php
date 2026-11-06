@@ -111,6 +111,14 @@
                         <span>Giám sát trạm IoT</span>
                     </a>
                 </li>
+                @if(Auth::check() && Auth::user()->isAdmin())
+                <li class="sidebar-item">
+                    <a href="{{ url('/iot/stations/permissions') }}" class="sidebar-link {{ Request::is('iot/stations/permissions*') ? 'active' : '' }}" data-tooltip="Phân quyền trạm">
+                        <i class="bi bi-person-gear"></i>
+                        <span>Phân quyền trạm</span>
+                    </a>
+                </li>
+                @endif
                 <li class="sidebar-item">
                     <a href="{{ url('/iot/weather-history') }}" class="sidebar-link {{ Request::is('iot/weather-history*') ? 'active' : '' }}" data-tooltip="Lịch sử thời tiết">
                         <i class="bi bi-cloud-sun-fill"></i>

@@ -7,6 +7,7 @@ use App\Models\Iot\ImageCaptureLocation;
 use App\Models\Iot\MonitoringStation;
 use App\Models\Iot\SensorReading;
 use App\Models\Farm\Garden;
+use App\Models\User;
 use App\Services\Iot\MqttService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -364,6 +365,37 @@ class MonitoringStationController extends Controller
         $station->delete();
 
         return redirect()->route('iot.stations')->with('success', 'Xóa trạm quan trắc thành công.');
+    }
+
+    /**
+     * Trang phân quyền trạm quan trắc (Admin only).
+     * Hiển thị danh sách trạm kèm vườn/chủ vườn hiện tại và form phân quyền.
+     */
+    public function permissions()
+    {
+        $stations = MonitoringStation::with(['garden.user'])->orderBy('code')->get();
+        $gardens = Garden::with('user')->orderBy('name')->get();
+        $users = User::where('role_id', 3)->with('gardens')->orderBy('name')->get();
+
+        return view('iot.stations.permissions', compact('stations', 'gardens', 'users'));
+    }
+
+    /**
+     * Lưu phân quyền trạm: gán trạm cho vườn (và do đó cho chủ vườn).
+     */
+    public function storePermissions(Request $request)
+    {
+        $validated = $request->validate([
+            'station_id' => 'required|exists:monitoring_stations,id',
+            'garden_id' => 'required|exists:gardens,id',
+        ]);
+
+        $station = MonitoringStation::findOrFail($validated['station_id']);
+        $station->garden_id = $validated['garden_id'];
+        $station->save();
+
+        return redirect()->route('iot.stations.permissions')
+            ->with('success', "Đã phân quyền trạm {$station->code} cho vườn mới.");
     }
 
     /**

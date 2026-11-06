@@ -42,6 +42,6 @@ class CheckRole
             return response()->json(['message' => 'Bạn không có quyền thực hiện hành động này.'], 403);
         }
 
-        abort(403, 'Bạn không có quyền truy cập vào chức năng này.');
+        return redirect()->back()->with('error', 'Bạn không có quyền truy cập vào chức năng này.');
     }
 }

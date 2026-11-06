@@ -83,18 +83,41 @@ Route::middleware('auth')->group(function () {
         return redirect('/care/logs');
     });
 
-    // IoT Monitoring Views (UC 12-22, 44, 45, 46) - Chỉ Admin & Manager
+    // IoT Monitoring Views (UC 12-22, 44, 45, 46) - Admin & Manager có thể xem
     Route::middleware('role:admin,manager')->prefix('iot')->group(function () {
         Route::get('/stations', [ManagerStationController::class, 'index'])->name('iot.stations');
         Route::get('/stations/live-data', [ManagerStationController::class, 'getLiveData'])->name('iot.stations.live_data');
-        Route::get('/stations/create', [ManagerStationController::class, 'create'])->name('iot.stations.create');
-        Route::get('/stations/{id}/edit', [ManagerStationController::class, 'edit'])->name('iot.stations.edit');
         Route::get('/stations/{id}', [ManagerStationController::class, 'show'])->name('iot.stations.show');
         Route::get('/weather-history', [WeatherHistoryController::class, 'index'])->name('iot.weather.history');
         Route::get('/weather-history/detail/{stationId}/{date}', [WeatherHistoryController::class, 'detail'])->name('iot.weather.detail');
         Route::get('/media', [ManagerMediaController::class, 'index'])->name('iot.media');
         Route::get('/locations', [ManagerLocationController::class, 'index'])->name('iot.locations');
     });
+
+    // IoT Station Management (UC 30, 44) - Chỉ Admin được thêm/sửa/xóa
+    Route::middleware('role:admin')->prefix('iot')->group(function () {
+        Route::get('/stations/create', [ManagerStationController::class, 'create'])->name('iot.stations.create');
+        Route::get('/stations/{id}/edit', [ManagerStationController::class, 'edit'])->name('iot.stations.edit');
+
+        Route::post('/stations/store', [ManagerStationController::class, 'store'])->name('iot.stations.store');
+        Route::post('/stations/update/{id}', [ManagerStationController::class, 'update'])->name('iot.stations.update');
+        Route::post('/stations/delete/{id}', [ManagerStationController::class, 'destroy'])->name('iot.stations.destroy');
+
+        // Phân quyền trạm (Admin only)
+        Route::get('/stations/permissions', [ManagerStationController::class, 'permissions'])->name('iot.stations.permissions');
+        Route::post('/stations/permissions', [ManagerStationController::class, 'storePermissions'])->name('iot.stations.permissions.store');
+    });
+
+    // IoT Media & Location Management - Chỉ Admin
+    Route::middleware('role:admin')->prefix('iot')->group(function () {
+        Route::post('/media/rename', [ManagerMediaController::class, 'rename']);
+        Route::post('/media/delete', [ManagerMediaController::class, 'destroy']);
+        Route::post('/media/bulk-delete', [ManagerMediaController::class, 'destroy']);
+
+        Route::post('/locations/store', [ManagerLocationController::class, 'store']);
+        Route::post('/locations/update/{id?}', [ManagerLocationController::class, 'update']);
+        Route::post('/locations/delete/{id?}', [ManagerLocationController::class, 'destroy']);
+        Route::post('/locations/test-capture/{id?}', [ManagerLocationController::class, 'testCapture']);
 
     // Dán nhãn Tổng Nhiệt hữu hiệu (Degree-Days Labeling & Survey)
     Route::prefix('degree-days')->name('degree-days.')->group(function () {
