@@ -118,6 +118,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/locations/update/{id?}', [ManagerLocationController::class, 'update']);
         Route::post('/locations/delete/{id?}', [ManagerLocationController::class, 'destroy']);
         Route::post('/locations/test-capture/{id?}', [ManagerLocationController::class, 'testCapture']);
+    });
 
     // Dán nhãn Tổng Nhiệt hữu hiệu (Degree-Days Labeling & Survey)
     Route::prefix('degree-days')->name('degree-days.')->group(function () {
