@@ -112,18 +112,7 @@
     }
     .st-chip-none { font-size: .78rem; color: var(--bs-secondary-color,#94a3b8); }
 
-    /* ── Save toast ─────────────────────────────────────── */
-    .save-toast {
-        position: fixed; bottom: 1.5rem; right: 1.5rem;
-        background: #0f172a; color: #fff;
-        border-radius: 10px; padding: .6rem 1.1rem;
-        font-size: .84rem; display: flex; align-items: center; gap: .5rem;
-        box-shadow: 0 8px 24px rgba(0,0,0,.2);
-        opacity: 0; transform: translateY(10px);
-        transition: opacity .2s, transform .2s;
-        pointer-events: none; z-index: 9999;
-    }
-    .save-toast.show { opacity: 1; transform: translateY(0); }
+
 </style>
 @endpush
 
@@ -269,12 +258,6 @@
         </div>
     </div>
 
-    {{-- Save toast --}}
-    <div class="save-toast" id="saveToast">
-        <span class="spinner-border spinner-border-sm" id="toastSpinner"></span>
-        <i class="bi bi-check-circle-fill text-success" id="toastCheck" style="display:none;"></i>
-        <span id="toastMsg">Đang lưu...</span>
-    </div>
 @endsection
 
 @push('scripts')
@@ -302,31 +285,8 @@
     document.getElementById('filterUser').addEventListener('change', applyFilter);
 
     /* ── Toast ───────────────────────────────────────────── */
-    const toast   = document.getElementById('saveToast');
-    const spinner = document.getElementById('toastSpinner');
-    const check   = document.getElementById('toastCheck');
-    const msg     = document.getElementById('toastMsg');
-    let hideTimer;
-
-    function showSaving(text) {
-        clearTimeout(hideTimer);
-        spinner.style.display = '';
-        check.style.display   = 'none';
-        msg.textContent = text;
-        toast.classList.add('show');
-    }
-    function showDone(text) {
-        spinner.style.display = 'none';
-        check.style.display   = '';
-        msg.textContent = text;
-        hideTimer = setTimeout(() => toast.classList.remove('show'), 2200);
-    }
-    function showError(text) {
-        spinner.style.display = 'none';
-        check.style.display   = 'none';
-        msg.textContent = '⚠ ' + text;
-        hideTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+    function showDone(text)  { showToast(text, 'success'); }
+    function showError(text) { showToast(text, 'danger');  }
 
     /* ── Auto-save ───────────────────────────────────────── */
     document.querySelectorAll('.user-select-ctrl').forEach(sel => {
@@ -337,7 +297,7 @@
             const prevUid    = this.dataset.current;
             const row        = this.closest('.garden-row');
 
-            showSaving('Đang lưu...');
+            showToast('Đang lưu...', 'info');
 
             fetch(form.action, {
                 method : 'POST',
