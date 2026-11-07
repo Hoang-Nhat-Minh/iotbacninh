@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/stations/{id}', [ManagerStationController::class, 'show'])->name('iot.stations.show');
         Route::get('/weather-history', [WeatherHistoryController::class, 'index'])->name('iot.weather.history');
         Route::get('/weather-history/detail/{stationId}/{date}', [WeatherHistoryController::class, 'detail'])->name('iot.weather.detail');
+        Route::get('/weather-history/export', [WeatherHistoryController::class, 'export'])->name('iot.weather.export');
         Route::get('/media', [ManagerMediaController::class, 'index'])->name('iot.media');
         Route::get('/locations', [ManagerLocationController::class, 'index'])->name('iot.locations');
     });

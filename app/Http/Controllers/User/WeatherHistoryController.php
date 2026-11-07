@@ -284,6 +284,106 @@ class WeatherHistoryController extends Controller
         ]);
     }
 
+    /**
+     * Xuất dữ liệu đọc cảm biến ra file CSV
+     */
+    public function export(Request $request)
+    {
+        $selectedGardenId = $request->input('garden_id');
+        $selectedStationId = $request->input('station_id');
+
+        $gardens = Garden::with('stations')->get();
+        $stations = MonitoringStation::with('garden')->get();
+
+        $selectedGarden = null;
+        $selectedStation = null;
+
+        if ($selectedStationId) {
+            $selectedStation = $stations->firstWhere('id', $selectedStationId);
+            $selectedGarden = $selectedStation ? $selectedStation->garden : null;
+        } elseif ($selectedGardenId) {
+            $selectedGarden = $gardens->firstWhere('id', $selectedGardenId);
+            $selectedStation = $selectedGarden ? $selectedGarden->stations->first() : $stations->first();
+        } else {
+            $selectedStation = $stations->first();
+            $selectedGarden = $selectedStation ? $selectedStation->garden : $gardens->first();
+        }
+
+        $targetStationIds = [];
+        if ($selectedStation) {
+            $targetStationIds = [$selectedStation->id];
+        } elseif ($selectedGarden && $selectedGarden->stations->count() > 0) {
+            $targetStationIds = $selectedGarden->stations->pluck('id')->toArray();
+        } else {
+            $targetStationIds = $stations->pluck('id')->toArray();
+        }
+
+        $startDate = Carbon::now()->subDays(29)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        $readings = SensorReading::whereIn('monitoring_station_id', $targetStationIds)
+            ->where('recorded_at', '>=', $startDate)
+            ->where('recorded_at', '<=', $endDate)
+            ->orderBy('recorded_at', 'asc')
+            ->get();
+
+        $headers = [
+            'STT',
+            'Thời gian',
+            'Trạm quan trắc',
+            'Mã trạm',
+            'Vùng trồng',
+            'Nhiệt độ khí (°C)',
+            'Độ ẩm khí (%)',
+            'Lượng mưa (mm)',
+            'Nhiệt độ đất (°C)',
+            'Độ ẩm đất (%)',
+            'pH đất',
+            'Gió (m/s)',
+            'Ánh sáng (lux)',
+        ];
+
+        $encode = function (string $value): string {
+            return '"' . str_replace('"', '""', $value) . '"';
+        };
+
+        $csv = "\xEF\xBB\xBF" . implode(',', array_map($encode, $headers)) . "\n";
+
+        $i = 1;
+        foreach ($readings as $r) {
+            $station = $stations->firstWhere('id', $r->monitoring_station_id);
+            $gardenName = $station?->garden->name ?? '-';
+            $vals = $this->extractReadingValues($r->data ?? []);
+
+            $row = [
+                $i++,
+                Carbon::parse($r->recorded_at)->format('d/m/Y H:i:s'),
+                $station->name ?? '-',
+                $station->code ?? '-',
+                $gardenName,
+                $vals['temp'] ?? '--',
+                $vals['humidity'] ?? '--',
+                $vals['rain'] ?? '--',
+                $vals['soil_temp'] ?? '--',
+                $vals['soil_moist'] ?? '--',
+                $vals['soil_ph'] ?? '--',
+                $vals['wind'] ?? '--',
+                $vals['light'] ?? '--',
+            ];
+
+            $csv .= implode(',', array_map(fn ($v) => $encode((string) $v), $row)) . "\n";
+        }
+
+        $fileName = 'lich-su-thoi-tiet-' . date('Ymd_His') . '.csv';
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
+
 
     /**
      * Bóc tách các chỉ số cảm biến từ gói JSON
@@ -304,7 +404,7 @@ class WeatherHistoryController extends Controller
                 elseif (str_contains($code, 'SOIL_MOIST')) $res['soil_moist'] = (float) $val;
                 elseif (str_contains($code, 'SOIL_PH') || $code === 'PH') $res['soil_ph'] = (float) $val;
                 elseif (str_contains($code, 'SOIL_TEMP')) $res['soil_temp'] = (float) $val;
-                elseif (str_contains($code, 'LIGHT') || $code === 'LUX') $res['light'] = (int) $val;
+                elseif (str_contains($code, 'LIGHT') || $code === 'LUX') $res['light'] = (int) ($val / 10);
                 elseif (str_contains($code, 'RAIN')) $res['rain'] = (float) $val;
                 elseif (str_contains($code, 'WIND')) $res['wind'] = (float) $val;
             }
@@ -316,7 +416,7 @@ class WeatherHistoryController extends Controller
         if (isset($data['humidity_air'])) $res['humidity'] = (float) $data['humidity_air'];
         if (isset($data['humidity'])) $res['humidity'] = (float) $data['humidity'];
         if (isset($data['rain'])) $res['rain'] = (float) $data['rain'];
-        if (isset($data['light'])) $res['light'] = (int) $data['light'];
+        if (isset($data['light'])) $res['light'] = (int) ($data['light'] / 10);
         if (isset($data['wind_speed'])) $res['wind'] = (float) $data['wind_speed'];
         if (isset($data['wind'])) $res['wind'] = (float) $data['wind'];
         if (isset($data['soil_ph'])) $res['soil_ph'] = (float) $data['soil_ph'];

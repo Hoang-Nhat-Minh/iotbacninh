@@ -86,6 +86,15 @@
                     </select>
                 </div>
             </form>
+
+            <!-- Nút xuất dữ liệu cảm biến -->
+            <a href="{{ route('iot.weather.export', [
+                'garden_id' => $selectedGarden?->id,
+                'station_id' => $selectedStation?->id,
+            ]) }}" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-download me-1"></i>
+                Xuất dữ liệu cảm biến
+            </a>
         </x-slot:actions>
     </x-page-header>
 

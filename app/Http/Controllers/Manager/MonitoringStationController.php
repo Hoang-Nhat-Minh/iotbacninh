@@ -527,7 +527,7 @@ class MonitoringStationController extends Controller
                     } elseif (str_contains($codeUpper, 'SOIL_TEMP')) {
                         $soilTemp = $reading->value;
                     } elseif (str_contains($codeUpper, 'LIGHT') || str_contains($codeUpper, 'LUX')) {
-                        $light = (int) $reading->value;
+                        $light = (int) ($reading->value / 10);
                     } elseif (str_contains($codeUpper, 'RAIN')) {
                         $rain = $reading->value;
                     } elseif (str_contains($codeUpper, 'WIND')) {
@@ -575,7 +575,7 @@ class MonitoringStationController extends Controller
                 elseif (str_contains($code, 'SOIL_MOIST')) $res['soil_moist'] = (float) $val;
                 elseif (str_contains($code, 'SOIL_PH') || $code === 'PH') $res['soil_ph'] = (float) $val;
                 elseif (str_contains($code, 'SOIL_TEMP')) $res['soil_temp'] = (float) $val;
-                elseif (str_contains($code, 'LIGHT') || $code === 'LUX') $res['light'] = (int) $val;
+                elseif (str_contains($code, 'LIGHT') || $code === 'LUX') $res['light'] = (int) ($val / 10);
                 elseif (str_contains($code, 'RAIN')) $res['rain'] = (float) $val;
                 elseif (str_contains($code, 'WIND')) $res['wind'] = (float) $val;
             }
@@ -587,7 +587,7 @@ class MonitoringStationController extends Controller
         if (isset($data['humidity_air'])) $res['humidity'] = (float) $data['humidity_air'];
         if (isset($data['humidity'])) $res['humidity'] = (float) $data['humidity'];
         if (isset($data['rain'])) $res['rain'] = (float) $data['rain'];
-        if (isset($data['light'])) $res['light'] = (int) $data['light'];
+        if (isset($data['light'])) $res['light'] = (int) ($data['light'] / 10);
         if (isset($data['wind_speed'])) $res['wind'] = (float) $data['wind_speed'];
         if (isset($data['wind'])) $res['wind'] = (float) $data['wind'];
         if (isset($data['soil_ph'])) $res['soil_ph'] = (float) $data['soil_ph'];
